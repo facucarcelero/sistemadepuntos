@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Encuesta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid #28a745;
+        }
+        .test-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #218838;
+        }
+        .log {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Sistema de Encuesta - Los Nogales</h1>
+    
+    <div class="test-section">
+        <h2>1. Verificar Estado del Sistema</h2>
+        <button class="test-button" onclick="checkSystemStatus()">Verificar Estado</button>
+        <div id="statusLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test de Autenticación</h2>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Email:</label>
+            <input type="email" id="testEmail" value="facucarcelero6@gmail.com" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #28a745; background: #333; color: white;">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Contraseña:</label>
+            <input type="password" id="testPassword" placeholder="Ingresa tu contraseña" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #28a745; background: #333; color: white;">
+        </div>
+        <button class="test-button" onclick="testLogin()">Test Login</button>
+        <button class="test-button" onclick="testLogout()">Test Logout</button>
+        <div id="authLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test de Puntos por Encuesta</h2>
+        <button class="test-button" onclick="testSurveyPoints()">Test Puntos Encuesta</button>
+        <button class="test-button" onclick="checkUserPoints()">Verificar Puntos</button>
+        <div id="pointsLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Completo de Encuesta</h2>
+        <button class="test-button" onclick="testCompleteSurvey()">Test Encuesta Completa</button>
+        <div id="surveyLog" class="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Loyalty API -->
+    <script src="loyalty-api.js"></script>
+    
+    <script>
+        function log(message, type = 'info', elementId) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById(elementId);
+            const colorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            logElement.innerHTML += `<span class="${colorClass}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        async function checkSystemStatus() {
+            const logElement = document.getElementById('statusLog');
+            logElement.innerHTML = '';
+            
+            log('=== Verificando Estado del Sistema ===', 'info', 'statusLog');
+            
+            // Verificar Firebase
+            log(`Firebase Auth disponible: ${!!firebase.auth}`, 'info', 'statusLog');
+            log(`Firestore disponible: ${!!firebase.firestore}`, 'info', 'statusLog');
+            
+            // Verificar LoyaltyAPI
+            log(`LoyaltyAPI disponible: ${!!window.LoyaltyAPI}`, 'info', 'statusLog');
+            
+            if (window.LoyaltyAPI) {
+                const currentUser = LoyaltyAPI.getCurrentUser();
+                const userData = LoyaltyAPI.getUserData();
+                const userPoints = LoyaltyAPI.getUserPoints();
+                
+                log(`Usuario actual: ${currentUser || 'No logueado'}`, 'info', 'statusLog');
+                log(`Datos de usuario: ${userData ? 'Cargados' : 'No cargados'}`, 'info', 'statusLog');
+                log(`Puntos actuales: ${userPoints}`, 'info', 'statusLog');
+            }
+        }
+
+        async function testLogin() {
+            const logElement = document.getElementById('authLog');
+            logElement.innerHTML = '';
+            
+            log('=== Test de Login ===', 'info', 'authLog');
+            
+            // Obtener credenciales de los campos de entrada
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            if (!email || !password) {
+                log('❌ Por favor ingresa email y contraseña', 'error', 'authLog');
+                return;
+            }
+            
+            try {
+                log(`Intentando login con: ${email}`, 'info', 'authLog');
+                const result = await LoyaltyAPI.loginUser(email, password);
+                log(`Resultado login: ${JSON.stringify(result)}`, result.success ? 'success' : 'error', 'authLog');
+                
+                if (result.success) {
+                    const userData = LoyaltyAPI.getUserData();
+                    log(`✅ Login exitoso!`, 'success', 'authLog');
+                    log(`Datos cargados: ${JSON.stringify(userData)}`, 'info', 'authLog');
+                } else {
+                    log(`❌ Login falló: ${result.message}`, 'error', 'authLog');
+                }
+            } catch (error) {
+                log(`Error en login: ${error.message}`, 'error', 'authLog');
+            }
+        }
+
+        async function testLogout() {
+            const logElement = document.getElementById('authLog');
+            
+            log('=== Test de Logout ===', 'info', 'authLog');
+            
+            try {
+                const result = await LoyaltyAPI.logoutUser();
+                log(`Resultado logout: ${JSON.stringify(result)}`, result.success ? 'success' : 'error', 'authLog');
+            } catch (error) {
+                log(`Error en logout: ${error.message}`, 'error', 'authLog');
+            }
+        }
+
+        async function testSurveyPoints() {
+            const logElement = document.getElementById('pointsLog');
+            logElement.innerHTML = '';
+            
+            log('=== Test de Puntos por Encuesta ===', 'info', 'pointsLog');
+            
+            try {
+                const result = await LoyaltyAPI.addSurveyPoints();
+                log(`Resultado addSurveyPoints: ${JSON.stringify(result)}`, result.success ? 'success' : 'error', 'pointsLog');
+                
+                if (result.success) {
+                    const newPoints = LoyaltyAPI.getUserPoints();
+                    log(`Nuevos puntos: ${newPoints}`, 'success', 'pointsLog');
+                }
+            } catch (error) {
+                log(`Error en addSurveyPoints: ${error.message}`, 'error', 'pointsLog');
+            }
+        }
+
+        async function checkUserPoints() {
+            const logElement = document.getElementById('pointsLog');
+            
+            log('=== Verificando Puntos del Usuario ===', 'info', 'pointsLog');
+            
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            const userData = LoyaltyAPI.getUserData();
+            const userPoints = LoyaltyAPI.getUserPoints();
+            
+            log(`Usuario: ${currentUser || 'No logueado'}`, 'info', 'pointsLog');
+            log(`Puntos: ${userPoints}`, 'info', 'pointsLog');
+            log(`Datos completos: ${JSON.stringify(userData)}`, 'info', 'pointsLog');
+        }
+
+        async function testCompleteSurvey() {
+            const logElement = document.getElementById('surveyLog');
+            logElement.innerHTML = '';
+            
+            log('=== Test Completo de Encuesta ===', 'info', 'surveyLog');
+            
+            // Simular datos de encuesta
+            const surveyData = {
+                customerName: 'Test User',
+                customerPhone: '264-123-4567',
+                waiterName: 'Carlos',
+                question1: '5',
+                question2: '4',
+                question3: '5',
+                comments: 'Test de encuesta'
+            };
+            
+            log(`Datos de encuesta: ${JSON.stringify(surveyData)}`, 'info', 'surveyLog');
+            
+            // Verificar usuario logueado
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            if (!currentUser) {
+                log('Usuario no logueado, no se pueden otorgar puntos', 'error', 'surveyLog');
+                return;
+            }
+            
+            // Simular envío de encuesta y otorgar puntos
+            try {
+                const result = await LoyaltyAPI.addSurveyPoints();
+                log(`Resultado de puntos: ${JSON.stringify(result)}`, result.success ? 'success' : 'error', 'surveyLog');
+                
+                if (result.success) {
+                    const newPoints = LoyaltyAPI.getUserPoints();
+                    log(`Puntos actualizados: ${newPoints}`, 'success', 'surveyLog');
+                }
+            } catch (error) {
+                log(`Error en encuesta: ${error.message}`, 'error', 'surveyLog');
+            }
+        }
+
+        // Auto-ejecutar verificación de estado al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                checkSystemStatus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

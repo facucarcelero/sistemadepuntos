@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Sistema de Fidelización Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
+    <link href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="loyalty-styles.css">
+    
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+            padding: 20px;
+            margin: -20px -20px 40px -20px;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .admin-title {
+            color: white;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .admin-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1em;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .admin-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            min-width: 200px;
+        }
+        
+        .filter-input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .users-table th {
+            background: rgba(40, 167, 69, 0.1);
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+        
+        .users-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            border-radius: 6px;
+        }
+        
+        .redemption-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+        
+        .status-validated {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loyalty-container">
+        <!-- Header de Administración -->
+        <div class="admin-header">
+            <h1 class="admin-title">Panel de Administración</h1>
+            <p class="admin-subtitle">Sistema de Fidelización - Parrilla Los Nogales</p>
+        </div>
+
+        <!-- Navegación de Admin -->
+        <nav class="loyalty-nav">
+            <button class="nav-button active" onclick="showAdminSection('overview')">
+                <i class="ph-chart-line"></i>
+                Resumen
+            </button>
+            <button class="nav-button" onclick="showAdminSection('users')">
+                <i class="ph-users"></i>
+                Usuarios
+            </button>
+            <button class="nav-button" onclick="showAdminSection('redemptions')">
+                <i class="ph-gift"></i>
+                Canjes
+            </button>
+            <button class="nav-button" onclick="showAdminSection('analytics')">
+                <i class="ph-chart-bar"></i>
+                Análisis
+            </button>
+            <button class="nav-button secondary" onclick="goToMainSystem()">
+                <i class="ph-arrow-left"></i>
+                Volver al Sistema
+            </button>
+            <button class="nav-button secondary" onclick="logout()">
+                <i class="ph-sign-out"></i>
+                Cerrar Sesión
+            </button>
+        </nav>
+
+        <!-- Sección de Login -->
+        <div class="loyalty-section active" id="loginSection">
+            <div class="form-container">
+                <div class="text-center mb-30">
+                    <h2>Acceso de Administrador</h2>
+                    <p class="text-secondary">Ingresa con tu cuenta de administrador</p>
+                </div>
+
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="adminEmail" placeholder="admin@losnogales.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-input" id="adminPassword" placeholder="Tu contraseña" required>
+                    </div>
+                    <button type="submit" class="form-button">
+                        <span id="adminLoginButtonText">Iniciar Sesión</span>
+                        <div class="loading hidden" id="adminLoginLoading"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sección de Resumen -->
+        <div class="loyalty-section" id="overviewSection">
+            <!-- Estadísticas Generales -->
+            <div class="stats-overview" id="statsOverview">
+                <!-- Las estadísticas se cargarán dinámicamente -->
+            </div>
+
+            <!-- Actividad Reciente -->
+            <div class="admin-section">
+                <h3 class="section-title">
+                    <i class="ph-clock"></i>
+                    Actividad Reciente
+                </h3>
+                <div class="transaction-list" id="recentActivity">
+                    <!-- La actividad reciente se cargará dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Canjes Pendientes -->
+            <div class="admin-section">
+                <h3 class="section-title">
+                    <i class="ph-warning"></i>
+                    Canjes Pendientes
+                </h3>
+                <div class="transaction-list" id="pendingRedemptions">
+                    <!-- Los canjes pendientes se cargarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Usuarios -->
+        <div class="loyalty-section" id="usersSection">
+            <div class="admin-section">
+                <h3 class="section-title">
+                    <i class="ph-users"></i>
+                    Gestión de Usuarios
+                </h3>
+
+                <!-- Filtros -->
+                <div class="user-filters">
+                    <input type="text" class="filter-input" id="userSearch" placeholder="Buscar por nombre o email...">
+                    <select class="filter-input" id="userSort">
+                        <option value="memberSince">Más recientes</option>
+                        <option value="points">Más puntos</option>
+                        <option value="name">Por nombre</option>
+                    </select>
+                    <button class="action-button" onclick="exportUsers()">
+                        <i class="ph-download"></i>
+                        Exportar
+                    </button>
+                </div>
+
+                <!-- Tabla de Usuarios -->
+                <div class="users-table" id="usersTable">
+                    <!-- La tabla se cargará dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Canjes -->
+        <div class="loyalty-section" id="redemptionsSection">
+            <div class="admin-section">
+                <h3 class="section-title">
+                    <i class="ph-gift"></i>
+                    Historial de Canjes
+                </h3>
+
+                <!-- Filtros -->
+                <div class="user-filters">
+                    <select class="filter-input" id="redemptionStatus">
+                        <option value="all">Todos los estados</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="validated">Validados</option>
+                    </select>
+                    <input type="date" class="filter-input" id="redemptionDate">
+                    <button class="action-button" onclick="exportRedemptions()">
+                        <i class="ph-download"></i>
+                        Exportar
+                    </button>
+                </div>
+
+                <!-- Tabla de Canjes -->
+                <div class="users-table" id="redemptionsTable">
+                    <!-- La tabla se cargará dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Análisis -->
+        <div class="loyalty-section" id="analyticsSection">
+            <!-- Gráfico de Puntos -->
+            <div class="chart-container">
+                <h3 class="section-title">
+                    <i class="ph-chart-line"></i>
+                    Evolución de Puntos
+                </h3>
+                <div class="chart-placeholder">
+                    <div class="text-center">
+                        <i class="ph-chart-line" style="font-size: 3em; margin-bottom: 15px;"></i>
+                        <p>Gráfico de evolución de puntos en el tiempo</p>
+                        <p class="text-secondary">(Se implementará con Chart.js)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Premios -->
+            <div class="chart-container">
+                <h3 class="section-title">
+                    <i class="ph-chart-pie"></i>
+                    Premios Más Populares
+                </h3>
+                <div class="chart-placeholder">
+                    <div class="text-center">
+                        <i class="ph-chart-pie" style="font-size: 3em; margin-bottom: 15px;"></i>
+                        <p>Distribución de premios canjeados</p>
+                        <p class="text-secondary">(Se implementará con Chart.js)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métricas de Engagement -->
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-number" id="avgPointsPerUser">0</div>
+                    <div class="stat-label">Promedio de puntos por usuario</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeUsers">0</div>
+                    <div class="stat-label">Usuarios activos (30 días)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="redemptionRate">0%</div>
+                    <div class="stat-label">Tasa de canje</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgTimeToRedeem">0</div>
+                    <div class="stat-label">Días promedio para canjear</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Modificación de Puntos -->
+    <div class="modal" id="modifyPointsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modificar Puntos</h3>
+                <button class="modal-close" onclick="closeModal('modifyPointsModal')">&times;</button>
+            </div>
+            
+            <form id="modifyPointsForm">
+                <div class="form-group">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" class="form-input" id="modifyUserName" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Actuales</label>
+                    <input type="number" class="form-input" id="modifyCurrentPoints" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos a Agregar/Quitar</label>
+                    <input type="number" class="form-input" id="modifyPointsAmount" placeholder="+10 o -5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Razón</label>
+                    <input type="text" class="form-input" id="modifyPointsReason" placeholder="Motivo del ajuste" required>
+                </div>
+                <button type="submit" class="form-button">
+                    <span id="modifyButtonText">Aplicar Cambio</span>
+                    <div class="loading hidden" id="modifyLoading"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles de Usuario -->
+    <div class="modal" id="userDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detalles del Usuario</h3>
+                <button class="modal-close" onclick="closeModal('userDetailsModal')">&times;</button>
+            </div>
+            
+            <div id="userDetailsContent">
+                <!-- Los detalles se cargarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="loyalty-api.js"></script>
+    <script>
+        // Variables globales
+        let currentAdminSection = 'overview';
+        let allUsers = [];
+        let allRedemptions = [];
+        let selectedUser = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAdminPanel();
+        });
+
+        // Función de inicialización
+        async function initializeAdminPanel() {
+            // Configurar listeners de formularios
+            setupAdminFormListeners();
+            
+            // Configurar función de callback para cambios de autenticación
+            window.onAuthStateChanged = handleAdminAuthStateChange;
+        }
+
+        // Configurar listeners de formularios
+        function setupAdminFormListeners() {
+            document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
+            document.getElementById('modifyPointsForm').addEventListener('submit', handleModifyPoints);
+        }
+
+        // Manejar cambios de estado de autenticación para admin
+        async function handleAdminAuthStateChange(isLoggedIn, user) {
+            if (isLoggedIn && user) {
+                // Verificar si es admin
+                const isAdminUser = await LoyaltyAPI.isAdmin(user.uid);
+                
+                if (isAdminUser) {
+                    // Cargar datos de administración
+                    await loadAdminData();
+                    showAdminSection('overview');
+                } else {
+                    // No es admin, mostrar mensaje y cerrar sesión
+                    showMessage('No tienes permisos de administrador', 'error');
+                    await LoyaltyAPI.logoutUser();
+                    showAdminSection('login');
+                }
+            } else {
+                // Mostrar formulario de login
+                showAdminSection('login');
+            }
+        }
+
+        // Cargar datos de administración
+        async function loadAdminData() {
+            await loadOverviewData();
+            await loadUsersData();
+            await loadRedemptionsData();
+            await loadAnalyticsData();
+        }
+
+        // Cargar datos del resumen
+        async function loadOverviewData() {
+            // Cargar estadísticas generales
+            const stats = await LoyaltyAPI.getProgramStats();
+            if (stats) {
+                document.getElementById('statsOverview').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalUsers}</div>
+                        <div class="stat-label">Usuarios Registrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalPointsEarned}</div>
+                        <div class="stat-label">Puntos Otorgados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalRedemptions}</div>
+                        <div class="stat-label">Premios Canjeados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.activePoints}</div>
+                        <div class="stat-label">Puntos Activos</div>
+                    </div>
+                `;
+            }
+
+            // Cargar actividad reciente
+            await loadRecentActivity();
+
+            // Cargar canjes pendientes
+            await loadPendingRedemptions();
+        }
+
+        // Cargar actividad reciente
+        async function loadRecentActivity() {
+            // Obtener las últimas transacciones de todos los usuarios
+            const recentTransactions = await getRecentTransactions();
+            const container = document.getElementById('recentActivity');
+            
+            if (recentTransactions.length === 0) {
+                container.innerHTML = '<div class="text-center p-20">No hay actividad reciente</div>';
+                return;
+            }
+            
+            container.innerHTML = recentTransactions.map(transaction => `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-description">${transaction.userName} - ${transaction.description}</div>
+                        <div class="transaction-date">${transaction.timestamp.toLocaleDateString()}</div>
+                    </div>
+                    <div class="transaction-points ${transaction.type}">
+                        ${transaction.points > 0 ? '+' : ''}${transaction.points}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Obtener transacciones recientes
+        async function getRecentTransactions() {
+            try {
+                const query = await firebase.firestore().collection('pointTransactions')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+            } catch (error) {
+                console.error('Error obteniendo transacciones recientes:', error);
+                return [];
+            }
+        }
+
+        // Cargar canjes pendientes
+        async function loadPendingRedemptions() {
+            const redemptions = await LoyaltyAPI.getPendingRedemptions();
+            const container = document.getElementById('pendingRedemptions');
+            
+            if (redemptions.length === 0) {
+                container.innerHTML = '<div class="text-center p-20">No hay canjes pendientes</div>';
+                return;
+            }
+            
+            container.innerHTML = redemptions.map(redemption => `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-description">${redemption.userName} - ${redemption.rewardName}</div>
+                        <div class="transaction-date">${redemption.redeemedAt.toLocaleDateString()}</div>
+                    </div>
+                    <div class="flex gap-10">
+                        <span class="redemption-status status-pending">Pendiente</span>
+                        <button class="action-button btn-small" onclick="validateRedemption('${redemption.id}')">
+                            <i class="ph-check"></i>
+                            Validar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Cargar datos de usuarios
+        async function loadUsersData() {
+            allUsers = await LoyaltyAPI.getAllUsers();
+            renderUsersTable(allUsers);
+        }
+
+        // Renderizar tabla de usuarios
+        function renderUsersTable(users) {
+            const table = document.getElementById('usersTable');
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Puntos</th>
+                            <th>Miembro desde</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phone || '-'}</td>
+                                <td>${user.points}</td>
+                                <td>${user.memberSince.toLocaleDateString()}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-button btn-small" onclick="showUserDetails('${user.id}')">
+                                            <i class="ph-eye"></i>
+                                            Ver
+                                        </button>
+                                        <button class="action-button btn-small secondary" onclick="showModifyPointsModal('${user.id}', '${user.name}', ${user.points})">
+                                            <i class="ph-plus"></i>
+                                            Puntos
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Cargar datos de canjes
+        async function loadRedemptionsData() {
+            allRedemptions = await getAllRedemptions();
+            renderRedemptionsTable(allRedemptions);
+        }
+
+        // Obtener todos los canjes
+        async function getAllRedemptions() {
+            try {
+                const query = await firebase.firestore().collection('redemptions')
+                    .orderBy('redeemedAt', 'desc')
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    redeemedAt: doc.data().redeemedAt.toDate(),
+                    validatedAt: doc.data().validatedAt ? doc.data().validatedAt.toDate() : null
+                }));
+            } catch (error) {
+                console.error('Error obteniendo canjes:', error);
+                return [];
+            }
+        }
+
+        // Renderizar tabla de canjes
+        function renderRedemptionsTable(redemptions) {
+            const table = document.getElementById('redemptionsTable');
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Premio</th>
+                            <th>Puntos</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${redemptions.map(redemption => `
+                            <tr>
+                                <td>${redemption.userName}</td>
+                                <td>${redemption.rewardName}</td>
+                                <td>${redemption.pointsCost}</td>
+                                <td>${redemption.redeemedAt.toLocaleDateString()}</td>
+                                <td>
+                                    <span class="redemption-status ${redemption.status === 'pending' ? 'status-pending' : 'status-validated'}">
+                                        ${redemption.status === 'pending' ? 'Pendiente' : 'Validado'}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${redemption.status === 'pending' ? `
+                                        <button class="action-button btn-small" onclick="validateRedemption('${redemption.id}')">
+                                            <i class="ph-check"></i>
+                                            Validar
+                                        </button>
+                                    ` : '-'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Cargar datos de análisis
+        async function loadAnalyticsData() {
+            // Calcular métricas de engagement
+            const avgPointsPerUser = allUsers.length > 0 ? 
+                Math.round(allUsers.reduce((sum, user) => sum + user.points, 0) / allUsers.length) : 0;
+            
+            const activeUsers = allUsers.filter(user => {
+                const lastVisit = user.lastDailyVisit ? new Date(user.lastDailyVisit.toDate()) : null;
+                return lastVisit && (new Date() - lastVisit) < 30 * 24 * 60 * 60 * 1000;
+            }).length;
+            
+            const redemptionRate = allUsers.length > 0 ? 
+                Math.round((allRedemptions.length / allUsers.length) * 100) : 0;
+            
+            // Actualizar métricas
+            document.getElementById('avgPointsPerUser').textContent = avgPointsPerUser;
+            document.getElementById('activeUsers').textContent = activeUsers;
+            document.getElementById('redemptionRate').textContent = redemptionRate + '%';
+            document.getElementById('avgTimeToRedeem').textContent = '15'; // Placeholder
+        }
+
+        // Funciones de navegación
+        function showAdminSection(sectionName) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.loyalty-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar sección seleccionada
+            document.getElementById(sectionName + 'Section').classList.add('active');
+            
+            // Actualizar navegación
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Marcar botón activo
+            const activeButton = Array.from(document.querySelectorAll('.nav-button')).find(button => 
+                button.getAttribute('onclick')?.includes(sectionName)
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            currentAdminSection = sectionName;
+        }
+
+        // Funciones de autenticación
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('adminLoginButtonText');
+            const loading = document.getElementById('adminLoginLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.loginUser(email, password);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+        }
+
+        // Funciones de gestión de usuarios
+        async function showUserDetails(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const modal = document.getElementById('userDetailsModal');
+            const content = document.getElementById('userDetailsContent');
+            
+            content.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-input" value="${user.name}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" value="${user.email}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-input" value="${user.phone || '-'}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Actuales</label>
+                    <input type="number" class="form-input" value="${user.points}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Totales Ganados</label>
+                    <input type="number" class="form-input" value="${user.totalPointsEarned || 0}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Totales Canjeados</label>
+                    <input type="number" class="form-input" value="${user.totalPointsRedeemed || 0}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Miembro desde</label>
+                    <input type="text" class="form-input" value="${user.memberSince.toLocaleDateString()}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código de Referido</label>
+                    <input type="text" class="form-input" value="${user.referralCode || '-'}" readonly>
+                </div>
+            `;
+            
+            showModal('userDetailsModal');
+        }
+
+        function showModifyPointsModal(userId, userName, currentPoints) {
+            selectedUser = { id: userId, name: userName, points: currentPoints };
+            
+            document.getElementById('modifyUserName').value = userName;
+            document.getElementById('modifyCurrentPoints').value = currentPoints;
+            document.getElementById('modifyPointsAmount').value = '';
+            document.getElementById('modifyPointsReason').value = '';
+            
+            showModal('modifyPointsModal');
+        }
+
+        async function handleModifyPoints(e) {
+            e.preventDefault();
+            
+            if (!selectedUser) return;
+            
+            const points = parseInt(document.getElementById('modifyPointsAmount').value);
+            const reason = document.getElementById('modifyPointsReason').value;
+            
+            if (!points || !reason) {
+                showMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('modifyButtonText');
+            const loading = document.getElementById('modifyLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.modifyUserPoints(selectedUser.id, points, reason);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('modifyPointsModal');
+                await loadUsersData();
+                await loadOverviewData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+            
+            selectedUser = null;
+        }
+
+        // Funciones de validación
+        async function validateRedemption(redemptionId) {
+            const result = await LoyaltyAPI.validateRedemption(redemptionId, LoyaltyAPI.getCurrentUser());
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                await loadOverviewData();
+                await loadRedemptionsData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        // Funciones de exportación
+        function exportUsers() {
+            const csvContent = generateUsersCSV(allUsers);
+            downloadCSV(csvContent, 'usuarios_los_nogales.csv');
+        }
+
+        function exportRedemptions() {
+            const csvContent = generateRedemptionsCSV(allRedemptions);
+            downloadCSV(csvContent, 'canjes_los_nogales.csv');
+        }
+
+        function generateUsersCSV(users) {
+            const headers = ['Nombre', 'Email', 'Teléfono', 'Puntos', 'Puntos Ganados', 'Puntos Canjeados', 'Miembro desde'];
+            const rows = users.map(user => [
+                user.name,
+                user.email,
+                user.phone || '',
+                user.points,
+                user.totalPointsEarned || 0,
+                user.totalPointsRedeemed || 0,
+                user.memberSince.toLocaleDateString()
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function generateRedemptionsCSV(redemptions) {
+            const headers = ['Usuario', 'Email', 'Premio', 'Puntos', 'Fecha', 'Estado'];
+            const rows = redemptions.map(redemption => [
+                redemption.userName,
+                redemption.userEmail,
+                redemption.rewardName,
+                redemption.pointsCost,
+                redemption.redeemedAt.toLocaleDateString(),
+                redemption.status
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Funciones de utilidad
+        function goToMainSystem() {
+            window.location.href = 'loyalty-system.html';
+        }
+
+        async function logout() {
+            const result = await LoyaltyAPI.logoutUser();
+            if (result.success) {
+                showMessage(result.message, 'success');
+                showAdminSection('login');
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        // Funciones de modales
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            
+            const container = document.querySelector('.loyalty-container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

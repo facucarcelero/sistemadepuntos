@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reglas completamente permisivas - SIN LÍMITES DE TIEMPO O USO
+    // Estas reglas permiten acceso total a todos los documentos
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+} 

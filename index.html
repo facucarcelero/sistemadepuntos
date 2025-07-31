@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Bienvenido a Parrilla Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
+            color: #F2F2F2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5))
+                    drop-shadow(0 0 8px rgba(255,255,255,0.2));
+        }
+
+        h1 {
+            font-size: clamp(2.5em, 8vw, 3.5em);
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #F2F2F2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: clamp(1.1em, 4vw, 1.3em);
+            margin-bottom: 20px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: clamp(1em, 4vw, 1.2em);
+            margin-bottom: 40px;
+            color: #A6A6A6;
+            line-height: 1.6;
+        }
+
+        .options {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ---- Estilo de cada Botón (actualizado con el nuevo color verde) ---- */
+        .option-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            /* Nuevo color verde oscuro, equivalente a Tailwind's green-700 */
+            background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+            border: none;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+        }
+
+        /* ---- Efecto al pasar el mouse o tocar el botón ---- */
+        .option-button:hover,
+        .option-button:focus {
+            /* Tono de verde más oscuro para el efecto, equivalente a green-800 */
+            background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(21, 128, 61, 0.4);
+            outline: none;
+        }
+
+        .button-icon {
+            font-size: 1.4em;
+        }
+
+        .contact-info {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-info h3 {
+            color: #28a745;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .contact-info p {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #A6A6A6;
+        }
+
+        .contact-buttons {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            color: #A6A6A6;
+        }
+
+        .phone-link {
+            color: #28a745;
+        }
+
+        .phone-link:hover {
+            color: #20c997;
+        }
+
+        .whatsapp-link {
+            color: #25d366;
+        }
+
+        .whatsapp-link:hover {
+            color: #1ea952;
+        }
+
+        .contact-icon {
+            font-size: 1em;
+        }
+
+        .contact-text {
+            font-size: 0.85em;
+        }
+
+        .address-link {
+            color: #28a745;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .address-link:hover {
+            color: #20c997;
+            border-bottom: 1px solid #20c997;
+        }
+
+        footer {
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container > * {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .container > *:nth-child(1) { animation-delay: 0.1s; }
+        .container > *:nth-child(2) { animation-delay: 0.2s; }
+        .container > *:nth-child(3) { animation-delay: 0.3s; }
+        .container > *:nth-child(4) { animation-delay: 0.4s; }
+        .container > *:nth-child(5) { animation-delay: 0.5s; }
+        .container > *:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Responsive mejorado para todas las pantallas */
+        
+        /* Pantallas muy pequeñas (móviles pequeños) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .logo {
+                width: 80px;
+                margin-bottom: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                line-height: 1.2;
+                margin-bottom: 8px;
+            }
+            
+            .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 15px;
+            }
+            
+            p {
+                font-size: 0.85em;
+                margin-bottom: 20px;
+                line-height: 1.4;
+            }
+            
+            .options {
+                max-width: 100%;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .option-button {
+                padding: 16px 12px;
+                font-size: 1em;
+                gap: 8px;
+                border-radius: 8px;
+                min-height: 56px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+            }
+            
+            .button-icon {
+                font-size: 1.3em;
+                min-width: 20px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+            
+            .contact-info {
+                margin-top: 20px;
+                padding: 12px;
+                border-radius: 8px;
+            }
+            
+            .contact-info h3 {
+                font-size: 0.95em;
+                margin-bottom: 8px;
+            }
+            
+            .contact-info p {
+                font-size: 0.8em;
+                margin-bottom: 4px;
+                line-height: 1.3;
+            }
+            
+            .contact-buttons {
+                gap: 6px;
+                margin-top: 10px;
+            }
+            
+            .contact-link {
+                font-size: 0.85em;
+                padding: 6px 10px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.05);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                min-height: 36px;
+            }
+            
+            .contact-icon {
+                font-size: 0.9em;
+                flex-shrink: 0;
+            }
+            
+            .contact-text {
+                font-size: 0.8em;
+                flex-shrink: 0;
+            }
+            
+            footer {
+                margin-top: 20px;
+                font-size: 0.8em;
+            }
+        }
+        
+        /* Tablets (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .logo {
+                width: 100px;
+            }
+            
+            .container {
+                max-width: 500px;
+            }
+            
+            .options {
+                max-width: 350px;
+            }
+            
+            .option-button {
+                padding: 18px 20px;
+                font-size: 1.15em;
+                gap: 12px;
+            }
+            
+            .button-icon {
+                font-size: 1.4em;
+                min-width: 24px;
+            }
+            
+            .contact-link {
+                padding: 10px 15px;
+                font-size: 0.9em;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        
+        /* Tablets grandes y pantallas medianas (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 550px;
+            }
+            
+            .logo {
+                width: 120px;
+            }
+        }
+        
+        /* Pantallas grandes (1025px - 1440px) */
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .container {
+                max-width: 650px;
+            }
+            
+            .logo {
+                width: 130px;
+            }
+            
+            .options {
+                max-width: 400px;
+            }
+        }
+        
+        /* Pantallas ultra-wide (más de 1440px) */
+        @media (min-width: 1441px) {
+            .container {
+                max-width: 700px;
+            }
+            
+            .logo {
+                width: 140px;
+            }
+            
+            h1 {
+                font-size: 4em;
+            }
+            
+            .subtitle {
+                font-size: 1.4em;
+            }
+            
+            p {
+                font-size: 1.3em;
+            }
+            
+            .options {
+                max-width: 450px;
+                gap: 25px;
+            }
+            
+            .option-button {
+                padding: 25px;
+                font-size: 1.3em;
+            }
+            
+            .contact-info {
+                padding: 25px;
+            }
+            
+            .contact-buttons {
+                gap: 10px;
+            }
+            
+            .contact-link {
+                font-size: 0.9em;
+            }
+            
+            .contact-text {
+                font-size: 0.95em;
+            }
+        }
+        
+        /* Orientación landscape en móviles */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                flex-direction: row;
+                gap: 30px;
+                align-items: center;
+                text-align: left;
+            }
+            
+            .logo {
+                width: 80px;
+                margin-bottom: 0;
+            }
+            
+            .options {
+                max-width: 300px;
+            }
+            
+            .option-button {
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+            
+            .button-icon {
+                font-size: 1.3em;
+            }
+        }
+        
+        /* Mejoras adicionales para móviles */
+        @media (max-width: 480px) {
+            .contact-link {
+                padding: 12px 16px !important;
+                font-size: 0.95em !important;
+                min-height: 48px !important;
+                border-radius: 10px !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+            }
+            
+            .contact-icon {
+                font-size: 1.1em !important;
+            }
+            
+            .contact-text {
+                font-size: 0.9em !important;
+            }
+            
+            .option-button {
+                min-height: 64px !important;
+            }
+            
+            .button-icon {
+                font-size: 1.6em !important;
+                min-width: 28px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <img src="./Logo/Logo Los Nogales.png" alt="Logo Parrilla Los Nogales" class="logo">
+        
+        <h1>Parrilla Los Nogales</h1>
+        <div class="subtitle">Sabor auténtico desde 1995</div>
+        <p>Bienvenido a nuestra parrilla, ¿qué te gustaría hacer hoy?</p>
+
+        <div class="options">
+            <!-- 
+                Recuerda cambiar el # por el enlace real a tu carta virtual.
+            -->
+            <a href="./carta.html" class="option-button">
+                <span class="button-icon">🍽️</span>
+                Ver Carta Virtual
+            </a>
+
+            <!-- 
+                Enlace de Reservas ya configurado.
+            -->
+            <a href="https://reservasdivididas.netlify.app/" class="option-button">
+                <span class="button-icon">📅</span>
+                Hacer una Reserva
+            </a>
+
+            <!-- Botón para crear encuestas - ACTUALIZADO -->
+            <button onclick="openSurveyModal()" class="option-button">
+                <span class="button-icon">📝</span>
+                Crear Encuesta
+            </button>
+
+            <!-- Sistema de Fidelización -->
+            <a href="./loyalty-system.html" class="option-button">
+                <span class="button-icon">🎁</span>
+                Programa de Fidelización
+            </a>
+
+            <!--  Generador de códigos QR dinámicos.       
+            <a href="./qr-generator.html" class="option-button">
+                <span class="button-icon">📱</span>
+                Generador de QR
+            </a> -->
+        </div>
+
+        <div class="contact-info">
+            <h3>📞 Información de Contacto</h3>
+            <div class="contact-buttons">
+                <a href="tel:2644333100" class="contact-link phone-link">
+                    <span class="contact-icon">📞</span>
+                    <span class="contact-text">Fijo: 2644333100</span>
+                </a>
+                <a href="https://wa.me/5492644593336?text=Hola! Me gustaría hacer una consulta sobre Parrilla Los Nogales" class="contact-link whatsapp-link">
+                    <span class="contact-icon">💬</span>
+                    <span class="contact-text">WhatsApp: +5492644593336</span>
+                </a>
+            </div>
+            <p>📍 <a href="https://maps.app.goo.gl/tWB9PnxP5TDP6ZEs5" target="_blank" rel="noopener noreferrer" class="address-link">Rastreador Calivar 491 (N)</a></p>
+            <p>🕒 <strong>Nuestros Horarios:</strong></p>
+            <p>🍽️ Almuerzo: Jueves a Domingo, 12:00-16:00 hs.</p>
+            <p>🌙 Cena: Lunes a Sábado, 20:00-01:00 hs.</p>
+        </div>
+
+        <footer>
+            &copy; <span id="current-year"></span> Parrilla Los Nogales - Todos los derechos reservados
+        </footer>
+    </div>
+
+    <!-- Modal para crear encuestas -->
+    <div id="surveyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 Crear Encuesta</h2>
+                <span class="close" onclick="closeSurveyModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Paso 1: Registro de contacto -->
+                <div id="contactStep" class="survey-step">
+                    <h3>📋 Registro de Contacto</h3>
+                    <p class="step-description">Primero necesitamos tus datos de contacto para personalizar tu experiencia.</p>
+                    
+                    <div class="form-group">
+                        <label for="customerName">Nombre Completo:</label>
+                        <input type="text" id="customerName" placeholder="Nombre de ejemplo" required>
+                        <div id="customerName-error" class="error-message">Por favor ingresa tu nombre completo.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Número de Contacto:</label>
+                        <input type="tel" id="customerPhone" placeholder="264-459-3336" required>
+                        <div id="customerPhone-error" class="error-message">Por favor ingresa un número de teléfono válido.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="waiterName">¿Qué Mozo Los Atendió?</label>
+                        <select id="waiterName" required>
+                            <option value="">Selecciona un mozo</option>
+                            <option value="Carlos">Carlos</option>
+                            <option value="Celeste">Celeste</option>
+                            <option value="German">German</option>
+                            <option value="Quito">Quito</option>
+                            <option value="Roberto">Roberto</option>
+                            <option value="Serafin">Serafin</option>
+                        </select>
+                        <div id="waiterName-error" class="error-message">Por favor selecciona qué mozo los atendió.</div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="closeSurveyModal()" class="btn btn-secondary">Cancelar</button>
+                        <button onclick="nextToSurvey()" class="btn btn-primary">Continuar a Encuesta</button>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Encuesta de satisfacción -->
+                <div id="surveyStep" class="survey-step" style="display: none;">
+                    <h3>📊 Encuesta de Satisfacción</h3>
+                    <p class="step-description">Ayúdanos a mejorar tu experiencia respondiendo estas preguntas.</p>
+                    
+                    <div class="form-group">
+                        <label for="question1">¿Cómo calificarías la calidad de nuestros platos?</label>
+                        <div class="rating-group">
+                            <input type="radio" id="q1_1" name="question1" value="1">
+                            <label for="q1_1">1 ⭐</label>
+                            <input type="radio" id="q1_2" name="question1" value="2">
+                            <label for="q1_2">2 ⭐⭐</label>
+                            <input type="radio" id="q1_3" name="question1" value="3">
+                            <label for="q1_3">3 ⭐⭐⭐</label>
+                            <input type="radio" id="q1_4" name="question1" value="4">
+                            <label for="q1_4">4 ⭐⭐⭐⭐</label>
+                            <input type="radio" id="q1_5" name="question1" value="5">
+                            <label for="q1_5">5 ⭐⭐⭐⭐⭐</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question2">¿Cómo calificarías el servicio y atención?</label>
+                        <div class="rating-group">
+                            <input type="radio" id="q2_1" name="question2" value="1">
+                            <label for="q2_1">1 ⭐</label>
+                            <input type="radio" id="q2_2" name="question2" value="2">
+                            <label for="q2_2">2 ⭐⭐</label>
+                            <input type="radio" id="q2_3" name="question2" value="3">
+                            <label for="q2_3">3 ⭐⭐⭐</label>
+                            <input type="radio" id="q2_4" name="question2" value="4">
+                            <label for="q2_4">4 ⭐⭐⭐⭐</label>
+                            <input type="radio" id="q2_5" name="question2" value="5">
+                            <label for="q2_5">5 ⭐⭐⭐⭐⭐</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question3">¿Recomendarías Parrilla Los Nogales a amigos y familia?</label>
+                        <div class="rating-group">
+                            <input type="radio" id="q3_1" name="question3" value="1">
+                            <label for="q3_1">1 ⭐</label>
+                            <input type="radio" id="q3_2" name="question3" value="2">
+                            <label for="q3_2">2 ⭐⭐</label>
+                            <input type="radio" id="q3_3" name="question3" value="3">
+                            <label for="q3_3">3 ⭐⭐⭐</label>
+                            <input type="radio" id="q3_4" name="question3" value="4">
+                            <label for="q3_4">4 ⭐⭐⭐⭐</label>
+                            <input type="radio" id="q3_5" name="question3" value="5">
+                            <label for="q3_5">5 ⭐⭐⭐⭐⭐</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comments">Comentarios adicionales (opcional):</label>
+                        <textarea id="comments" placeholder="Comparte tu experiencia, sugerencias o comentarios..."></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="previousStep()" class="btn btn-secondary">Atrás</button>
+                        <button onclick="submitSurvey()" class="btn btn-primary">Enviar Encuesta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de éxito -->
+    <div id="successModal" class="modal" style="display: none;">
+        <div class="modal-content success-modal">
+            <div class="modal-header success-header">
+                <h2>✅ ¡Encuesta Enviada!</h2>
+            </div>
+            <div class="modal-body success-body">
+                <div class="success-icon">🎉</div>
+                <p>Gracias por tu opinión</p>
+                <div id="pointsMessage" style="display: none; margin-top: 15px; padding: 10px; background: rgba(40, 167, 69, 0.1); border-radius: 8px; border: 1px solid rgba(40, 167, 69, 0.3);">
+                    <p style="color: #28a745; margin: 0; font-weight: 600;">🎁 ¡+20 puntos agregados a tu cuenta de fidelización!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Loyalty API -->
+    <script src="loyalty-api.js"></script>
+
+    <script>
+        // Actualizar el año automáticamente
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Verificar si viene del sistema de fidelización y abrir modal automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            const fromLoyaltySystem = localStorage.getItem('fromLoyaltySystem');
+            if (fromLoyaltySystem === 'true') {
+                // Limpiar la marca
+                localStorage.removeItem('fromLoyaltySystem');
+                // Abrir el modal de encuesta automáticamente
+                setTimeout(() => {
+                    openSurveyModal();
+                }, 500);
+            }
+        });
+
+        // Estilos para los modales
+        const modalStyles = `
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+                backdrop-filter: blur(5px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            .modal-content {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                margin: auto;
+                padding: 0;
+                border-radius: 15px;
+                width: 100%;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+                position: relative;
+                transform: scale(1);
+                transition: transform 0.3s ease;
+            }
+
+            .modal-header {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 15px 15px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .modal-header h2 {
+                margin: 0;
+                font-size: 1.5em;
+                font-weight: 600;
+            }
+
+            .close {
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.1);
+            }
+
+            .close:hover {
+                color: #f0f0f0;
+                transform: scale(1.1);
+                background: rgba(255,255,255,0.2);
+            }
+
+            .modal-body {
+                padding: 25px;
+                color: #F2F2F2;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: #28a745;
+                font-size: 1em;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid rgba(255,255,255,0.1);
+                border-radius: 8px;
+                background: rgba(255,255,255,0.05);
+                transition: all 0.3s ease;
+                color: #ffffff;
+            }
+
+            .form-group input::placeholder,
+            .form-group textarea::placeholder {
+                color: #ffffff;
+                opacity: 0.7;
+            }
+
+            .form-group select option {
+                background: #2d2d2d;
+                color: #ffffff;
+            }
+
+            .form-group select {
+                color: #ffffff;
+            }
+
+            .form-group select option:first-child {
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .form-group input.error,
+            .form-group textarea.error,
+            .form-group select.error {
+                border-color: #dc3545;
+                background: rgba(220, 53, 69, 0.1);
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            }
+
+            .form-group input.error:focus,
+            .form-group textarea.error:focus,
+            .form-group select.error:focus {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            }
+
+            .error-message {
+                color: #dc3545;
+                font-size: 0.85em;
+                margin-top: 5px;
+                display: none;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .error-message.show {
+                display: block;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+                color: #F2F2F2;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                box-sizing: border-box;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: #28a745;
+                background: rgba(255,255,255,0.1);
+                box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+            }
+
+            .form-group textarea {
+                resize: vertical;
+                min-height: 80px;
+                font-family: inherit;
+            }
+
+            .form-group select {
+                cursor: pointer;
+            }
+
+            .form-group select option {
+                background: #2d2d2d;
+                color: #F2F2F2;
+                padding: 8px;
+            }
+
+            .survey-step {
+                display: block;
+            }
+
+            .survey-step h3 {
+                color: #28a745;
+                font-size: 1.3em;
+                margin-bottom: 10px;
+                font-weight: 600;
+            }
+
+            .step-description {
+                color: #A6A6A6;
+                font-size: 0.95em;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+            .rating-group {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 8px;
+            }
+
+            .rating-group input[type="radio"] {
+                display: none;
+            }
+
+            .rating-group label {
+                display: inline-block;
+                padding: 8px 12px;
+                background: rgba(255,255,255,0.05);
+                border: 2px solid rgba(255,255,255,0.1);
+                border-radius: 6px;
+                color: #F2F2F2;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 14px;
+                min-width: 60px;
+                text-align: center;
+            }
+
+            .rating-group label:hover {
+                background: rgba(40, 167, 69, 0.2);
+                border-color: #28a745;
+            }
+
+            .rating-group input[type="radio"]:checked + label {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                border-color: #28a745;
+                color: white;
+                transform: scale(1.05);
+            }
+
+            /* Estilos para el modal de éxito */
+            .success-modal {
+                max-width: 400px;
+                text-align: center;
+            }
+
+            .success-header {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            }
+
+            .success-body {
+                padding: 30px 20px;
+                text-align: center;
+            }
+
+            .success-icon {
+                font-size: 4em;
+                margin-bottom: 15px;
+                animation: bounce 0.6s ease-in-out;
+            }
+
+            .success-body p {
+                font-size: 1.2em;
+                color: #F2F2F2;
+                margin: 0;
+            }
+
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% {
+                    transform: translateY(0);
+                }
+                40% {
+                    transform: translateY(-10px);
+                }
+                60% {
+                    transform: translateY(-5px);
+                }
+            }
+
+            .question-preview {
+                background: rgba(255,255,255,0.05);
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .question-preview p {
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+                margin-top: 25px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 14px;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #20c997 0%, #1ea952 100%);
+                transform: translateY(-2px);
+            }
+
+            .btn-secondary {
+                background: rgba(255,255,255,0.1);
+                color: #F2F2F2;
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+
+            .btn-secondary:hover {
+                background: rgba(255,255,255,0.2);
+            }
+
+            .btn-danger {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                color: white;
+            }
+
+            .btn-danger:hover {
+                background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            }
+
+            .survey-results {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .survey-item {
+                background: rgba(255,255,255,0.05);
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .survey-title {
+                color: #28a745;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            /* Estilos responsive para el modal */
+            @media (max-width: 768px) {
+                .modal {
+                    padding: 10px;
+                }
+                
+                .modal-content {
+                    max-width: 100%;
+                    max-height: 95vh;
+                    border-radius: 12px;
+                }
+                
+                .modal-header {
+                    padding: 15px;
+                    border-radius: 12px 12px 0 0;
+                }
+                
+                .modal-header h2 {
+                    font-size: 1.3em;
+                }
+                
+                .close {
+                    font-size: 24px;
+                    width: 28px;
+                    height: 28px;
+                }
+                
+                .modal-body {
+                    padding: 20px;
+                }
+                
+                .form-group {
+                    margin-bottom: 15px;
+                }
+                
+                .form-group label {
+                    font-size: 0.95em;
+                }
+                
+                .form-group input,
+                .form-group textarea,
+                .form-group select {
+                    padding: 12px;
+                    font-size: 16px; /* Evita zoom en iOS */
+                }
+                
+                .rating-group {
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                
+                .rating-group label {
+                    padding: 8px 12px;
+                    font-size: 14px;
+                    min-width: 55px;
+                    flex: 1;
+                    max-width: 80px;
+                }
+                
+                .question-preview {
+                    padding: 12px;
+                }
+                
+                .question-preview p {
+                    font-size: 13px;
+                }
+                
+                .modal-actions {
+                    flex-direction: column;
+                    gap: 10px;
+                    margin-top: 20px;
+                }
+                
+                .btn {
+                    padding: 14px 16px;
+                    font-size: 16px;
+                    width: 100%;
+                    min-height: 48px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .modal {
+                    padding: 5px;
+                }
+                
+                .modal-content {
+                    max-height: 95vh;
+                    border-radius: 8px;
+                    width: 95%;
+                    margin: 2.5% auto;
+                }
+                
+                .modal-header {
+                    padding: 10px 12px;
+                    border-radius: 8px 8px 0 0;
+                }
+                
+                .modal-header h2 {
+                    font-size: 1.1em;
+                    line-height: 1.2;
+                }
+                
+                .modal-body {
+                    padding: 12px;
+                    max-height: 70vh;
+                    overflow-y: auto;
+                }
+                
+                .form-group {
+                    margin-bottom: 12px;
+                }
+                
+                .form-group label {
+                    font-size: 0.9em;
+                    margin-bottom: 4px;
+                    display: block;
+                }
+                
+                .form-group input,
+                .form-group textarea,
+                .form-group select {
+                    padding: 8px 10px;
+                    font-size: 16px;
+                    border-radius: 6px;
+                    width: 100%;
+                }
+                
+                .rating-group {
+                    gap: 4px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    margin-top: 8px;
+                }
+                
+                .rating-group label {
+                    padding: 6px 8px;
+                    font-size: 12px;
+                    min-width: 45px;
+                    flex: 1;
+                    max-width: 60px;
+                    text-align: center;
+                    border-radius: 4px;
+                }
+                
+                .step-description {
+                    font-size: 0.85em;
+                    margin-bottom: 15px;
+                    color: #A6A6A6;
+                }
+                
+                .survey-step h3 {
+                    font-size: 1em;
+                    margin-bottom: 8px;
+                }
+                
+                .error-message {
+                    font-size: 0.8em;
+                    margin-top: 4px;
+                }
+                
+                .modal-actions {
+                    flex-direction: column;
+                    gap: 8px;
+                    margin-top: 15px;
+                }
+                
+                .btn {
+                    padding: 12px 16px;
+                    font-size: 16px;
+                    width: 100%;
+                    min-height: 44px;
+                    border-radius: 6px;
+                }
+                
+                .success-modal {
+                    width: 90%;
+                    max-width: 300px;
+                }
+                
+                .success-icon {
+                    font-size: 3em;
+                    margin-bottom: 10px;
+                }
+                
+                .success-body p {
+                    font-size: 1em;
+                    margin: 0;
+                }
+            }
+                
+                .question-preview {
+                    padding: 10px;
+                }
+                
+                .question-preview p {
+                    font-size: 12px;
+                }
+                
+                .btn {
+                    padding: 12px 16px;
+                    font-size: 16px;
+                    min-height: 44px;
+                }
+            }
+
+            @media (min-width: 769px) {
+                .modal-content {
+                    transform: scale(1);
+                }
+                
+                .modal-content:hover {
+                    transform: scale(1.02);
+                }
+            }
+            }
+
+            .survey-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .stat-item {
+                background: rgba(255,255,255,0.05);
+                padding: 10px;
+                border-radius: 6px;
+                text-align: center;
+            }
+
+            .stat-value {
+                font-size: 1.2em;
+                font-weight: 600;
+                color: #28a745;
+            }
+
+            .stat-label {
+                font-size: 0.8em;
+                color: #A6A6A6;
+            }
+
+            .responses-list {
+                max-height: 200px;
+                overflow-y: auto;
+            }
+
+            .response-item {
+                background: rgba(255,255,255,0.03);
+                padding: 10px;
+                margin-bottom: 8px;
+                border-radius: 6px;
+                border-left: 3px solid #28a745;
+            }
+
+            .response-date {
+                font-size: 0.8em;
+                color: #A6A6A6;
+                margin-bottom: 5px;
+            }
+
+            .response-data {
+                font-size: 0.9em;
+            }
+
+            @media (max-width: 768px) {
+                .modal-content {
+                    width: 95%;
+                    margin: 10% auto;
+                }
+                
+                .modal-actions {
+                    flex-direction: column;
+                }
+                
+                .survey-stats {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+        `;
+
+        // Agregar estilos al head
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = modalStyles;
+        document.head.appendChild(styleSheet);
+
+        // Funciones para el sistema de encuestas
+        function openSurveyModal() {
+            document.getElementById('surveyModal').style.display = 'block';
+            // Mostrar el primer paso (registro de contacto)
+            document.getElementById('contactStep').style.display = 'block';
+            document.getElementById('surveyStep').style.display = 'none';
+        }
+
+        function closeSurveyModal() {
+            document.getElementById('surveyModal').style.display = 'none';
+            // Resetear al primer paso
+            document.getElementById('contactStep').style.display = 'block';
+            document.getElementById('surveyStep').style.display = 'none';
+            
+            // Limpiar formulario
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('waiterName').value = '';
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => radio.checked = false);
+            document.getElementById('comments').value = '';
+            
+            // Limpiar errores
+            clearErrors();
+        }
+
+        function showSuccessModal() {
+            document.getElementById('successModal').style.display = 'block';
+            
+            // Verificar si el usuario está logueado para mostrar mensaje de puntos
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            const pointsMessage = document.getElementById('pointsMessage');
+            
+            if (currentUser) {
+                pointsMessage.style.display = 'block';
+                // Auto-cerrar después de 3 segundos si hay mensaje de puntos
+                setTimeout(() => {
+                    closeSuccessModal();
+                }, 3000);
+            } else {
+                pointsMessage.style.display = 'none';
+                // Auto-cerrar después de 1 segundo si no hay mensaje de puntos
+                setTimeout(() => {
+                    closeSuccessModal();
+                }, 1000);
+            }
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+
+        function nextToSurvey() {
+            // Limpiar errores previos
+            clearErrors();
+            
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const waiterName = document.getElementById('waiterName').value;
+            
+            let hasErrors = false;
+            
+            // Validar nombre
+            if (!customerName) {
+                showError('customerName', 'Por favor ingresa tu nombre completo.');
+                hasErrors = true;
+            }
+            
+            // Validar teléfono
+            if (!customerPhone) {
+                showError('customerPhone', 'Por favor ingresa tu número de teléfono.');
+                hasErrors = true;
+            } else {
+                // Validar formato de teléfono básico
+                const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+                if (!phoneRegex.test(customerPhone)) {
+                    showError('customerPhone', 'Por favor ingresa un número de teléfono válido.');
+                    hasErrors = true;
+                }
+            }
+            
+            // Validar mozo
+            if (!waiterName) {
+                showError('waiterName', 'Por favor selecciona qué mozo los atendió.');
+                hasErrors = true;
+            }
+            
+            // Si hay errores, no continuar
+            if (hasErrors) {
+                return;
+            }
+            
+            // Si todo está válido, continuar al siguiente paso
+            document.getElementById('contactStep').style.display = 'none';
+            document.getElementById('surveyStep').style.display = 'block';
+        }
+
+        function showError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + '-error');
+            
+            // Agregar clase de error al campo
+            field.classList.add('error');
+            
+            // Mostrar mensaje de error
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.add('show');
+            }
+            
+            // Enfocar el primer campo con error
+            if (!document.querySelector('.error')) {
+                field.focus();
+            }
+        }
+
+        function clearErrors() {
+            // Remover clases de error de todos los campos
+            const errorFields = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+            errorFields.forEach(field => {
+                field.classList.remove('error');
+            });
+            
+            // Ocultar todos los mensajes de error
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(message => {
+                message.classList.remove('show');
+            });
+        }
+
+        function previousStep() {
+            document.getElementById('surveyStep').style.display = 'none';
+            document.getElementById('contactStep').style.display = 'block';
+        }
+
+        function submitSurvey() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const waiterName = document.getElementById('waiterName').value;
+            const question1Element = document.querySelector('input[name="question1"]:checked');
+            const question2Element = document.querySelector('input[name="question2"]:checked');
+            const question3Element = document.querySelector('input[name="question3"]:checked');
+            const comments = document.getElementById('comments').value.trim();
+            
+            const question1 = question1Element ? question1Element.value : null;
+            const question2 = question2Element ? question2Element.value : null;
+            const question3 = question3Element ? question3Element.value : null;
+
+            if (!customerName || !customerPhone || !waiterName) {
+                alert('Por favor completa todos los campos del primer paso.');
+                return;
+            }
+
+            if (!question1 || !question2 || !question3) {
+                alert('Por favor completa todas las preguntas de la encuesta.');
+                return;
+            }
+
+            // Validar formato de teléfono básico
+            const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+            if (!phoneRegex.test(customerPhone)) {
+                alert('Por favor ingresa un número de teléfono válido.');
+                return;
+            }
+
+            const surveyId = 'survey_' + Date.now();
+            const surveyData = {
+                id: surveyId,
+                customerName: customerName,
+                customerPhone: customerPhone,
+                waiterName: waiterName,
+                question1: question1,
+                question2: question2,
+                question3: question3,
+                comments: comments,
+                createdAt: new Date().toISOString(),
+                ip: getClientIP(),
+                userAgent: navigator.userAgent,
+                deviceType: getDeviceType()
+            };
+
+            // Guardar datos de encuesta en localStorage
+            const existingSurveys = JSON.parse(localStorage.getItem('customerSurveys') || '[]');
+            existingSurveys.push(surveyData);
+            localStorage.setItem('customerSurveys', JSON.stringify(existingSurveys));
+            
+            // Verificar si el usuario está logueado en el sistema de fidelización
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            if (currentUser) {
+                // Otorgar puntos por completar la encuesta
+                LoyaltyAPI.addSurveyPoints().then(result => {
+                    if (result.success) {
+                        console.log('Puntos otorgados por encuesta:', result.message);
+                        // Actualizar el mensaje de éxito para mostrar los puntos
+                        const pointsMessage = document.getElementById('pointsMessage');
+                        if (pointsMessage) {
+                            pointsMessage.innerHTML = `<p style="color: #28a745; margin: 0; font-weight: 600;">🎁 ${result.message}</p>`;
+                        }
+                    } else {
+                        console.log('No se pudieron otorgar puntos:', result.message);
+                        // Mostrar mensaje de error en el modal
+                        const pointsMessage = document.getElementById('pointsMessage');
+                        if (pointsMessage) {
+                            pointsMessage.innerHTML = `<p style="color: #dc3545; margin: 0; font-weight: 600;">⚠️ ${result.message}</p>`;
+                        }
+                    }
+                }).catch(error => {
+                    console.error('Error otorgando puntos:', error);
+                });
+            }
+            
+            // Cerrar modal de encuesta
+            closeSurveyModal();
+            
+            // Mostrar modal de éxito
+            showSuccessModal();
+        }
+
+        function getClientIP() {
+            // Función para obtener IP del cliente (simulada)
+            // En producción, esto se haría desde el servidor
+            return 'IP registrada';
+        }
+
+        function getDeviceType() {
+            const userAgent = navigator.userAgent;
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+                return 'Móvil';
+            } else if (/Tablet|iPad/i.test(userAgent)) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        }
+
+
+
+
+
+        // Cerrar modales al hacer clic fuera de ellos
+        window.onclick = function(event) {
+            const surveyModal = document.getElementById('surveyModal');
+            const successModal = document.getElementById('successModal');
+            
+            if (event.target === surveyModal) {
+                closeSurveyModal();
+            }
+            
+            if (event.target === successModal) {
+                closeSuccessModal();
+            }
+        }
+    </script>
+</body>
+</html>

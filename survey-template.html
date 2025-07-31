@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta de Satisfacción</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
+            color: #F2F2F2;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .survey-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .survey-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .survey-title {
+            font-size: 1.8em;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .survey-description {
+            color: #A6A6A6;
+            font-size: 1.1em;
+        }
+
+        .question-group {
+            margin-bottom: 30px;
+        }
+
+        .question-label {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #F2F2F2;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #28a745;
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .textarea-field {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #F2F2F2;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .textarea-field:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #20c997 0%, #1ea952 100%);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 30px;
+            color: #28a745;
+            font-size: 1.2em;
+            display: none;
+            animation: successPulse 1s ease-in-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 768px) {
+            .survey-container {
+                padding: 20px;
+            }
+            
+            .survey-title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <div class="survey-header">
+            <h1 class="survey-title" id="surveyTitle">Encuesta de Satisfacción</h1>
+            <p class="survey-description" id="surveyDescription">Ayúdanos a mejorar tu experiencia</p>
+        </div>
+
+        <form id="surveyForm">
+            <div class="question-group">
+                <label class="question-label">1. ¿Cómo calificarías tu experiencia general?</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" name="experience" value="1" id="exp1" required>
+                        <label for="exp1">1 - Muy mala</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="experience" value="2" id="exp2">
+                        <label for="exp2">2 - Mala</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="experience" value="3" id="exp3">
+                        <label for="exp3">3 - Regular</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="experience" value="4" id="exp4">
+                        <label for="exp4">4 - Buena</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="experience" value="5" id="exp5">
+                        <label for="exp5">5 - Excelente</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label class="question-label">2. ¿Recomendarías nuestro servicio a otros?</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" name="recommendation" value="Definitivamente sí" id="rec1" required>
+                        <label for="rec1">Definitivamente sí</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="recommendation" value="Probablemente sí" id="rec2">
+                        <label for="rec2">Probablemente sí</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="recommendation" value="No estoy seguro" id="rec3">
+                        <label for="rec3">No estoy seguro</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="recommendation" value="Probablemente no" id="rec4">
+                        <label for="rec4">Probablemente no</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="recommendation" value="Definitivamente no" id="rec5">
+                        <label for="rec5">Definitivamente no</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label class="question-label">3. ¿Qué te gustaría que mejoremos?</label>
+                <textarea name="improvements" class="textarea-field" placeholder="Comparte tus sugerencias para mejorar nuestro servicio..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Enviar Encuesta</button>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">✅</div>
+            <h2>¡Encuesta Exitosa!</h2>
+            <p>Gracias por tu feedback</p>
+        </div>
+    </div>
+
+    <script>
+        // Cargar configuración de la encuesta desde localStorage
+        window.addEventListener('load', function() {
+            const surveyConfig = JSON.parse(localStorage.getItem('currentSurveyConfig') || '{}');
+            if (surveyConfig.title) {
+                document.getElementById('surveyTitle').textContent = surveyConfig.title;
+                document.title = surveyConfig.title;
+            }
+            if (surveyConfig.description) {
+                document.getElementById('surveyDescription').textContent = surveyConfig.description;
+            }
+        });
+
+        document.getElementById('surveyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            try {
+                // Obtener datos del formulario
+                const formData = new FormData(e.target);
+                const surveyData = {
+                    experience: formData.get('experience'),
+                    recommendation: formData.get('recommendation'),
+                    improvements: formData.get('improvements'),
+                    submittedAt: new Date().toISOString()
+                };
+                
+                // Obtener configuración de la encuesta
+                const surveyConfig = JSON.parse(localStorage.getItem('currentSurveyConfig') || '{}');
+                const surveyId = surveyConfig.id || 'default_survey';
+                
+                // Guardar respuesta individual
+                const existingResults = JSON.parse(localStorage.getItem('surveyResults_' + surveyId) || '[]');
+                existingResults.push(surveyData);
+                localStorage.setItem('surveyResults_' + surveyId, JSON.stringify(existingResults));
+                
+                // Guardar en resultados globales
+                const allResults = JSON.parse(localStorage.getItem('allSurveyResults') || '[]');
+                allResults.push({
+                    surveyId: surveyId,
+                    surveyTitle: surveyConfig.title || 'Encuesta de Satisfacción',
+                    ...surveyData
+                });
+                localStorage.setItem('allSurveyResults', JSON.stringify(allResults));
+                
+                // Mostrar mensaje de éxito con animación
+                document.getElementById('surveyForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Reiniciar formulario y cerrar después de 1 segundo
+                setTimeout(() => {
+                    // Reiniciar formulario
+                    document.getElementById('surveyForm').reset();
+                    document.getElementById('surveyForm').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                    
+                    // Cerrar ventana
+                    window.close();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error al guardar la encuesta:', error);
+                alert('Hubo un error al enviar la encuesta. Por favor, intenta de nuevo.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Encuesta';
+            }
+        });
+    </script>
+</body>
+</html> 

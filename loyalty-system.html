@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Fidelización - Parrilla Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
+    <link href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="loyalty-styles.css">
+</head>
+<body>
+    <div class="loyalty-container">
+        <!-- Header -->
+        <header class="loyalty-header">
+                            <img src="./Logo/Logo Los Nogales.png" alt="Los Nogales" class="loyalty-logo">
+            <h1 class="loyalty-title">Sistema de Fidelización</h1>
+            <p class="loyalty-subtitle">Parrilla Los Nogales</p>
+        </header>
+
+        <!-- Navegación -->
+        <nav class="loyalty-nav" id="loyaltyNav">
+            <button class="nav-button active" onclick="showSection('dashboard')">
+                <i class="ph-house"></i>
+                Dashboard
+            </button>
+            <button class="nav-button" onclick="showSection('rewards')">
+                <i class="ph-gift"></i>
+                Premios
+            </button>
+            <button class="nav-button" onclick="showSection('history')">
+                <i class="ph-clock"></i>
+                Historial
+            </button>
+            <button class="nav-button" onclick="showSection('profile')">
+                <i class="ph-user"></i>
+                Perfil
+            </button>
+            <button class="nav-button" id="adminButton" onclick="showSection('admin')" style="display: none;">
+                <i class="ph-gear"></i>
+                Administración
+            </button>
+            <button class="nav-button secondary" onclick="logout()">
+                <i class="ph-sign-out"></i>
+                Cerrar Sesión
+            </button>
+        </nav>
+
+        <!-- Sección de Login/Registro -->
+        <div class="loyalty-section active" id="authSection">
+            <div class="form-container">
+                <div class="text-center mb-30">
+                    <h2>Bienvenido al Programa de Fidelización</h2>
+                    <p class="text-secondary">Accede a tu cuenta o regístrate para comenzar</p>
+                </div>
+
+                <!-- Formulario de Login -->
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="Tu contraseña" required>
+                    </div>
+                    <button type="submit" class="form-button">
+                        <span id="loginButtonText">Iniciar Sesión</span>
+                        <div class="loading hidden" id="loginLoading"></div>
+                    </button>
+                </form>
+
+                                 <div class="text-center mt-20">
+                     <button class="action-button secondary" onclick="toggleAuthForm()">
+                         ¿No tienes cuenta? Regístrate
+                     </button>
+                 </div>
+                 
+                 <div class="text-center mt-10">
+                     <p class="text-secondary" style="font-size: 0.9em;">
+                         <i class="ph-info"></i>
+                         <strong>Importante:</strong> Los emails de verificación pueden ir a tu carpeta de spam. 
+                         Por favor revisa también esa carpeta.
+                     </p>
+                 </div>
+
+                <div class="text-center mt-10">
+                    <button class="action-button secondary" onclick="showResetPasswordModal()">
+                        ¿Olvidaste tu contraseña?
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="loyalty-section" id="dashboardSection">
+            <div class="dashboard-grid">
+                <!-- Tarjeta de Puntos -->
+                <div class="dashboard-card">
+                    <div class="points-display">
+                        <div class="points-number" id="currentPoints">0</div>
+                        <div class="points-label">Puntos Actuales</div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">0 / 50 puntos para el próximo premio</div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Acciones -->
+                <div class="dashboard-card">
+                    <h3 class="mb-20">Acciones Disponibles</h3>
+                    <div class="flex flex-col gap-10">
+                        <button class="action-button" onclick="claimDailyVisit()" id="dailyVisitButton">
+                            <i class="ph-check-circle"></i>
+                            Reclamar Visita Diaria (+10 pts)
+                        </button>
+                        <button class="action-button secondary" onclick="showReferralModal()">
+                            <i class="ph-users"></i>
+                            Invitar Amigos (+20 pts)
+                        </button>
+                        <button class="action-button secondary" onclick="showReviewModal()">
+                            <i class="ph-clipboard-text"></i>
+                            Completar Encuesta (+20 pts)
+                        </button>
+                        <button class="action-button secondary" onclick="showInstagramModal()">
+                            <i class="ph-instagram-logo"></i>
+                            Post en Instagram (+15 pts)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Estadísticas -->
+                <div class="dashboard-card">
+                    <h3 class="mb-20">Tu Actividad</h3>
+                    <div class="flex flex-col gap-15">
+                        <div class="flex justify-between">
+                            <span>Puntos Ganados:</span>
+                            <span id="totalEarned">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Puntos Canjeados:</span>
+                            <span id="totalRedeemed">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Premios Canjeados:</span>
+                            <span id="totalRedemptions">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Miembro desde:</span>
+                            <span id="memberSince">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premios -->
+        <div class="loyalty-section" id="rewardsSection">
+            <div class="text-center mb-30">
+                <h2>Premios Disponibles</h2>
+                <p class="text-secondary">Canjea tus puntos por increíbles recompensas</p>
+            </div>
+            
+            <div class="rewards-grid" id="rewardsGrid">
+                <!-- Los premios se cargarán dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="loyalty-section" id="historySection">
+            <div class="text-center mb-30">
+                <h2>Historial de Transacciones</h2>
+                <p class="text-secondary">Todas tus actividades y canjes</p>
+            </div>
+            
+            <div class="transaction-list" id="transactionList">
+                <!-- Las transacciones se cargarán dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Perfil -->
+        <div class="loyalty-section" id="profileSection">
+            <div class="form-container">
+                <h2 class="text-center mb-30">Mi Perfil</h2>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="profileEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-input" id="profilePhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Código de Referido</label>
+                        <input type="text" class="form-input" id="referralCode" readonly>
+                    </div>
+                    <button type="submit" class="form-button">
+                        <span id="profileButtonText">Actualizar Perfil</span>
+                        <div class="loading hidden" id="profileLoading"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel de Administración -->
+        <div class="loyalty-section" id="adminSection">
+            <div class="text-center mb-30">
+                <h2>Panel de Administración</h2>
+                <p class="text-secondary">Gestión del programa de fidelización</p>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="admin-grid" id="adminStats">
+                <!-- Las estadísticas se cargarán dinámicamente -->
+            </div>
+
+            <!-- Canjes Pendientes -->
+            <div class="mb-30">
+                <h3>Canjes Pendientes de Validación</h3>
+                <div class="transaction-list" id="pendingRedemptions">
+                    <!-- Los canjes pendientes se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Gestión de Usuarios -->
+            <div class="mb-30">
+                <h3>Gestión de Usuarios</h3>
+                <div class="users-table" id="usersTable">
+                    <!-- La tabla de usuarios se cargará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Crear Cuenta</h3>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" class="form-input" id="registerName" placeholder="Tu nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-input" id="registerPhone" placeholder="Tu número de teléfono" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código de Referido (Opcional)</label>
+                    <input type="text" class="form-input" id="registerReferral" placeholder="Código de un amigo">
+                </div>
+                <button type="submit" class="form-button">
+                    <span id="registerButtonText">Crear Cuenta</span>
+                    <div class="loading hidden" id="registerLoading"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Recuperación de Contraseña -->
+    <div class="modal" id="resetPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Recuperar Contraseña</h3>
+                <button class="modal-close" onclick="closeModal('resetPasswordModal')">&times;</button>
+            </div>
+            
+            <form id="resetPasswordForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="resetEmail" placeholder="tu@email.com" required>
+                </div>
+                <button type="submit" class="form-button">
+                    <span id="resetButtonText">Enviar Email de Recuperación</span>
+                    <div class="loading hidden" id="resetLoading"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Referidos -->
+    <div class="modal" id="referralModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Invitar Amigos</h3>
+                <button class="modal-close" onclick="closeModal('referralModal')">&times;</button>
+            </div>
+            
+            <div class="text-center mb-20">
+                <p>Comparte tu código de referido con amigos y ambos ganarán 20 puntos cuando se registren.</p>
+                <div class="form-group">
+                    <label class="form-label">Tu Código de Referido</label>
+                    <input type="text" class="form-input" id="shareReferralCode" readonly>
+                </div>
+                <button class="action-button" onclick="copyReferralCode()">
+                    <i class="ph-copy"></i>
+                    Copiar Código
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Reseña -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Completar Encuesta de Satisfacción</h3>
+                <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
+            </div>
+            
+            <div class="text-center mb-20">
+                <p>Completa nuestra encuesta de satisfacción y gana 20 puntos. Una vez que hayas completado la encuesta, haz clic en el botón para reclamar tus puntos.</p>
+                <button onclick="openSurveyFromLoyalty()" class="action-button">
+                    <i class="ph-clipboard-text"></i>
+                    Completar Encuesta
+                </button>
+                <button class="action-button secondary mt-20" onclick="claimReviewPoints()">
+                    <i class="ph-check-circle"></i>
+                    Reclamar Puntos por Encuesta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Instagram -->
+    <div class="modal" id="instagramModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Post en Instagram</h3>
+                <button class="modal-close" onclick="closeModal('instagramModal')">&times;</button>
+            </div>
+            
+            <div class="text-center mb-20">
+                <p>Comparte una foto de tu experiencia en Los Nogales en Instagram y gana 15 puntos. Etiqueta @losnogales y usa #LosNogales.</p>
+                <a href="https://instagram.com" target="_blank" class="action-button">
+                    <i class="ph-instagram-logo"></i>
+                    Ir a Instagram
+                </a>
+                <button class="action-button secondary mt-20" onclick="claimInstagramPoints()">
+                    <i class="ph-check-circle"></i>
+                    Reclamar Puntos por Post
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Canje -->
+    <div class="modal" id="redemptionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmar Canje</h3>
+                <button class="modal-close" onclick="closeModal('redemptionModal')">&times;</button>
+            </div>
+            
+            <div class="text-center mb-20">
+                <p id="redemptionMessage"></p>
+                <div class="flex gap-10 justify-center mt-20">
+                    <button class="action-button" onclick="confirmRedemption()">
+                        <i class="ph-check"></i>
+                        Confirmar
+                    </button>
+                    <button class="action-button secondary" onclick="closeModal('redemptionModal')">
+                        <i class="ph-x"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Encuesta de Satisfacción -->
+    <div class="modal" id="surveyModal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <!-- Paso 1: Registro de contacto -->
+                <div id="contactStep" class="survey-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h3>📋 Registro de Contacto</h3>
+                    </div>
+                    <p class="step-description">Primero necesitamos tus datos de contacto para personalizar tu experiencia y poder contactarte si es necesario.</p>
+                    
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="customerName">
+                                <i class="ph-user"></i>
+                                Nombre Completo
+                            </label>
+                            <input type="text" id="customerName" placeholder="Ej: Juan Pérez" required>
+                            <div id="customerName-error" class="error-message">Por favor ingresa tu nombre completo.</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customerPhone">
+                                <i class="ph-phone"></i>
+                                Número de Contacto
+                            </label>
+                            <input type="tel" id="customerPhone" placeholder="Ej: 264-459-3336" required>
+                            <div id="customerPhone-error" class="error-message">Por favor ingresa un número de teléfono válido.</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="waiterName">
+                                <i class="ph-users"></i>
+                                ¿Qué Mozo Los Atendió?
+                            </label>
+                            <select id="waiterName" required>
+                                <option value="">Selecciona un mozo</option>
+                                <option value="Carlos">👨‍💼 Carlos</option>
+                                <option value="Celeste">👩‍💼 Celeste</option>
+                                <option value="German">👨‍💼 German</option>
+                                <option value="Quito">👨‍💼 Quito</option>
+                                <option value="Roberto">👨‍💼 Roberto</option>
+                                <option value="Serafin">👨‍💼 Serafin</option>
+                            </select>
+                            <div id="waiterName-error" class="error-message">Por favor selecciona qué mozo los atendió.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="closeModal('surveyModal')" class="btn btn-secondary">
+                            <i class="ph-x"></i>
+                            Cancelar
+                        </button>
+                        <button onclick="nextToSurvey()" class="btn btn-primary">
+                            <i class="ph-arrow-right"></i>
+                            Continuar a Encuesta
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Encuesta de satisfacción -->
+                <div id="surveyStep" class="survey-step" style="display: none;">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h3>📊 Encuesta de Satisfacción</h3>
+                    </div>
+                    <p class="step-description">Ayúdanos a mejorar tu experiencia respondiendo estas preguntas. Tu opinión es muy valiosa para nosotros.</p>
+                    
+                    <div class="survey-questions">
+                        <div class="question-card">
+                            <div class="question-header">
+                                <i class="ph-fork-knife"></i>
+                                <h4>Calidad de Platos</h4>
+                            </div>
+                            <p>¿Cómo calificarías la calidad de nuestros platos?</p>
+                            <div class="rating-group">
+                                <input type="radio" id="q1_1" name="question1" value="1">
+                                <label for="q1_1">1 ⭐</label>
+                                <input type="radio" id="q1_2" name="question1" value="2">
+                                <label for="q1_2">2 ⭐⭐</label>
+                                <input type="radio" id="q1_3" name="question1" value="3">
+                                <label for="q1_3">3 ⭐⭐⭐</label>
+                                <input type="radio" id="q1_4" name="question1" value="4">
+                                <label for="q1_4">4 ⭐⭐⭐⭐</label>
+                                <input type="radio" id="q1_5" name="question1" value="5">
+                                <label for="q1_5">5 ⭐⭐⭐⭐⭐</label>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card">
+                            <div class="question-header">
+                                <i class="ph-handshake"></i>
+                                <h4>Servicio de Mozos</h4>
+                            </div>
+                            <p>¿Cómo calificarías el servicio de nuestros mozos?</p>
+                            <div class="rating-group">
+                                <input type="radio" id="q2_1" name="question2" value="1">
+                                <label for="q2_1">1 ⭐</label>
+                                <input type="radio" id="q2_2" name="question2" value="2">
+                                <label for="q2_2">2 ⭐⭐</label>
+                                <input type="radio" id="q2_3" name="question2" value="3">
+                                <label for="q2_3">3 ⭐⭐⭐</label>
+                                <input type="radio" id="q2_4" name="question2" value="4">
+                                <label for="q2_4">4 ⭐⭐⭐⭐</label>
+                                <input type="radio" id="q2_5" name="question2" value="5">
+                                <label for="q2_5">5 ⭐⭐⭐⭐⭐</label>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card">
+                            <div class="question-header">
+                                <i class="ph-buildings"></i>
+                                <h4>Limpieza y Ambiente</h4>
+                            </div>
+                            <p>¿Cómo calificarías la limpieza y ambiente del local?</p>
+                            <div class="rating-group">
+                                <input type="radio" id="q3_1" name="question3" value="1">
+                                <label for="q3_1">1 ⭐</label>
+                                <input type="radio" id="q3_2" name="question3" value="2">
+                                <label for="q3_2">2 ⭐⭐</label>
+                                <input type="radio" id="q3_3" name="question3" value="3">
+                                <label for="q3_3">3 ⭐⭐⭐</label>
+                                <input type="radio" id="q3_4" name="question3" value="4">
+                                <label for="q3_4">4 ⭐⭐⭐⭐</label>
+                                <input type="radio" id="q3_5" name="question3" value="5">
+                                <label for="q3_5">5 ⭐⭐⭐⭐⭐</label>
+                            </div>
+                        </div>
+                        
+                        <div class="question-card">
+                            <div class="question-header">
+                                <i class="ph-chat-circle-text"></i>
+                                <h4>Comentarios Adicionales</h4>
+                            </div>
+                            <p>Comparte tu experiencia, sugerencias o comentarios (opcional):</p>
+                            <textarea id="comments" placeholder="Cuéntanos sobre tu experiencia, qué te gustó más, qué podríamos mejorar..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="previousStep()" class="btn btn-secondary">
+                            <i class="ph-arrow-left"></i>
+                            Atrás
+                        </button>
+                        <button onclick="submitSurvey()" class="btn btn-primary">
+                            <i class="ph-paper-plane-right"></i>
+                            Enviar Encuesta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de éxito de encuesta -->
+    <div class="modal" id="surveySuccessModal">
+        <div class="modal-content success-modal">
+            <div class="modal-header success-header">
+                <h2>✅ ¡Encuesta Enviada!</h2>
+            </div>
+            <div class="modal-body success-body">
+                <div class="success-icon">🎉</div>
+                <p>Gracias por tu opinión</p>
+                <div id="surveyPointsMessage" style="display: none; margin-top: 15px; padding: 10px; background: rgba(40, 167, 69, 0.1); border-radius: 8px; border: 1px solid rgba(40, 167, 69, 0.3);">
+                    <p style="color: #28a745; margin: 0; font-weight: 600;">🎁 ¡+20 puntos agregados a tu cuenta de fidelización!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="loyalty-api.js"></script>
+    <script>
+        // Variables globales
+        let currentSection = 'auth';
+        let selectedReward = null;
+        let userIsAdmin = false;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLoyaltySystem();
+        });
+
+        // Función de inicialización
+        async function initializeLoyaltySystem() {
+            // Configurar listeners de formularios
+            setupFormListeners();
+            
+            // Configurar listener de Firebase Auth
+            firebase.auth().onAuthStateChanged(async function(user) {
+                if (user) {
+                    // Verificar si es admin
+                    userIsAdmin = await LoyaltyAPI.isAdmin(user.uid);
+                    
+                    // Mostrar/ocultar botón de admin
+                    const adminButton = document.getElementById('adminButton');
+                    if (adminButton) {
+                        adminButton.style.display = userIsAdmin ? 'inline-flex' : 'none';
+                    }
+                    
+                    // Cargar datos del usuario PASANDO EL USER.UID DIRECTAMENTE
+                    await loadUserData(user.uid);
+                    
+                    // Mostrar dashboard
+                    showSection('dashboard');
+                } else {
+                    // Mostrar formulario de login
+                    showSection('auth');
+                    resetUI();
+                }
+            });
+        }
+
+        // Configurar listeners de formularios
+        function setupFormListeners() {
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Registro
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            
+            // Reset password
+            document.getElementById('resetPasswordForm').addEventListener('submit', handleResetPassword);
+            
+            // Profile
+            document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
+        }
+
+        // Manejar cambios de estado de autenticación
+        async function handleAuthStateChange(isLoggedIn, user) {
+            if (isLoggedIn && user) {
+                // Verificar si es admin
+                userIsAdmin = await LoyaltyAPI.isAdmin(user.uid);
+                
+                // Mostrar/ocultar botón de admin
+                const adminButton = document.getElementById('adminButton');
+                adminButton.style.display = userIsAdmin ? 'inline-flex' : 'none';
+                
+                // Cargar datos del usuario
+                await loadUserData();
+                
+                // Mostrar dashboard
+                showSection('dashboard');
+            } else {
+                // Mostrar formulario de login
+                showSection('auth');
+                resetUI();
+            }
+        }
+
+        // Cargar datos del usuario
+        async function loadUserData(userId = null) {
+            // Si no se proporciona userId, intentar obtenerlo de LoyaltyAPI
+            if (!userId) {
+                userId = LoyaltyAPI.getCurrentUser();
+            }
+            
+            if (!userId) {
+                return;
+            }
+            
+            try {
+                const userData = await LoyaltyAPI.loadUserData(userId);
+                
+                if (!userData) {
+                    return;
+                }
+
+                // Actualizar puntos
+                document.getElementById('currentPoints').textContent = userData.points || 0;
+                document.getElementById('totalEarned').textContent = userData.totalPointsEarned || 0;
+                document.getElementById('totalRedeemed').textContent = userData.totalPointsRedeemed || 0;
+                document.getElementById('memberSince').textContent = userData.memberSince ? 
+                    new Date(userData.memberSince.toDate()).toLocaleDateString() : '-';
+
+                // Actualizar progreso
+                updateProgressBar();
+
+                // Actualizar botón de visita diaria
+                updateDailyVisitButton();
+
+                // Cargar premios
+                await loadRewards();
+
+                // Cargar historial
+                await loadTransactionHistory();
+
+                // Actualizar perfil
+                updateProfileForm();
+
+                // Si es admin, cargar datos de administración
+                if (userIsAdmin) {
+                    await loadAdminData();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando datos del usuario:', error);
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgressBar() {
+            const currentPoints = LoyaltyAPI.getUserPoints();
+            const rewards = [50, 100, 200, 300, 500];
+            
+            let nextReward = 50;
+            for (let reward of rewards) {
+                if (currentPoints < reward) {
+                    nextReward = reward;
+                    break;
+                }
+            }
+            
+            const progress = (currentPoints / nextReward) * 100;
+            document.getElementById('progressFill').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('progressText').textContent = 
+                `${currentPoints} / ${nextReward} puntos para el próximo premio`;
+        }
+
+        // Actualizar botón de visita diaria
+        function updateDailyVisitButton() {
+            const canClaim = LoyaltyAPI.canClaimDailyVisit();
+            const button = document.getElementById('dailyVisitButton');
+            
+            if (canClaim) {
+                button.innerHTML = '<i class="ph-check-circle"></i> Reclamar Visita Diaria (+10 pts)';
+                button.disabled = false;
+            } else {
+                button.innerHTML = '<i class="ph-clock"></i> Ya reclamaste hoy';
+                button.disabled = true;
+            }
+        }
+
+        // Cargar premios
+        async function loadRewards() {
+            const rewards = await LoyaltyAPI.getAvailableRewards();
+            const grid = document.getElementById('rewardsGrid');
+            const currentPoints = LoyaltyAPI.getUserPoints();
+            
+            grid.innerHTML = rewards.map(reward => `
+                <div class="reward-card">
+                    <div class="reward-icon">
+                        ${getRewardIcon(reward.id)}
+                    </div>
+                    <div class="reward-name">${reward.name}</div>
+                    <div class="reward-description">${reward.description}</div>
+                    <div class="reward-points">${reward.points} puntos</div>
+                    <button class="reward-button" 
+                            onclick="showRedemptionModal('${reward.id}', '${reward.name}', ${reward.points})"
+                            ${currentPoints < reward.points ? 'disabled' : ''}>
+                        ${currentPoints < reward.points ? 'Puntos Insuficientes' : 'Canjear'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Obtener icono del premio
+        function getRewardIcon(rewardId) {
+            const icons = {
+                'soda': '<i class="ph-cup-soda"></i>',
+                'entrada': '<i class="ph-cooking-pot"></i>',
+                'descuento': '<i class="ph-percent"></i>',
+                'vino': '<i class="ph-wine"></i>',
+                'parrillada': '<i class="ph-fire"></i>'
+            };
+            return icons[rewardId] || '<i class="ph-gift"></i>';
+        }
+
+        // Cargar historial de transacciones
+        async function loadTransactionHistory() {
+            try {
+                const transactions = await LoyaltyAPI.getTransactionHistory();
+                const list = document.getElementById('transactionList');
+                
+                if (!transactions || transactions.length === 0) {
+                    list.innerHTML = '<div class="text-center p-20">No hay transacciones para mostrar</div>';
+                    return;
+                }
+                
+                list.innerHTML = transactions.map(transaction => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-description">${transaction.description}</div>
+                            <div class="transaction-date">${transaction.timestamp.toLocaleDateString()}</div>
+                        </div>
+                        <div class="transaction-points ${transaction.type}">
+                            ${transaction.points > 0 ? '+' : ''}${transaction.points}
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('❌ Error cargando historial:', error);
+                const list = document.getElementById('transactionList');
+                list.innerHTML = '<div class="text-center p-20">Error al cargar el historial</div>';
+            }
+        }
+
+        // Actualizar formulario de perfil
+        function updateProfileForm() {
+            const userData = LoyaltyAPI.getUserData();
+            if (!userData) return;
+
+            document.getElementById('profileName').value = userData.name || '';
+            document.getElementById('profileEmail').value = userData.email || '';
+            document.getElementById('profilePhone').value = userData.phone || '';
+            document.getElementById('referralCode').value = userData.referralCode || '';
+        }
+
+        // Cargar datos de administración
+        async function loadAdminData() {
+            // Cargar estadísticas
+            const stats = await LoyaltyAPI.getProgramStats();
+            if (stats) {
+                document.getElementById('adminStats').innerHTML = `
+                    <div class="admin-card">
+                        <div class="admin-card-number">${stats.totalUsers}</div>
+                        <div class="admin-card-label">Usuarios Registrados</div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-number">${stats.totalPointsEarned}</div>
+                        <div class="admin-card-label">Puntos Otorgados</div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-number">${stats.totalRedemptions}</div>
+                        <div class="admin-card-label">Premios Canjeados</div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-number">${stats.activePoints}</div>
+                        <div class="admin-card-label">Puntos Activos</div>
+                    </div>
+                `;
+            }
+
+            // Cargar canjes pendientes
+            await loadPendingRedemptions();
+
+            // Cargar usuarios
+            await loadUsers();
+        }
+
+        // Cargar canjes pendientes
+        async function loadPendingRedemptions() {
+            const redemptions = await LoyaltyAPI.getPendingRedemptions();
+            const container = document.getElementById('pendingRedemptions');
+            
+            if (redemptions.length === 0) {
+                container.innerHTML = '<div class="text-center p-20">No hay canjes pendientes</div>';
+                return;
+            }
+            
+            container.innerHTML = redemptions.map(redemption => `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-description">${redemption.userName} - ${redemption.rewardName}</div>
+                        <div class="transaction-date">${redemption.redeemedAt.toLocaleDateString()}</div>
+                    </div>
+                    <div class="flex gap-10">
+                        <button class="action-button" onclick="validateRedemption('${redemption.id}')">
+                            <i class="ph-check"></i>
+                            Validar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Cargar usuarios
+        async function loadUsers() {
+            const users = await LoyaltyAPI.getAllUsers();
+            const table = document.getElementById('usersTable');
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Puntos</th>
+                            <th>Miembro desde</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.points}</td>
+                                <td>${user.memberSince.toLocaleDateString()}</td>
+                                <td>
+                                    <button class="action-button" onclick="showModifyPointsModal('${user.id}', '${user.name}')">
+                                        <i class="ph-plus"></i>
+                                        Modificar Puntos
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Funciones de navegación
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.loyalty-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar sección seleccionada
+            document.getElementById(sectionName + 'Section').classList.add('active');
+            
+            // Actualizar navegación
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Marcar botón activo
+            const activeButton = Array.from(document.querySelectorAll('.nav-button')).find(button => 
+                button.getAttribute('onclick')?.includes(sectionName)
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            currentSection = sectionName;
+        }
+
+        // Funciones de autenticación
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('Por favor completa todos los campos.', 'error');
+                return;
+            }
+            
+            try {
+                const result = await LoyaltyAPI.loginUser(email, password);
+                
+                if (result.success) {
+                    showMessage('Inicio de sesión exitoso.', 'success');
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error al iniciar sesión.', 'error');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            const referral = document.getElementById('registerReferral').value;
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('registerButtonText');
+            const loading = document.getElementById('registerLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.registerUser(email, password, name, phone);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('registerModal');
+                
+                // Si hay código de referido, procesarlo
+                if (referral) {
+                    // Aquí se procesaría el código de referido
+                    // Por simplicidad, no lo implementamos en esta versión
+                }
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('resetEmail').value;
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('resetButtonText');
+            const loading = document.getElementById('resetLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.resetPassword(email);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('resetPasswordModal');
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('profileName').value;
+            const phone = document.getElementById('profilePhone').value;
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('profileButtonText');
+            const loading = document.getElementById('profileLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            // Aquí se actualizaría el perfil en Firebase
+            // Por simplicidad, solo mostramos un mensaje de éxito
+            showMessage('Perfil actualizado exitosamente', 'success');
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+        }
+
+        // Funciones de puntos
+        async function claimDailyVisit() {
+            const result = await LoyaltyAPI.claimDailyVisit();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                await loadUserData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        async function claimReviewPoints() {
+            const result = await LoyaltyAPI.addSurveyPoints();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('reviewModal');
+                await loadUserData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        async function claimInstagramPoints() {
+            const result = await LoyaltyAPI.addInstagramPostPoints();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('instagramModal');
+                await loadUserData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        // Funciones de premios
+        function showRedemptionModal(rewardId, rewardName, pointsCost) {
+            selectedReward = { id: rewardId, name: rewardName, points: pointsCost };
+            document.getElementById('redemptionMessage').textContent = 
+                `¿Estás seguro de que quieres canjear "${rewardName}" por ${pointsCost} puntos?`;
+            showModal('redemptionModal');
+        }
+
+        async function confirmRedemption() {
+            if (!selectedReward) return;
+            
+            const result = await LoyaltyAPI.redeemReward(
+                selectedReward.id, 
+                selectedReward.name, 
+                selectedReward.points
+            );
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('redemptionModal');
+                await loadUserData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            selectedReward = null;
+        }
+
+        // Funciones de administración
+        async function validateRedemption(redemptionId) {
+            const result = await LoyaltyAPI.validateRedemption(redemptionId, LoyaltyAPI.getCurrentUser());
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                await loadAdminData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        // Funciones de utilidad
+        function toggleAuthForm() {
+            showModal('registerModal');
+        }
+
+        function showResetPasswordModal() {
+            showModal('resetPasswordModal');
+        }
+
+        function showReferralModal() {
+            const userData = LoyaltyAPI.getUserData();
+            if (userData && userData.referralCode) {
+                document.getElementById('shareReferralCode').value = userData.referralCode;
+                showModal('referralModal');
+            }
+        }
+
+        function showReviewModal() {
+            showModal('reviewModal');
+        }
+
+        function showInstagramModal() {
+            showModal('instagramModal');
+        }
+
+        function copyReferralCode() {
+            const code = document.getElementById('shareReferralCode');
+            code.select();
+            document.execCommand('copy');
+            showMessage('Código copiado al portapapeles', 'success');
+        }
+
+        // Manejar logout
+        async function logout() {
+            try {
+                const result = await LoyaltyAPI.logoutUser();
+                
+                if (result.success) {
+                    showMessage('Sesión cerrada exitosamente.', 'success');
+                } else {
+                    showMessage('Error al cerrar sesión.', 'error');
+                }
+            } catch (error) {
+                showMessage('Error al cerrar sesión.', 'error');
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('currentPoints').textContent = '0';
+            document.getElementById('totalEarned').textContent = '0';
+            document.getElementById('totalRedeemed').textContent = '0';
+            document.getElementById('memberSince').textContent = '-';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressText').textContent = '0 / 50 puntos para el próximo premio';
+        }
+
+        // Funciones de modales
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Cerrar modal de éxito de encuesta al hacer clic fuera
+            const surveySuccessModal = document.getElementById('surveySuccessModal');
+            if (event.target === surveySuccessModal) {
+                closeSurveySuccessModal();
+            }
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            // Crear elemento de mensaje
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            
+            // Insertar al inicio del contenedor
+            const container = document.querySelector('.loyalty-container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+
+        // Función para abrir la encuesta desde el sistema de fidelización
+        function openSurveyFromLoyalty() {
+            // Cerrar el modal actual
+            closeModal('reviewModal');
+            
+            // Abrir el modal de encuesta directamente
+            showModal('surveyModal');
+        }
+
+        // Funciones para el modal de encuesta
+        function nextToSurvey() {
+            // Limpiar errores previos
+            clearSurveyErrors();
+            
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const waiterName = document.getElementById('waiterName').value;
+            
+            let hasErrors = false;
+            
+            // Validar nombre
+            if (!customerName) {
+                showSurveyError('customerName', 'Por favor ingresa tu nombre completo.');
+                hasErrors = true;
+            }
+            
+            // Validar teléfono
+            if (!customerPhone) {
+                showSurveyError('customerPhone', 'Por favor ingresa tu número de teléfono.');
+                hasErrors = true;
+            } else {
+                // Validar formato de teléfono básico
+                const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+                if (!phoneRegex.test(customerPhone)) {
+                    showSurveyError('customerPhone', 'Por favor ingresa un número de teléfono válido.');
+                    hasErrors = true;
+                }
+            }
+            
+            // Validar mozo
+            if (!waiterName) {
+                showSurveyError('waiterName', 'Por favor selecciona qué mozo los atendió.');
+                hasErrors = true;
+            }
+            
+            // Si hay errores, no continuar
+            if (hasErrors) {
+                return;
+            }
+            
+            // Si todo está válido, continuar al siguiente paso
+            document.getElementById('contactStep').style.display = 'none';
+            document.getElementById('surveyStep').style.display = 'block';
+        }
+
+        function previousStep() {
+            document.getElementById('surveyStep').style.display = 'none';
+            document.getElementById('contactStep').style.display = 'block';
+        }
+
+        function submitSurvey() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const waiterName = document.getElementById('waiterName').value;
+            const question1Element = document.querySelector('input[name="question1"]:checked');
+            const question2Element = document.querySelector('input[name="question2"]:checked');
+            const question3Element = document.querySelector('input[name="question3"]:checked');
+            const comments = document.getElementById('comments').value.trim();
+            
+            const question1 = question1Element ? question1Element.value : null;
+            const question2 = question2Element ? question2Element.value : null;
+            const question3 = question3Element ? question3Element.value : null;
+
+            if (!customerName || !customerPhone || !waiterName) {
+                alert('Por favor completa todos los campos del primer paso.');
+                return;
+            }
+
+            if (!question1 || !question2 || !question3) {
+                alert('Por favor completa todas las preguntas de la encuesta.');
+                return;
+            }
+
+            // Validar formato de teléfono básico
+            const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+            if (!phoneRegex.test(customerPhone)) {
+                alert('Por favor ingresa un número de teléfono válido.');
+                return;
+            }
+
+            const surveyId = 'survey_' + Date.now();
+            const surveyData = {
+                id: surveyId,
+                customerName: customerName,
+                customerPhone: customerPhone,
+                waiterName: waiterName,
+                question1: question1,
+                question2: question2,
+                question3: question3,
+                comments: comments,
+                createdAt: new Date().toISOString(),
+                ip: getClientIP(),
+                userAgent: navigator.userAgent,
+                deviceType: getDeviceType()
+            };
+
+            // Guardar datos de encuesta en localStorage
+            const existingSurveys = JSON.parse(localStorage.getItem('customerSurveys') || '[]');
+            existingSurveys.push(surveyData);
+            localStorage.setItem('customerSurveys', JSON.stringify(existingSurveys));
+            
+            // Verificar si el usuario está logueado en el sistema de fidelización
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            
+            if (currentUser) {
+                // Otorgar puntos por completar la encuesta
+                LoyaltyAPI.addSurveyPoints().then(result => {
+                    if (result.success) {
+                        // Mostrar mensaje de puntos en el modal de éxito
+                        const pointsMessage = document.getElementById('surveyPointsMessage');
+                        if (pointsMessage) {
+                            pointsMessage.innerHTML = `<p style="color: #28a745; margin: 0; font-weight: 600;">🎁 ${result.message}</p>`;
+                            pointsMessage.style.display = 'block';
+                        }
+                        // Actualizar los datos del usuario en la interfaz
+                        setTimeout(() => {
+                            loadUserData();
+                        }, 500);
+                    } else {
+                        // Mostrar mensaje de error en el modal
+                        const pointsMessage = document.getElementById('surveyPointsMessage');
+                        if (pointsMessage) {
+                            pointsMessage.innerHTML = `<p style="color: #dc3545; margin: 0; font-weight: 600;">⚠️ ${result.message}</p>`;
+                            pointsMessage.style.display = 'block';
+                        }
+                    }
+                }).catch(error => {
+                    console.error('Error otorgando puntos:', error);
+                    // Mostrar mensaje de error en el modal
+                    const pointsMessage = document.getElementById('surveyPointsMessage');
+                    if (pointsMessage) {
+                        pointsMessage.innerHTML = `<p style="color: #dc3545; margin: 0; font-weight: 600;">⚠️ Error al otorgar puntos</p>`;
+                        pointsMessage.style.display = 'block';
+                    }
+                });
+            } else {
+                // Mostrar mensaje de que no se otorgan puntos
+                const pointsMessage = document.getElementById('surveyPointsMessage');
+                if (pointsMessage) {
+                    pointsMessage.innerHTML = `<p style="color: #ffc107; margin: 0; font-weight: 600;">ℹ️ Inicia sesión para ganar puntos</p>`;
+                    pointsMessage.style.display = 'block';
+                }
+            }
+            
+            // Cerrar modal de encuesta
+            closeModal('surveyModal');
+            
+            // Mostrar modal de éxito
+            showSurveySuccessModal();
+        }
+
+        function showSurveySuccessModal() {
+            document.getElementById('surveySuccessModal').style.display = 'block';
+            
+            // Verificar si el usuario está logueado para mostrar mensaje de puntos
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            const pointsMessage = document.getElementById('surveyPointsMessage');
+            
+            if (currentUser) {
+                pointsMessage.style.display = 'block';
+                // Auto-cerrar después de 3 segundos si hay mensaje de puntos
+                setTimeout(() => {
+                    closeSurveySuccessModal();
+                }, 3000);
+            } else {
+                pointsMessage.style.display = 'none';
+                // Auto-cerrar después de 1 segundo si no hay mensaje de puntos
+                setTimeout(() => {
+                    closeSurveySuccessModal();
+                }, 1000);
+            }
+        }
+
+        function closeSurveySuccessModal() {
+            document.getElementById('surveySuccessModal').style.display = 'none';
+        }
+
+        function showSurveyError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + '-error');
+            
+            // Agregar clase de error al campo
+            field.classList.add('error');
+            
+            // Mostrar mensaje de error
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.add('show');
+            }
+            
+            // Enfocar el primer campo con error
+            if (!document.querySelector('.error')) {
+                field.focus();
+            }
+        }
+
+        function clearSurveyErrors() {
+            // Remover clases de error de todos los campos
+            const errorFields = document.querySelectorAll('#surveyModal .form-group input, #surveyModal .form-group select, #surveyModal .form-group textarea');
+            errorFields.forEach(field => {
+                field.classList.remove('error');
+            });
+            
+            // Ocultar todos los mensajes de error
+            const errorMessages = document.querySelectorAll('#surveyModal .error-message');
+            errorMessages.forEach(message => {
+                message.classList.remove('show');
+            });
+        }
+
+        function getClientIP() {
+            // Función para obtener IP del cliente (simulada)
+            return 'IP registrada';
+        }
+
+        function getDeviceType() {
+            const userAgent = navigator.userAgent;
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+                return 'Móvil';
+            } else if (/Tablet|iPad/i.test(userAgent)) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        }
+    </script>
+</body>
+</html> 
