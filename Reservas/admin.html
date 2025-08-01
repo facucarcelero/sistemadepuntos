@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Parrilla Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="/public/Logo/favicon.ico">
+    <link rel="manifest" href="/public/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Librerías para exportar y generar PDF -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Hacer jsPDF disponible globalmente
+        window.jspdf = window.jspdf || {};
+        window.jspdf.jsPDF = window.jspdf.jsPDF || window.jsPDF;
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .logo-font { font-family: 'Lora', serif; }
+        .hidden { display: none; }
+        .action-button i { pointer-events: none; }
+        html, body, #admin-view, .container {
+            height: 100%;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        #admin-view {
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+        .container {
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        #admin-panel-container {
+            min-height: 60vh;
+            overflow-y: auto;
+        }
+        .reservations-table-wrapper {
+            min-height: 300px;
+            max-height: 60vh;
+            overflow: hidden;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .reservations-table-wrapper .overflow-y-auto {
+            overflow-y: auto;
+            max-height: calc(60vh - 80px);
+        }
+        #reservationsTable {
+            min-width: 700px;
+        }
+        @media (max-width: 767px) {
+            #reservationsTable { display: none !important; }
+            #reservasCardsMobile { display: block !important; overflow-y: visible; max-height: none; min-height: 200px; }
+            #admin-view > .container { padding: 0.5rem !important; }
+            .actions-cell {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                justify-content: center;
+            }
+            .reservations-table-wrapper {
+                min-height: 200px;
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+        @media (min-width: 768px) {
+            #reservationsTable { display: table !important; }
+            #reservasCardsMobile { display: none !important; }
+        }
+        #reservasCardsMobile {
+          display: block !important;
+          overflow-y: visible;
+          max-height: none;
+          min-height: 200px;
+        }
+        
+        /* Estilos específicos para móviles */
+        @media (max-width: 767px) {
+            .container { padding: 0.5rem !important; }
+            
+            /* Ajustar botones en móvil */
+            .grid.grid-cols-1.sm\\:grid-cols-3 {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            /* Hacer botones más grandes en móvil */
+            .grid.grid-cols-1.sm\\:grid-cols-3 button {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Ajustar indicador de rol en móvil */
+            #role-indicator {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            /* Ajustar header en móvil */
+            .mb-8.flex.flex-col.sm\\:flex-row.items-center.justify-between.gap-4 {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            /* Contenedor de botones en móvil */
+            .flex.items-center.gap-3 {
+                justify-content: center;
+                gap: 0.5rem;
+            }
+        }
+        #admin-login-modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(75, 85, 99, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        #admin-login-modal.flex { display: flex; }
+        #admin-login-modal.hidden { display: none; }
+        
+        /* Animación para el botón de forzar actualización */
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Animaciones para modales */
+        .animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out;
+        }
+        
+        .animate-pop {
+            animation: pop 0.3s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Estilos para control de roles */
+        .admin-only {
+            display: none;
+        }
+        
+        .observer-only {
+            display: none;
+        }
+        
+        /* Cuando el usuario es admin, mostrar elementos admin-only */
+        body.admin-mode .admin-only {
+            display: block;
+        }
+        
+        body.admin-mode .admin-only.inline {
+            display: inline;
+        }
+        
+        body.admin-mode .admin-only.flex {
+            display: flex;
+        }
+        
+        /* Cuando el usuario es observer, mostrar elementos observer-only */
+        body.observer-mode .observer-only {
+            display: block;
+        }
+        
+        body.observer-mode .observer-only.inline {
+            display: inline;
+        }
+        
+        body.observer-mode .observer-only.flex {
+            display: flex;
+        }
+    </style>
+    <style>
+    /* CSS extra para modal aún más compacto en móvil */
+    @media (max-width: 640px) {
+      #add-reservation-modal .max-w-xs {
+        max-width: 95vw;
+      }
+      #add-reservation-modal .p-2 {
+        padding: 0.5rem !important;
+      }
+      #add-reservation-modal input,
+      #add-reservation-modal select,
+      #add-reservation-modal textarea {
+        font-size: 0.95rem;
+        padding: 0.5rem 0.75rem;
+      }
+      #add-reservation-modal button[type=submit] {
+        font-size: 1rem;
+        padding: 0.75rem 0.5rem;
+      }
+    }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+    <div id="admin-view" class="min-h-screen">
+        <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <div class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="/public/Logo/Logo-Los-Nogales.png" alt="Logo Los Nogales" class="h-16 w-auto">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Panel de Control</h1>
+                        <p class="text-lg text-green-800 logo-font" style="font-weight:700;">Parrilla Los Nogales</p>
+                    </div>
+                </div>
+                <button id="exit-admin-button" class="text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Entrar al panel</button>
+            </div>
+            
+            <!-- Indicadores rápidos -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <div class="text-xs text-gray-500">Total Reservas</div>
+                    <div id="totalReservas" class="text-2xl font-bold text-gray-800">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <div class="text-xs text-gray-500">Confirmadas</div>
+                    <div id="totalConfirmadas" class="text-2xl font-bold text-green-700">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <div class="text-xs text-gray-500">Pendientes</div>
+                    <div id="totalPendientes" class="text-2xl font-bold text-yellow-600">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <div class="text-xs text-gray-500">Manuales</div>
+                    <div id="totalManuales" class="text-2xl font-bold text-orange-600">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 text-center">
+                    <div class="text-xs text-gray-500">Comensales</div>
+                    <div id="totalComensales" class="text-2xl font-bold text-purple-700">0</div>
+                </div>
+            </div>
+            
+            <div id="admin-panel-container">
+                <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4 w-full">
+                        <label for="dateFilter" class="block text-sm font-medium text-gray-700">Seleccionar fecha base:</label>
+                        <div class="flex items-center w-full max-w-xs">
+                            <input type="date" id="dateFilter" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                            <button id="force-refresh-button" title="Forzar Actualización Completa" class="action-button ml-2 p-3 bg-green-100 text-green-700 rounded-full hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-transform transform hover:scale-110">
+                                <i class="ph ph-arrows-clockwise text-lg"></i>
+                            </button>
+                        </div>
+                        <button id="show-search-button" title="Buscar Reserva" class="p-2 bg-gray-100 text-gray-600 rounded-full shadow-sm hover:bg-gray-200 transition">
+                            <i class="ph ph-magnifying-glass text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-6 w-full">
+                        <label for="periodSelector" class="block text-sm font-medium text-gray-700">Mostrar balance por:</label>
+                        <select id="periodSelector" class="p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                            <option value="daily">Diario</option>
+                            <option value="weekly">Semanal</option>
+                            <option value="monthly">Mensual</option>
+                            <option value="yearly">Anual</option>
+                            <option value="custom">Rango Personalizado</option>
+                        </select>
+                    </div>
+                    
+                    <div id="customDateRangeInputs" class="flex flex-col sm:flex-row items-center gap-4 mb-6 hidden w-full">
+                        <label for="dateRangeStart" class="block text-sm font-medium text-gray-700">Desde:</label>
+                        <input type="date" id="dateRangeStart" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                        <label for="dateRangeEnd" class="block text-sm font-medium text-gray-700">Hasta:</label>
+                        <input type="date" id="dateRangeEnd" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-4 p-4">
+                        <input id="admin-search-input" type="text" placeholder="Buscar en todas las reservas..." class="w-full sm:w-1/2 p-2 border rounded-lg" />
+                        <button id="export-excel-btn" class="admin-only bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800 flex items-center gap-2 relative">
+                            <i class="ph ph-file-xls text-lg"></i> Exportar a Excel
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-4 mt-6 text-center w-full">
+                        <div id="totalDinersPeriod" class="bg-gray-100 p-4 rounded-lg shadow-inner col-span-full cursor-pointer hover:bg-gray-200 transition-all duration-200 filter-card" data-filter="all" title="Click para ver todas las reservas">
+                            <h3 class="font-bold text-gray-600">Total Comensales <span id="periodDisplay"></span></h3>
+                            <p class="text-4xl font-extrabold text-gray-800">0</p>
+                        </div>
+                        <div id="turnTotalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-full">
+                            <div id="totalDinersLunch" class="bg-green-50 p-4 rounded-lg shadow-inner cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="almuerzo" title="Click para filtrar solo almuerzos">
+                                <h3 id="lunchTurnTitle" class="font-bold text-green-700">Total Almuerzos</h3>
+                                <p class="text-3xl font-extrabold text-green-800">0</p>
+                            </div>
+                            <div id="totalDinersDinner" class="bg-green-50 p-4 rounded-lg shadow-inner cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="cena" title="Click para filtrar solo cenas">
+                                <h3 id="dinnerTurnTitle" class="font-bold text-green-700">Total Cenas</h3>
+                                <p class="text-3xl font-extrabold text-green-800">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de gestión -->
+                <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                  <button id="add-reservation-button" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <i class="ph ph-plus-circle text-lg"></i> Agregar Reserva
+                  </button>
+                  <button id="open-special-days-modal" class="admin-only bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800 flex items-center justify-center gap-2">
+                    <i class="ph ph-calendar-check text-lg"></i> Días Especiales
+                  </button>
+                  <button id="open-cancellations-history-modal" class="admin-only bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2">
+                    <i class="ph ph-clock-counter-clockwise text-lg"></i> Historial de cancelaciones
+                  </button>
+                </div>
+
+                <!-- Eliminar selector de cantidad por página y controles de paginación -->
+                <div class="bg-white rounded-2xl shadow-lg reservations-table-wrapper">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800" id="reservationsListTitle">Listado de Reservas <span id="reservationsListTitleDate" class="text-green-700"></span></h2>
+                        <p class="text-sm text-gray-500 mt-1" id="selectedPeriodRangeDisplay"></p>
+                    </div>
+                    <div class="overflow-y-auto">
+                        <table id="reservationsTable" class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Teléfono</th>
+                                    <th class="px-4 py-3">Fecha</th>
+                                    <th class="px-4 py-3">Hora</th>
+                                    <th class="px-4 py-3 text-center">Comensales</th>
+                                    <th class="px-4 py-3">Turno</th>
+                                    <th class="px-4 py-3">Área</th>
+                                    <th class="px-4 py-3">Notas</th>
+                                    <th class="px-4 py-3 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservationsTableBody">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-gray-500">Cargando reservas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Vista móvil para reservas (ahora dentro del recuadro) -->
+                    <div id="reservasCardsMobile" class="block md:hidden px-2 pb-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para búsqueda avanzada -->
+    <div id="search-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50"></div>
+    
+    <!-- Modal de login de administrador -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+                    <i class="ph ph-lock-key text-2xl text-gray-600"></i>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Acceso de Administrador</h3>
+                <form id="admin-login-form" class="mt-4 px-7 py-3 space-y-3">
+                    <input type="password" id="admin-password" placeholder="Contraseña" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
+                    <button type="submit" class="w-full bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800">Entrar</button>
+                </form>
+                <p id="admin-login-error" class="text-red-500 text-sm text-center h-4 mt-1"></p>
+                <div class="items-center px-4 py-3">
+                    <button id="close-admin-modal-button" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template para el modal de búsqueda (necesario para la lupa) -->
+    <template id="search-modal-template">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Buscar Reserva</h3>
+                    <button id="close-search-modal-button" class="text-gray-400 hover:text-gray-600">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+                <form id="search-form" class="space-y-4">
+                    <div>
+                        <label for="search-phone" class="block text-sm font-medium text-gray-700 mb-1">Nombre o Teléfono</label>
+                        <input type="text" id="search-phone" name="search-phone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Ingresa tu nombre o teléfono">
+                    </div>
+                    <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-500 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <i class="ph ph-magnifying-glass text-xl"></i>Buscar Reserva
+                    </button>
+                </form>
+                <div id="search-message" class="mt-4 text-center text-sm"></div>
+                <div id="search-results-container" class="mt-4"></div>
+            </div>
+        </div>
+    </template>
+
+    <script type="module" src="/src/admin-limpio.js"></script>
+    <!-- Eliminar el siguiente bloque de JS embebido que fuerza el login y oculta el panel -->
+    <!--
+    <script>
+        let isAdmin = false;
+        const loginModal = document.getElementById('admin-login-modal');
+        const loginForm = document.getElementById('admin-login-form');
+        const closeModalButton = document.getElementById('close-admin-modal-button');
+        const loginError = document.getElementById('admin-login-error');
+        const adminPanel = document.getElementById('admin-panel-container');
+        const exitAdminButton = document.getElementById('exit-admin-button');
+
+        // Mostrar SIEMPRE el modal de login al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            isAdmin = false;
+            openLoginModal();
+            if (adminPanel) adminPanel.style.display = 'none';
+        });
+
+        function openLoginModal() {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+        }
+
+        function closeLoginModal() {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
+        }
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputPassword = document.getElementById('admin-password').value;
+            // La validación de la contraseña se hace en admin-limpio.js usando import.meta.env.VITE_ADMIN_PASSWORD
+            // El resultado se maneja desde el JS de Vite
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            closeLoginModal();
+            loginError.textContent = '';
+        });
+
+        // Salir del panel: limpiar todo y volver a pedir login
+        exitAdminButton.addEventListener('click', () => {
+            isAdmin = false;
+            if (adminPanel) adminPanel.style.display = 'none';
+            openLoginModal();
+        });
+    </script>
+    -->
+    <!-- Modal de gestión de días y turnos especiales -->
+    <div id="special-days-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden p-4">
+      <div class="bg-white rounded-2xl shadow-2xl px-4 sm:px-8 py-4 sm:py-6 flex flex-col items-center w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-in-up relative">
+        <button id="close-special-days-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl sm:text-2xl p-1">
+          <i class="ph ph-x"></i>
+        </button>
+        <h3 class="text-xl sm:text-2xl font-bold text-green-700 mb-3 sm:mb-4 text-center">Días Especiales</h3>
+        <form id="special-days-form" class="flex flex-col gap-3 sm:gap-4 w-full max-w-xs">
+          <label class="block text-sm font-medium text-gray-700">Selecciona la fecha:</label>
+          <input type="date" id="special-day-date" class="w-full p-2 sm:p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 text-sm sm:text-base" required>
+          <div class="flex flex-col gap-2 sm:gap-3">
+            <label class="flex items-center gap-2 text-sm sm:text-base">
+              <input type="checkbox" id="special-lunch-open" class="accent-green-600 w-4 h-4 sm:w-5 sm:h-5">
+              <span class="flex-1">Abrir Almuerzo (12:00-16:00)</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm sm:text-base">
+              <input type="checkbox" id="special-dinner-open" class="accent-green-600 w-4 h-4 sm:w-5 sm:h-5">
+              <span class="flex-1">Abrir Cena (20:00-01:00)</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm sm:text-base">
+              <input type="checkbox" id="special-lunch-close" class="accent-red-600 w-4 h-4 sm:w-5 sm:h-5">
+              <span class="flex-1">Cerrar Almuerzo (12:00-16:00)</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm sm:text-base">
+              <input type="checkbox" id="special-dinner-close" class="accent-red-600 w-4 h-4 sm:w-5 sm:h-5">
+              <span class="flex-1">Cerrar Cena (20:00-01:00)</span>
+            </label>
+          </div>
+          <button type="submit" class="bg-green-700 text-white font-bold py-2 sm:py-3 px-4 rounded-lg hover:bg-green-800 mt-2 text-sm sm:text-base">Guardar configuración</button>
+        </form>
+        <div class="w-full mt-4 sm:mt-6">
+          <h4 class="text-base sm:text-lg font-semibold text-green-700 mb-2 text-center sm:text-left">Días especiales configurados</h4>
+          <ul id="special-days-list" class="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto"></ul>
+        </div>
+      </div>
+    </div>
+    <!-- Modal animado de éxito -->
+    <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+      <div class="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center animate-fade-in-up min-w-[300px]">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 animate-pop">
+          <i class="ph ph-check-circle text-4xl text-green-600"></i>
+        </div>
+        <h3 class="text-xl font-bold text-green-700 mb-2">¡Listo!</h3>
+        <p id="success-modal-message" class="text-gray-700 text-center mb-2">Acción realizada correctamente.</p>
+      </div>
+    </div>
+    <!-- Modal para historial de cancelaciones -->
+    <div id="cancellations-history-modal" class="fixed inset-0 bg-gray-700 bg-opacity-60 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 relative">
+        <button id="close-cancellations-history-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+        <h2 class="text-2xl font-bold mb-4 text-red-700 flex items-center gap-2"><i class="ph ph-clock-counter-clockwise"></i> Historial de Cancelaciones</h2>
+        <div class="mb-4 flex flex-col sm:flex-row gap-2 items-center">
+          <select id="cancellations-period-selector" class="p-2 border rounded-lg">
+            <option value="daily">Día</option>
+            <option value="weekly">Semana</option>
+            <option value="monthly">Mes</option>
+            <option value="yearly">Año</option>
+            <option value="custom">Rango</option>
+          </select>
+          <input type="date" id="cancellations-date" class="p-2 border rounded-lg" />
+          <input type="month" id="cancellations-month" class="p-2 border rounded-lg hidden" />
+          <input type="number" id="cancellations-year" class="p-2 border rounded-lg hidden" min="2000" max="2100" placeholder="Año" />
+          <input type="date" id="cancellations-range-start" class="p-2 border rounded-lg hidden" />
+          <input type="date" id="cancellations-range-end" class="p-2 border rounded-lg hidden" />
+        </div>
+        <div class="mb-4 flex flex-col sm:flex-row gap-2">
+          <input id="cancellations-search-input" type="text" placeholder="Buscar por nombre, teléfono o motivo..." class="w-full p-2 border rounded-lg" />
+        </div>
+        <div id="cancellations-history-list" class="max-h-96 overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <!-- Modal de edición de reservas -->
+    <div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden modal-top-layer overflow-y-auto"></div>
+
+    <!-- Template para el formulario de edición -->
+    <template id="edit-modal-template">
+      <div class="relative top-10 md:top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+        <button id="closeEditModal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+          <i class="ph ph-x text-2xl"></i>
+        </button>
+        <div class="mt-3 text-center">
+          <div class="flex justify-center mb-4">
+            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100">
+              <i class="ph ph-pencil-simple text-2xl text-green-600"></i>
+            </span>
+          </div>
+          <h3 class="text-xl font-bold text-green-700 mb-2">Editar Reserva</h3>
+          <p class="text-sm text-gray-600 mb-6">Modificar los datos de la reserva</p>
+          <div id="edit-form-container" class="mt-4 px-7 py-3">
+            <form id="editForm" class="space-y-4">
+              <!-- Sección: Datos del Cliente -->
+              <div class="space-y-3">
+                <h4 class="text-base font-semibold text-gray-800 border-b pb-2">Tus Datos</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="editName" class="block text-sm font-medium text-gray-700 mb-1">Nombre y Apellido *</label>
+                    <input type="text" id="editName" name="editName" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Nombre completo">
+                  </div>
+                  <div>
+                    <label for="editPhone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                    <input type="tel" id="editPhone" name="editPhone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="2641234567">
+                  </div>
+                </div>
+              </div>
+              <!-- Sección: Detalles de la Reserva -->
+              <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label for="editDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                    <input type="date" id="editDate" name="editDate" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                  </div>
+                  <div>
+                    <label for="editTime" class="block text-sm font-medium text-gray-700 mb-1">Hora *</label>
+                    <input type="time" id="editTime" name="editTime" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                  </div>
+                  <div>
+                    <label for="editDiners" class="block text-sm font-medium text-gray-700 mb-1">Comensales *</label>
+                    <input type="number" id="editDiners" name="editDiners" min="1" max="50" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="2">
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="editArea" class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                    <select id="editArea" name="editArea" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                      <option value="">Seleccionar...</option>
+                      <option value="Salón">Salón</option>
+                      <option value="Patio">Patio</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label for="editNotes" class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                  <textarea id="editNotes" name="editNotes" rows="3" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Notas adicionales..."></textarea>
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-500 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                <i class="ph ph-check-circle text-lg"></i>Guardar Cambios
+              </button>
+            </form>
+          </div>
+          <div id="edit-message-area" class="mt-4 px-7"></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Modal para agregar nueva reserva -->
+    <div id="add-reservation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden modal-top-layer overflow-y-auto">
+      <div class="relative top-10 md:top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+        <button id="closeAddReservationModal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+          <i class="ph ph-x text-2xl"></i>
+        </button>
+        <div class="mt-3 text-center">
+          <div class="flex justify-center mb-4">
+            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
+              <i class="ph ph-plus-circle text-2xl text-blue-600"></i>
+            </span>
+          </div>
+          <h3 class="text-xl font-bold text-blue-700 mb-2">Agregar Reserva</h3>
+          <p class="text-sm text-gray-600 mb-6">Crear una nueva reserva directamente</p>
+          <div class="mt-4 px-7 py-3">
+            <form id="add-reservation-form" class="space-y-4">
+              <!-- Sección: Datos del Cliente -->
+              <div class="space-y-3">
+                <h4 class="text-base font-semibold text-gray-800 border-b pb-2">Tus Datos</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="addName" class="block text-sm font-medium text-gray-700 mb-1">Nombre y Apellido *</label>
+                    <input type="text" id="addName" name="addName" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Nombre completo">
+                  </div>
+                  <div>
+                    <label for="addCountryCode" class="block text-sm font-medium text-gray-700 mb-1">País *</label>
+                    <select id="addCountryCode" name="addCountryCode" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                      <option value="+54" selected>🇦🇷 Argentina (+54)</option>
+                      <option value="+598">🇺🇾 Uruguay (+598)</option>
+                      <option value="+55">🇧🇷 Brasil (+55)</option>
+                      <option value="+1">🇺🇸 USA (+1)</option>
+                      <option value="+34">🇪🇸 España (+34)</option>
+                      <option value="+52">🇲🇽 México (+52)</option>
+                      <option value="+595">🇵🇾 Paraguay (+595)</option>
+                      <option value="+56">🇨🇱 Chile (+56)</option>
+                      <option value="+57">🇨🇴 Colombia (+57)</option>
+                      <option value="+591">🇧🇴 Bolivia (+591)</option>
+                      <option value="+507">🇵🇦 Panamá (+507)</option>
+                      <option value="+51">🇵🇪 Perú (+51)</option>
+                      <option value="+53">🇨🇺 Cuba (+53)</option>
+                      <option value="+49">🇩🇪 Alemania (+49)</option>
+                      <option value="+33">🇫🇷 Francia (+33)</option>
+                      <option value="+39">🇮🇹 Italia (+39)</option>
+                      <option value="+44">🇬🇧 Reino Unido (+44)</option>
+                      <option value="+81">🇯🇵 Japón (+81)</option>
+                      <option value="+86">🇨🇳 China (+86)</option>
+                      <!-- Agrega más países si lo deseas -->
+                    </select>
+                  </div>
+                  <div>
+                    <label for="addPhone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                    <input type="tel" id="addPhone" name="addPhone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Ej: 2641234567">
+                  </div>
+                </div>
+              </div>
+              <!-- Sección: Detalles de la Reserva -->
+              <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label for="addDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                    <input type="date" id="addDate" name="addDate" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                  </div>
+                  <div>
+                    <label for="addTime" class="block text-sm font-medium text-gray-700 mb-1">Hora *</label>
+                    <input type="time" id="addTime" name="addTime" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                  </div>
+                  <div>
+                    <label for="addDiners" class="block text-sm font-medium text-gray-700 mb-1">Comensales *</label>
+                    <input type="number" id="addDiners" name="addDiners" min="1" max="50" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="2">
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="addArea" class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                    <select id="addArea" name="addArea" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                      <option value="">Seleccionar...</option>
+                      <option value="Salón">Salón</option>
+                      <option value="Patio">Patio</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label for="addNotes" class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                  <textarea id="addNotes" name="addNotes" rows="3" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Notas adicionales..."></textarea>
+                </div>
+              </div>
+              <!-- Sección: Control de Seña -->
+              <div class="space-y-3">
+                <h4 class="text-base font-semibold text-gray-800 border-b pb-2">Control de Seña</h4>
+                <div class="space-y-3">
+                  <div>
+                    <label for="addSeniaPagada" class="block text-sm font-medium text-gray-700 mb-1">¿Se pagó la seña? *</label>
+                    <select id="addSeniaPagada" name="addSeniaPagada" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                      <option value="no">No</option>
+                      <option value="si">Sí</option>
+                    </select>
+                  </div>
+                  <div id="addSeniaDetails" class="hidden space-y-3">
+                    <div>
+                      <label for="addMontoSenia" class="block text-sm font-medium text-gray-700 mb-1">Monto de seña ($) *</label>
+                      <input type="number" id="addMontoSenia" name="addMontoSenia" min="0" step="100" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="Ej: 10000">
+                    </div>
+                    <div>
+                      <label for="addMetodoPago" class="block text-sm font-medium text-gray-700 mb-1">Método de pago *</label>
+                      <select id="addMetodoPago" name="addMetodoPago" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                        <option value="">Seleccionar...</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="cheque">Cheque</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-blue-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                <i class="ph ph-check-circle text-lg"></i>Agregar Reserva
+              </button>
+            </form>
+          </div>
+          <div id="add-message-area" class="mt-4 px-7"></div>
+        </div>
+      </div>
+    </div>
+</body>
+</html> 

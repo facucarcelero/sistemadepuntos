@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --background-color: #f8f9fa; --container-bg: #ffffff; --text-color: #212529; --primary-green: #28a745; --dark-green: #218838; --primary-blue: #007bff; --dark-blue: #0056b3; --danger-red: #dc3545; --light-gray: #e9ecef; --border-color: #dee2e6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; padding-bottom: 120px; }
+        .main-container { max-width: 900px; margin: auto; background: var(--container-bg); padding: 20px 30px 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); position: relative; z-index: 1; }
+        .menu-header { display: flex; justify-content: center; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 30px; position: relative; }
+        .header-title-group { display: flex; align-items: center; gap: 20px; }
+        .header-logo { height: 60px; width: auto; }
+        .menu-header h1 { color: var(--text-color); font-size: 2.5em; font-weight: 700; margin: 0; }
+        .hidden { display: none; }
+        #public-view .menu-category h2 { font-size: 1.8em; color: var(--text-color); border-bottom: 2px solid var(--primary-green); padding-bottom: 10px; margin-bottom: 20px; }
+        #public-view .menu-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; padding: 15px 0; border-bottom: 1px dashed var(--border-color); }
+        #public-view .menu-category > div:last-of-type { border-bottom: none; }
+        #public-view .menu-item-name { font-weight: 600; }
+        #public-view .menu-item-description { font-style: italic; color: #6c757d; font-size: 0.9em; margin-top: 4px; }
+        #public-view .menu-item-price { font-weight: 700; color: var(--primary-green); white-space: nowrap; font-size: 1.1em;}
+        #admin-view { display: none; }
+        .admin-top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .admin-top-bar h3 { margin: 0; font-weight: 600; }
+        .btn-icon { background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        .btn-icon:hover { background-color: var(--light-gray); }
+        .btn-icon svg { width: 24px; height: 24px; fill: var(--text-color); }
+        #admin-view .admin-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; background-color: var(--light-gray); padding: 15px; border-radius: 8px; }
+        #admin-view .menu-category { border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: opacity 0.3s; background-color: #fff; }
+        #admin-view.hide-hidden-items .is-hidden { display: none; }
+        .draggable-handle { cursor: grab; color: #adb5bd; }
+        .sortable-ghost { background-color: #d1fae5; opacity: 0.7; }
+        #admin-view .menu-category.is-hidden, #admin-view .menu-item.is-hidden { opacity: 0.5; background-color: #f8f9fa; }
+        #admin-view .category-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        #admin-view .category-header input { font-size: 1.5em; font-weight: 700; border: none; background: transparent; padding: 5px; border-bottom: 2px solid transparent; flex-grow: 1; }
+        #admin-view .menu-item { display: grid; grid-template-columns: auto 1fr auto; gap: 15px; align-items: center; padding-top: 15px; margin-top: 15px; border-top: 1px solid var(--border-color); transition: opacity 0.3s; }
+        #admin-view .menu-item-inputs input:first-child { margin-bottom: 8px; }
+        #admin-view .menu-item-actions { display: flex; align-items: center; gap: 10px; }
+        input, .btn { border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; font-size: 1em; box-sizing: border-box; width: 100%; }
+        .btn { font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; border: none; }
+        .btn-green { background-color: var(--primary-green); color: white; }
+        .btn-red { background-color: var(--danger-red); color: white; }
+        .btn-blue { background-color: var(--primary-blue); color: white; }
+                @media (max-width: 767px) {
+            body { padding: 10px; padding-bottom: 100px; }
+            .main-container { padding: 15px; }
+            .menu-header .header-title-group { gap: 10px; }
+            .header-logo { height: 40px; }
+            .menu-header h1 { font-size: 1.5em; }
+            #public-view .menu-item { flex-direction: column; align-items: flex-start; gap: 5px; }
+            #admin-view .admin-controls, #admin-view .category-header { flex-direction: column; align-items: stretch; }
+            #admin-view .category-header .category-actions { display: flex; gap: 10px; }
+            #admin-view .menu-item { grid-template-columns: 1fr; }
+            #admin-view .menu-item-actions { justify-content: flex-start; }
+            #admin-view .menu-item-actions input { max-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header class="menu-header">
+             <div class="absolute top-0 left-4 right-4 flex justify-between z-20 pt-4">
+                 <button id="back-button" onclick="history.back();" title="Volver a la página anterior" class="p-2 bg-white text-gray-600 rounded-full shadow-md hover:bg-gray-100 transition">
+                     <i class="ph ph-arrow-left text-2xl"></i>
+                 </button>
+                 <button id="show-admin-button" title="Acceso Administrador" class="p-2 bg-white text-gray-600 rounded-full shadow-md hover:bg-gray-100 transition">
+                     <i class="ph ph-user-gear text-2xl"></i>
+                 </button>
+             </div>
+             <div class="header-title-group" style="padding-top: 4rem;">
+                 <img src="./Logo/Logo Los Nogales.png" alt="Logo Los Nogales" class="header-logo">
+                 <h1>Parrilla Los Nogales</h1>
+             </div>
+        </header>
+        <div id="public-view"></div>
+        <div id="admin-view"></div>
+    </div>
+    
+    <div id="admin-login-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100"><i class="ph ph-lock-key text-2xl text-gray-600"></i></div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Acceso de Administrador</h3>
+                <form id="admin-login-form" class="mt-4 px-7 py-3 space-y-3">
+                    <input type="password" id="admin-password" placeholder="Contraseña" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
+                    <button type="submit" class="w-full bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800">Entrar</button>
+                </form>
+                <p id="admin-login-error" class="text-red-500 text-sm text-center h-4 mt-1"></p>
+                <div class="items-center px-4 py-3">
+                    <button id="close-admin-modal-button" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBS_eGNLqUH8SshfrnBaUvRTcjJKy5tFiI",
+        authDomain: "losnogales-reservas.firebaseapp.com",
+        projectId: "losnogales-reservas",
+        storageBucket: "losnogales-reservas.appspot.com",
+        messagingSenderId: "707614707617",
+        appId: "1:707614707617:web:57ef12cf519d99ff8585e0",
+        measurementId: "G-MBGF0QWF7K"
+    };
+    
+    let app;
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        app = {
+            isAdmin: false,
+            showHiddenInAdmin: false,
+            menuData: [],
+            nodes: {
+                publicView: document.getElementById('public-view'),
+                adminView: document.getElementById('admin-view'),
+                adminButton: document.getElementById('show-admin-button'),
+                backButton: document.getElementById('back-button'),
+                loginModal: document.getElementById('admin-login-modal'),
+                loginForm: document.getElementById('admin-login-form'),
+                closeModalButton: document.getElementById('close-admin-modal-button'),
+            },
+            icons: {
+                visible: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
+                hidden: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>`
+            },
+        
+            init() {
+                this.nodes.adminButton.addEventListener('click', () => this.openLoginModal());
+                this.nodes.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+                this.nodes.closeModalButton.addEventListener('click', () => this.closeLoginModal());
+                this.loadAndRenderData();
+            },
+
+            async loadAndRenderData(focusItemId = null) {
+                this.showLoading();
+                try {
+                    const [categoriesSnapshot, itemsSnapshot] = await Promise.all([
+                        db.collection('menuCategories').orderBy('order').get(),
+                        db.collection('menu').orderBy('order').get()
+                    ]);
+                    const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const allItems = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    this.menuData = categories.map(category => ({
+                        ...category,
+                        items: allItems.filter(item => item.categoryId === category.id).sort((a, b) => a.order - b.order)
+                    }));
+                    
+                    this.render();
+
+                    if (focusItemId) {
+                        setTimeout(() => {
+                            const newField = document.querySelector(`.menu-item[data-id="${focusItemId}"] input[type="text"]`);
+                            if (newField) { newField.focus(); newField.select(); }
+                        }, 100);
+                    }
+                } catch (error) {
+                    console.error("Error al cargar datos desde Firestore:", error);
+                    this.nodes.publicView.innerHTML = `<p class="text-red-500 text-center">Error al cargar el menú. Revisa la consola (F12).</p>`;
+                }
+            },
+            
+            render() {
+                this.nodes.publicView.style.display = this.isAdmin ? 'none' : 'block';
+                this.nodes.adminView.style.display = this.isAdmin ? 'block' : 'none';
+                
+                this.nodes.adminButton.classList.toggle('hidden', this.isAdmin);
+                this.nodes.backButton.classList.toggle('hidden', this.isAdmin); 
+                
+                if (this.isAdmin) this.renderAdminView();
+                else this.renderPublicView();
+            },
+
+            showLoading() { this.nodes.publicView.innerHTML = `<p class="text-center text-gray-500">Cargando...</p>`; },
+            
+            renderPublicView() {
+                this.nodes.publicView.innerHTML = ''; 
+                const visibleCategories = this.menuData.filter(category => !category.hidden);
+
+                if (visibleCategories.length === 0) {
+                    this.nodes.publicView.innerHTML = '<p class="text-center text-gray-500">No hay platos disponibles en este momento.</p>';
+                    return;
+                }
+
+                visibleCategories.forEach(category => {
+                    const visibleItems = category.items.filter(item => !item.hidden);
+                    if (visibleItems.length === 0) return;
+
+                    const categoryElement = document.createElement('div');
+                    categoryElement.className = 'menu-category mb-8';
+                    
+                    let itemsHtml = '';
+                    visibleItems.forEach(item => {
+                        itemsHtml += `
+                            <div class="menu-item">
+                                <div>
+                                    <p class="menu-item-name">${item.name || ''}</p>
+                                    <p class="menu-item-description">${item.description || ''}</p>
+                                </div>
+                                <p class="menu-item-price">$${(item.price || 0).toLocaleString('es-AR')}</p>
+                            </div>
+                        `;
+                    });
+
+                    categoryElement.innerHTML = `
+                        <h2>${category.name || 'Sin categoría'}</h2>
+                        <div>${itemsHtml}</div>
+                    `;
+                    
+                    this.nodes.publicView.appendChild(categoryElement);
+                });
+            },
+
+            renderAdminView() {
+                this.nodes.adminView.innerHTML = `
+                    <div class="admin-top-bar"><h3>Modo Administrador</h3><button onclick="app.logout()" class="text-sm font-medium bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">Salir</button></div>
+                    <div class="admin-controls"><input type="text" id="new-category-name" placeholder="Crear nueva categoría..." style="flex-grow: 1;"><button class="btn btn-green" onclick="app.addCategory()">Crear</button><button class="btn btn-blue" onclick="app.toggleHiddenFilter(this)" style="flex-grow: 0; width: auto;">${this.showHiddenInAdmin ? 'Ocultar Ocultos' : 'Mostrar Ocultos'}</button></div>
+                    <div id="categories-container"></div>`;
+                const container = this.nodes.adminView.querySelector('#categories-container');
+                this.menuData.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = `menu-category ${category.hidden ? 'is-hidden' : ''}`;
+                    categoryDiv.dataset.id = category.id;
+                    let itemsHtml = '';
+                    category.items.forEach(item => {
+                        itemsHtml += `<div class="menu-item ${item.hidden ? 'is-hidden' : ''}" data-id="${item.id}">
+                            <i class="ph-fill ph-dots-six-vertical draggable-handle text-2xl"></i>
+                            <div class="menu-item-inputs">
+                                <input type="text" value="${item.name || ''}" onchange="app.updateItem('${item.id}', 'name', this.value)">
+                                <input type="text" value="${item.description || ''}" onchange="app.updateItem('${item.id}', 'description', this.value)">
+                            </div>
+                            <div class="menu-item-actions">
+                                <input type="number" value="${item.price || 0}" onchange="app.updateItem('${item.id}', 'price', Number(this.value))" style="width: 100px; text-align: right;">
+                                <button class="btn-icon" onclick="app.updateItem('${item.id}', 'hidden', ${!item.hidden})">${item.hidden ? this.icons.hidden : this.icons.visible}</button>
+                                <button class="btn btn-red" onclick="app.deleteItem('${item.id}')" style="padding: 10px 15px;">X</button>
+                            </div>
+                        </div>`;
+                    });
+                    categoryDiv.innerHTML = `
+                        <div class="category-header">
+                            <i class="ph-fill ph-dots-six-vertical draggable-handle text-2xl"></i>
+                            <input type="text" value="${category.name || ''}" onchange="app.updateCategory('${category.id}', 'name', this.value)">
+                            <div class="category-actions">
+                                <button class="btn-icon" onclick="app.updateCategory('${category.id}', 'hidden', ${!category.hidden})">${category.hidden ? this.icons.hidden : this.icons.visible}</button>
+                                <button class="btn btn-blue" onclick="app.addItem('${category.id}')">Añadir Plato</button>
+                                <button class="btn btn-red" onclick="app.deleteCategory('${category.id}')" style="margin-left: 10px;">Eliminar</button>
+                            </div>
+                        </div>
+                        <div class="items-container" data-category-id="${category.id}">${itemsHtml}</div>`;
+                    container.appendChild(categoryDiv);
+                });
+                this.nodes.adminView.classList.toggle('hide-hidden-items', !this.showHiddenInAdmin);
+                this.initDragAndDrop();
+            },
+            
+            openLoginModal() { this.nodes.loginModal.classList.remove('hidden', 'flex'); this.nodes.loginModal.classList.add('flex'); },
+            closeLoginModal() { this.nodes.loginModal.classList.add('hidden'); this.nodes.loginModal.classList.remove('flex'); },
+
+            async handleLogin(e) {
+                e.preventDefault();
+                if (this.nodes.loginModal.querySelector('#admin-password').value === 'facu') {
+                    this.isAdmin = true;
+                    this.closeLoginModal();
+                    this.render();
+                } else {
+                    this.nodes.loginModal.querySelector('#admin-login-error').textContent = 'Contraseña incorrecta.';
+                }
+            },
+            async logout() { this.isAdmin = false; this.render(); },
+            toggleHiddenFilter(button) {
+                this.showHiddenInAdmin = !this.showHiddenInAdmin;
+                button.textContent = this.showHiddenInAdmin ? 'Ocultar Ocultos' : 'Mostrar Ocultos';
+                this.nodes.adminView.classList.toggle('hide-hidden-items', !this.showHiddenInAdmin);
+            },
+            initDragAndDrop() {
+                const categoriesContainer = this.nodes.adminView.querySelector('#categories-container');
+                if (categoriesContainer) {
+                    Sortable.create(categoriesContainer, {
+                        handle: '.draggable-handle', animation: 150,
+                        onEnd: async (evt) => {
+                            this.menuData.splice(evt.newIndex, 0, this.menuData.splice(evt.oldIndex, 1)[0]);
+                            const batch = db.batch();
+                            this.menuData.forEach((cat, index) => batch.update(db.collection('menuCategories').doc(cat.id), { order: index }));
+                            await batch.commit();
+                        },
+                    });
+                }
+                this.nodes.adminView.querySelectorAll('.items-container').forEach(container => {
+                    Sortable.create(container, {
+                        handle: '.draggable-handle', animation: 150,
+                        onEnd: async (evt) => {
+                            const categoryId = evt.from.dataset.categoryId;
+                            const category = this.menuData.find(c => c.id === categoryId);
+                            if (!category) return;
+                            category.items.splice(evt.newIndex, 0, category.items.splice(evt.oldIndex, 1)[0]);
+                            const batch = db.batch();
+                            category.items.forEach((item, index) => batch.update(db.collection('menu').doc(item.id), { order: index }));
+                            await batch.commit();
+                        },
+                    });
+                });
+            },
+            
+            // --- ✅ INICIO DE FUNCIONES OPTIMIZADAS ---
+            
+            async addCategory() {
+                const input = this.nodes.adminView.querySelector('#new-category-name');
+                if (!input || !input.value.trim()) return;
+                
+                const maxOrder = this.menuData.reduce((max, cat) => Math.max(max, cat.order || 0), -1);
+                const newCategoryData = { name: input.value.trim(), hidden: false, order: maxOrder + 1, items: [] };
+                
+                input.value = ''; // Limpiamos el input al instante
+                
+                const newCategoryRef = await db.collection('menuCategories').add(newCategoryData);
+                this.menuData.push({ ...newCategoryData, id: newCategoryRef.id });
+                this.render(); // Actualizamos la vista al instante
+            },
+
+            async deleteCategory(categoryId) {
+                if (!confirm('¿Seguro? Se borrarán todos los platos de esta categoría.')) return;
+                
+                const catIndex = this.menuData.findIndex(c => c.id === categoryId);
+                if (catIndex === -1) return;
+
+                const itemsToDelete = this.menuData[catIndex].items || [];
+                this.menuData.splice(catIndex, 1); // Lo borramos de la vista al instante
+                this.render(); 
+                
+                // Borramos de la base de datos en segundo plano
+                const batch = db.batch();
+                itemsToDelete.forEach(item => batch.delete(db.collection('menu').doc(item.id)));
+                batch.delete(db.collection('menuCategories').doc(categoryId));
+                await batch.commit();
+            },
+
+            async updateCategory(categoryId, field, value) {
+                // Actualizamos el dato localmente
+                const category = this.menuData.find(c => c.id === categoryId);
+                if(category) {
+                    category[field] = value;
+                }
+                this.render(); // Actualizamos la vista al instante
+                
+                // Enviamos el cambio a la base de datos en segundo plano
+                await db.collection('menuCategories').doc(categoryId).update({ [field]: value });
+            },
+            
+            async addItem(categoryId) {
+                const category = this.menuData.find(c => c.id === categoryId);
+                if (!category) return;
+                
+                const maxOrder = category.items.reduce((max, item) => Math.max(max, item.order || 0), -1);
+                const newItemData = { name: 'Nuevo Plato', description: '', price: 0, hidden: false, order: maxOrder + 1, categoryId: categoryId };
+                
+                const newItemRef = await db.collection('menu').add(newItemData);
+                category.items.push({ ...newItemData, id: newItemRef.id }); // Añadimos el nuevo plato localmente
+                this.render(); // Actualizamos la vista al instante
+                
+                setTimeout(() => {
+                    const newField = document.querySelector(`.menu-item[data-id="${newItemRef.id}"] input[type="text"]`);
+                    if (newField) { newField.focus(); newField.select(); }
+                }, 100);
+            },
+
+            async deleteItem(itemId) {
+                if (!confirm('¿Eliminar este plato?')) return;
+                
+                // Buscamos y borramos el item localmente
+                let catIndex, itemIndex;
+                for (let i = 0; i < this.menuData.length; i++) {
+                    let foundIndex = this.menuData[i].items.findIndex(item => item.id === itemId);
+                    if (foundIndex !== -1) {
+                        this.menuData[i].items.splice(foundIndex, 1);
+                        break;
+                    }
+                }
+                this.render(); // Actualizamos la vista al instante
+
+                // Borramos de la base de datos en segundo plano
+                await db.collection('menu').doc(itemId).delete();
+            },
+
+            async updateItem(itemId, field, value) {
+                // Actualizamos el dato localmente
+                for (let category of this.menuData) {
+                    let item = category.items.find(i => i.id === itemId);
+                    if (item) {
+                        item[field] = value;
+                        break;
+                    }
+                }
+                this.render(); // Actualizamos la vista al instante
+
+                // Enviamos el cambio a la base de datos en segundo plano
+                await db.collection('menu').doc(itemId).update({ [field]: value });
+            }
+        };
+        app.init();
+    } catch (error) {
+        console.error("❌ ERROR FATAL:", error);
+        document.body.innerHTML = '<p style="color: red; font-family: sans-serif; padding: 20px;">Error Crítico. Revisa la consola (F12).</p>';
+    }
+</script>
+</body>
+</html>

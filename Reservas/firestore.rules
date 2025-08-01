@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reglas sin restricción de tiempo - acceso permanente
+    match /reservations/{document} {
+      allow read, write: if true;
+    }
+    
+    // Acceso a todas las colecciones sin restricción de tiempo
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+} 

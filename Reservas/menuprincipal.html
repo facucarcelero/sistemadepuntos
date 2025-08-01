@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parrilla Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts (Playfair Display for titles, Inter for body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@0.378.0/dist/umd/lucide.min.js"></script>
+    
+    <style>
+        /* Estilos Personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Fondo gris claro (slate-50) */
+            color: #1e293b; /* Texto oscuro (slate-800) */
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .hero-bg {
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://placehold.co/1920x1080/1c3a13/FFFFFF?text=Parrilla+Los+Nogales');
+            background-size: cover;
+            background-position: center;
+        }
+        .gallery-img {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .gallery-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        /* Color verde personalizado para acentos */
+        .brand-green { color: #166534; } /* green-800 */
+        .bg-brand-green { background-color: #166534; }
+        .hover\:bg-brand-green-dark:hover { background-color: #14532d; } /* green-900 */
+        .border-brand-green { border-color: #166534; }
+        
+        /* Color azul personalizado para enlaces/acentos secundarios */
+        .brand-blue { color: #2563eb; } /* blue-600 */
+        .hover\:text-brand-blue-dark:hover { color: #1d4ed8; } /* blue-700 */
+
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Encabezado -->
+    <header id="header" class="bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm transition-all duration-300">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <!-- CAMBIO #1: Logo agregado junto al título de la navegación -->
+            <a href="#" class="flex items-center gap-3 text-2xl font-bold brand-green">
+                <!-- ASEGÚRATE DE QUE LA RUTA A TU LOGO SEA CORRECTA -->
+                <img src="./Logo/Logo Los Nogales.png" alt="Logo Parrilla Los Nogales" class="h-10">
+                Parrilla Los Nogales
+            </a>
+            <div class="hidden md:flex space-x-8 items-center">
+             <!-- <a href="#historia" class="text-slate-600 hover:brand-green transition">Nuestra Historia</a> -->
+                <a href="#galeria" class="text-slate-600 hover:brand-green transition">Galería</a>
+                <a href="#contacto" class="text-slate-600 hover:brand-green transition">Contacto</a>
+                <a href="#acciones" class="bg-brand-green text-white px-5 py-2 rounded-full hover:bg-brand-green-dark transition shadow">Menú y Reservas</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-slate-600 hover:brand-green focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </nav>
+        <!-- Menú Móvil -->
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#historia" class="block py-2 px-4 text-sm text-slate-600 hover:bg-green-50">Nuestra Historia</a>
+            <a href="#galeria" class="block py-2 px-4 text-sm text-slate-600 hover:bg-green-50">Galería</a>
+            <a href="#contacto" class="block py-2 px-4 text-sm text-slate-600 hover:bg-green-50">Contacto</a>
+            <a href="#acciones" class="block py-2 px-4 text-sm bg-brand-green text-white text-center font-bold">Menú y Reservas</a>
+        </div>
+    </header>
+
+<!-- Contenido Principal -->
+<main>
+  <section class="h-[60vh] md:h-[80vh] flex items-center justify-center text-center bg-[#0A1A0A]">
+    <div class="text-white px-4">
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold drop-shadow-lg">
+        El Sabor de la Tradición Familiar
+      </h1>
+      <p class="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-gray-200">
+        Más de 30 años compartiendo nuestra pasión por la mejor carne a la parrilla de San Juan.
+      </p>
+      <a href="#acciones" class="bg-green-700 text-white px-8 py-4 rounded-full hover:bg-green-800 transition-transform duration-300 transform hover:scale-105 shadow-lg text-lg font-semibold">
+        VER MENÚ Y RESERVAR
+      </a>
+    </div>
+  </section>
+</main>
+
+
+        <!-- Sección de Acciones (Menú y Reservas) -->
+        <section id="acciones" class="py-20 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-4 brand-green">Visitá Nuestro Menú y Reservá tu Mesa</h2>
+                <p class="text-slate-600 mb-12 max-w-2xl mx-auto">Explorá nuestros platos y asegurá tu lugar para vivir la experiencia Los Nogales. Los enlaces se abrirán en una nueva pestaña.</p>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                    <a href="./carta.html" class="w-full md:w-auto bg-brand-green text-white flex items-center justify-center gap-3 px-10 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 shadow-md transition-all duration-300 transform hover:scale-105">
+                        <i data-lucide="book-open-text"></i>
+                        Ver Menú Virtual
+                    </a>
+                    <a href="./Reservas.html" class="w-full md:w-auto bg-brand-green text-white flex items-center justify-center gap-3 px-10 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 shadow-md transition-all duration-300 transform hover:scale-105">
+                        <i data-lucide="calendar-check"></i>
+                        Hacer una Reserva
+                    </a>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Sección de Historia
+        <section id="historia" class="py-20">
+            <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <img src="https://placehold.co/600x400/103824/FFFFFF?text=Familia+Fundadora" alt="[Imagen de la familia fundadora del restaurante]" class="rounded-lg shadow-xl w-full">
+                </div>
+                <div class="text-center md:text-left">
+                    <h2 class="text-4xl font-bold brand-green mb-4">Nuestra Historia</h2>
+                    <p class="text-slate-600 mb-4">Desde 1994, Parrilla Los Nogales ha sido el sueño de nuestra familia. Comenzamos con una pequeña parrilla y un gran deseo: llevar el auténtico sabor del asado argentino a cada mesa. Tres décadas después, mantenemos la misma pasión, seleccionando las mejores carnes y cuidando cada detalle para que te sientas como en casa.</p>
+                    <p class="text-slate-600">Nuestro secreto no es solo el fuego, sino el amor y la dedicación que ponemos en cada plato. Gracias por ser parte de nuestra historia.</p>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- Sección de Galería -->
+        <section id="galeria" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold text-center mb-12 brand-green">Momentos en Los Nogales</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="grid gap-4">
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Brasero.jpg" alt="[Imagen de plato principal]"></div>
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Locro.jpg" alt="[Imagen de locro]"></div>
+                    </div>
+                    <div class="grid gap-4">
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Patio.jpg" alt="[Imagen del Ambiente Exterior]"></div>
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Flan.jpg" alt="[Imagen del Flan]"></div>
+                    </div>
+                    <div class="grid gap-4">
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Empanadas.jpg" alt="[Imagen de Empanadas]"></div>
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Seso a la Provenzal.jpg" alt="[Imagen del Seso a la Provenzal]"></div> 
+                    </div>
+                    <div class="grid gap-4">
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Gente Comiendo.jpg" alt="[Imagen de la parrilla]"></div>
+                        <div><img class="gallery-img h-auto max-w-full rounded-lg" src="./IMG/Lengua a la Vinagreta.jpg" alt="[Imagen de la Lengua a la Vinagreta]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contacto" class="py-20">
+    <div class="container mx-auto px-6 text-center">
+        <h2 class="text-4xl font-bold text-center mb-12 brand-green">Visitanos</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
+                <i data-lucide="clock" class="w-10 h-10 mb-3 brand-green"></i>
+                <h3 class="text-xl font-bold mb-2">Horarios</h3>
+                <p>Lunes a Sábado: 20:00 - 01:00 hs.</p>
+                <p>Jueves a Domingo: 12:00 - 16:00 hs.</p>
+            </div>
+            <div class="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
+                <i data-lucide="map-pin" class="w-10 h-10 mb-3 brand-green"></i>
+                <h3 class="text-xl font-bold mb-2">Ubicación</h3>
+                <p>Rastreador Calivar Norte 491</p>
+                <p>Rivadavia, San Juan, Argentina</p>
+            </div>
+            <div class="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
+                <i data-lucide="phone" class="w-10 h-10 mb-3 brand-green"></i>
+                <h3 class="text-xl font-bold mb-2">Contacto</h3>
+                <p><a href="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d357.48208694573566!2d-68.59505586404701!3d-31.525205533352896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x968141e2e9668e2f%3A0x9409d5590b54859d!2sParrilla%20Restaurante%20los%20Nogales!5e0!3m2!1ses!2sar!4v1751175445553!5m2!1ses!2sar3" target="_blank" class="hover:underline">264-459-3336</a></p>
+                <p><a href="tel:+549264-433-3100" class="hover:underline">264-433-3100</a></p>
+                <p><a href="mailto:losnogalesparrilla@gmail.com" class="hover:underline">losnogalesparrilla@gmail.com</a></p>
+            </div>
+        </div>
+        <div class="mt-12 rounded-lg overflow-hidden shadow-xl">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d357.48208694573566!2d-68.59505586404701!3d-31.525205533352896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x968141e2e9668e2f%3A0x9409d5590b54859d!2sParrilla%20Restaurante%20los%20Nogales!5e0!3m2!1ses!2sar!4v1751175445553!5m2!1ses!2sar4"
+                class="w-full h-96"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="bg-slate-900 text-white py-10">
+        <div class="container mx-auto px-6 text-center">
+
+            <p class="text-2xl font-bold text-white mb-4">Parrilla Los Nogales</p>
+            <div class="flex justify-center space-x-6 mb-4">
+                
+                <a href="https://www.facebook.com/profile.php?id=100069905718355" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                </a>
+
+                <a href="https://www.instagram.com/parrillalosnogales/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                    </svg>
+                </a>
+
+                <!-- <a href="https://wa.me/5492644593336" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path d="M16.75 13.96c.25.13.42.3.52.51.1.21.1.46.06.71-.04.24-.15.46-.3.66-.15.19-.34.35-.56.49-.22.13-.48.23-.76.29-.29.06-.59.09-.9.09-.64 0-1.26-.12-1.84-.35-.58-.23-1.12-.55-1.62-.93-.5-.38-.96-.83-1.37-1.36-.41-.53-.75-1.1-1.01-1.71-.25-.61-.39-1.25-.39-1.91 0-.26.02-.52.07-.77.05-.25.12-.49.22-.72.1-.23.23-.44.38-.62.16-.19.34-.34.55-.47.21-.13.45-.23.71-.29.26-.06.52-.09.79-.09.29 0 .57.03.84.08.27.05.53.14.78.26.25.12.47.29.67.49.2.2.37.43.51.69.13.26.2.55.2.85 0 .22-.03.44-.08.64-.05.21-.14.4-.26.57-.12.17-.28.3-.46.39-.19.09-.39.14-.6.14-.15 0-.3-.02-.43-.07-.13-.05-.26-.12-.38-.21-.12-.09-.24-.2-.35-.33-.11-.13-.22-.27-.31-.44-.1-.17-.15-.35-.15-.54 0-.12.02-.24.07-.35.05-.11.11-.22.2-.31.08-.09.18-.17.29-.24.11-.07.22-.12.33-.15.11-.03.22-.04.33-.04.21 0 .42.04.62.11.2.07.38.18.52.32.14.14.25.3.31.48.06.18.09.37.09.57 0 .28-.07.54-.2.78-.13.24-.3.45-.51.62-.21.17-.45.31-.72.41-.27.1-.56.15-.87.15-.21 0-.42-.02-.62-.07-.2-.05-.39-.12-.56-.23-.17-.1-.32-.24-.44-.4-.12-.16-.2-.34-.23-.53-.03-.19-.05-.38-.05-.58 0-.32.09-.61.26-.88.17-.27.4-.5.7-.68.3-.18.62-.3.97-.36.35-.06.7-.09,1.05-.09.36 0 .7.05.99.14.3.09.57.22.81.39.24.17.45.38.62.62.17.24.3.52.39.82.09.3.14.63.14,1.01 0 .2-.02.4-.05.59-.04.19-.1.38-.19.56-.09.18-.21.34-.35.49-.14.15-.3.28-.48.38-.18.1-.38.18-.59.23-.21.05-.43.08-.65.08-.23 0-.46-.02-.68-.07-.22-.04-.44-.12-.64-.22-.2-.1-.38-.23-.55-.39-.17-.16-.31-.35-.43-.57-.12-.22-.18-.46-.18-.71 0-.21.04-.42.11-.61.07-.19.18-.37.32-.52.14-.15.3-.28.48-.38.18-.1.38-.18.59-.23.21-.05.43-.08.65-.08.13 0 .26.01.38.04.12.03.24.07.36.12.12.05.23.12.33.2.1.08.18.18.25.29.07.11.11.24.11.38z" fill-rule="evenodd"></path>
+                    </svg>
+                </a>
+                
+                <a href="mailto:losnogalesparrilla@gmail.com" class="text-slate-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                    </svg>
+                </a> -->
+                </div>
+            <p class="text-slate-400 text-sm">© 2025 Parrilla Los Nogales. Todos los derechos reservados.</p>
+            <p class="text-slate-500 text-xs mt-2">Diseñado con ♥ en San Juan</p>
+        </div>
+    </footer>
+
+    <script>
+        // Se envuelve todo el código en este "listener" para asegurar que la página esté completamente cargada
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // Inicializar Lucide Icons (para los íconos que no son de redes sociales)
+            lucide.createIcons();
+
+            // Lógica para el Menú Móvil
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Cerrar menú móvil al hacer clic en un enlace
+            if (mobileMenu) {
+                const mobileMenuLinks = mobileMenu.getElementsByTagName('a');
+                for (let link of mobileMenuLinks) {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                }
+            }
+
+            // Ocultar encabezado al hacer scroll hacia abajo, mostrar al subir
+            let lastScrollTop = 0;
+            const header = document.getElementById('header');
+            if (header) {
+                window.addEventListener("scroll", function() {
+                    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
+                        // Hacia abajo
+                        header.style.top = `-${header.offsetHeight}px`;
+                    } else {
+                        // Hacia arriba
+                        header.style.top = "0";
+                    }
+                    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                }, false);
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+

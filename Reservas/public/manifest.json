@@ -1,0 +1,49 @@
+{
+  "name": "Los Nogales - Reservas",
+  "short_name": "Los Nogales",
+  "description": "Sistema de reservas para Parrilla Los Nogales",
+  "start_url": "/admin.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es-AR",
+  "categories": ["business", "food"],
+  "icons": [
+    {
+      "src": "/Logo/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Logo/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Panel Admin",
+      "short_name": "Admin",
+      "description": "Acceso directo al panel de administración",
+      "url": "/admin.html",
+      "icons": [
+        {
+          "src": "/Logo/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "notifications",
+    "background-sync"
+  ],
+  "background": {
+    "service_worker": "/sw.js",
+    "type": "module"
+  }
+} 

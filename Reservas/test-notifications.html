@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Notificaciones - Parrilla Los Nogales</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo img {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .warning {
+            background: rgba(243, 156, 18, 0.2);
+            border: 1px solid #f39c12;
+            color: #f39c12;
+        }
+        .info {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+        .icon-preview {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .icon-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .icon-item img {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .icon-item small {
+            display: block;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .logs {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="/Logo/Logo-Los-Nogales.png" alt="Parrilla Los Nogales">
+        </div>
+        
+        <h1>🧪 Prueba de Notificaciones</h1>
+        
+        <div class="test-section">
+            <h3>📱 Iconos de Notificaciones</h3>
+            <div class="icon-preview">
+                <div class="icon-item">
+                    <img src="/Logo/Logo-Los-Nogales.png" alt="Logo Principal">
+                    <small>Logo Principal<br>(PNG - 44KB)</small>
+                </div>
+                <div class="icon-item">
+                    <img src="/Logo/favicon-32x32.png" alt="Badge">
+                    <small>Badge<br>(32x32 - 1.7KB)</small>
+                </div>
+                <div class="icon-item">
+                    <img src="/Logo/apple-touch-icon.png" alt="Apple Touch">
+                    <small>Apple Touch<br>(180x180 - 26KB)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔔 Estado de Notificaciones</h3>
+            <div id="notification-status" class="status info">
+                Verificando permisos de notificaciones...
+            </div>
+            <button id="request-permission" onclick="requestNotificationPermission()">
+                Solicitar Permisos
+            </button>
+            <button id="test-notification" onclick="sendTestNotification()" disabled>
+                Enviar Notificación de Prueba
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>⚙️ Service Workers</h3>
+            <div id="sw-status" class="status info">
+                Verificando Service Workers...
+            </div>
+            <button onclick="checkServiceWorkers()">
+                Verificar Service Workers
+            </button>
+            <button onclick="clearCache()">
+                Limpiar Cache
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Logs de Debug</h3>
+            <div id="logs" class="logs">
+                Iniciando pruebas de notificaciones...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#e74c3c' : 
+                                  type === 'success' ? '#2ecc71' : 
+                                  type === 'warning' ? '#f39c12' : '#3498db';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Verificar permisos de notificaciones
+        function checkNotificationPermission() {
+            const status = document.getElementById('notification-status');
+            const testButton = document.getElementById('test-notification');
+            const requestButton = document.getElementById('request-permission');
+
+            if ('Notification' in window) {
+                const permission = Notification.permission;
+                
+                if (permission === 'granted') {
+                    status.className = 'status success';
+                    status.textContent = '✅ Notificaciones permitidas';
+                    testButton.disabled = false;
+                    requestButton.disabled = true;
+                    addLog('Notificaciones permitidas', 'success');
+                } else if (permission === 'denied') {
+                    status.className = 'status error';
+                    status.textContent = '❌ Notificaciones bloqueadas';
+                    testButton.disabled = true;
+                    requestButton.disabled = true;
+                    addLog('Notificaciones bloqueadas por el usuario', 'error');
+                } else {
+                    status.className = 'status warning';
+                    status.textContent = '⚠️ Permisos no solicitados';
+                    testButton.disabled = true;
+                    requestButton.disabled = false;
+                    addLog('Permisos de notificaciones no solicitados', 'warning');
+                }
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Notificaciones no soportadas';
+                testButton.disabled = true;
+                requestButton.disabled = true;
+                addLog('Este navegador no soporta notificaciones', 'error');
+            }
+        }
+
+        // Solicitar permisos
+        async function requestNotificationPermission() {
+            addLog('Solicitando permisos de notificaciones...', 'info');
+            
+            try {
+                const permission = await Notification.requestPermission();
+                addLog(`Permiso otorgado: ${permission}`, 'success');
+                checkNotificationPermission();
+            } catch (error) {
+                addLog(`Error solicitando permisos: ${error.message}`, 'error');
+            }
+        }
+
+        // Enviar notificación de prueba
+        async function sendTestNotification() {
+            addLog('Enviando notificación de prueba...', 'info');
+            
+            try {
+                const notification = new Notification('🧪 Prueba de Notificación - Parrilla Los Nogales', {
+                    body: '¡Esta es una prueba para verificar que el logo se muestra correctamente!',
+                    icon: '/Logo/Logo-Los-Nogales.png',
+                    badge: '/Logo/favicon-32x32.png',
+                    tag: 'test-notification',
+                    requireInteraction: true,
+                    data: {
+                        type: 'test_notification',
+                        timestamp: Date.now().toString()
+                    }
+                });
+
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                    addLog('Notificación de prueba clickeada', 'info');
+                };
+
+                notification.onclose = function() {
+                    addLog('Notificación de prueba cerrada', 'info');
+                };
+
+                addLog('✅ Notificación de prueba enviada exitosamente', 'success');
+            } catch (error) {
+                addLog(`❌ Error enviando notificación: ${error.message}`, 'error');
+            }
+        }
+
+        // Verificar Service Workers
+        async function checkServiceWorkers() {
+            addLog('Verificando Service Workers...', 'info');
+            
+            const swStatus = document.getElementById('sw-status');
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    addLog(`Service Workers encontrados: ${registrations.length}`, 'info');
+                    
+                    registrations.forEach((registration, index) => {
+                        addLog(`SW ${index + 1}: ${registration.scope} - Estado: ${registration.active ? 'Activo' : 'Inactivo'}`, 'info');
+                    });
+
+                    if (registrations.length > 0) {
+                        swStatus.className = 'status success';
+                        swStatus.textContent = `✅ ${registrations.length} Service Worker(s) registrado(s)`;
+                    } else {
+                        swStatus.className = 'status warning';
+                        swStatus.textContent = '⚠️ No hay Service Workers registrados';
+                    }
+                } catch (error) {
+                    addLog(`Error verificando Service Workers: ${error.message}`, 'error');
+                    swStatus.className = 'status error';
+                    swStatus.textContent = '❌ Error verificando Service Workers';
+                }
+            } else {
+                addLog('Service Workers no soportados en este navegador', 'error');
+                swStatus.className = 'status error';
+                swStatus.textContent = '❌ Service Workers no soportados';
+            }
+        }
+
+        // Limpiar cache
+        async function clearCache() {
+            addLog('Limpiando cache...', 'info');
+            
+            try {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    addLog(`Cache limpiado: ${cacheNames.length} cache(s) eliminado(s)`, 'success');
+                }
+                
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(registration => registration.unregister()));
+                    addLog(`Service Workers desregistrados: ${registrations.length}`, 'success');
+                }
+                
+                addLog('✅ Cache y Service Workers limpiados exitosamente', 'success');
+                
+                // Recargar la página después de limpiar
+                setTimeout(() => {
+                    addLog('Recargando página en 3 segundos...', 'info');
+                    setTimeout(() => window.location.reload(), 3000);
+                }, 1000);
+                
+            } catch (error) {
+                addLog(`Error limpiando cache: ${error.message}`, 'error');
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Página de prueba cargada', 'info');
+            checkNotificationPermission();
+            checkServiceWorkers();
+            
+            // Verificar que los iconos existen
+            const iconUrls = [
+                '/Logo/Logo-Los-Nogales.png',
+                '/Logo/favicon-32x32.png',
+                '/Logo/apple-touch-icon.png'
+            ];
+            
+            iconUrls.forEach(url => {
+                fetch(url, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            addLog(`✅ Icono accesible: ${url}`, 'success');
+                        } else {
+                            addLog(`❌ Icono no encontrado: ${url}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        addLog(`❌ Error verificando icono ${url}: ${error.message}`, 'error');
+                    });
+            });
+        });
+    </script>
+</body>
+</html> 

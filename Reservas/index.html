@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!-- 
+    ===================================================================
+    SISTEMA DE RESERVAS - PARRILLA LOS NOGALES
+    ===================================================================
+    
+    VERSIÓN MEJORADA Y CORREGIDA
+    
+    CORRECCIONES IMPLEMENTADAS:
+    ✅ 1. Búsqueda del cliente: Ahora muestra TODAS las reservas pagadas aunque tengan datos inconsistentes
+    ✅ 2. Panel de administración: Mejorado con mejor manejo de errores y elementos faltantes
+    ✅ 3. Botón PDF propio: Siempre visible en todas las reservas (cliente y admin)
+    ✅ 4. Exportar a Excel: Implementación completa que exporta solo las reservas visibles
+    ✅ 5. Descarga PDF Mercado Pago: Funciona tanto en localhost como en la nube con fallback
+
+-->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parrilla Los Nogales - Reservas</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <!-- Librerías para PDF y Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .logo-font { font-family: 'Lora', serif; }
+        .hidden { display: none; }
+        .action-button i { pointer-events: none; }
+        
+        .modal-base { z-index: 50; }
+        .modal-top-layer { z-index: 60; }
+        
+        /* Eliminar contornos azules de focus */
+        input:focus, button:focus, select:focus, textarea:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        @media (max-width: 767px) {
+            html, body { height: auto !important; min-height: 0 !important; overflow-y: auto !important; }
+            #app { height: auto !important; min-height: 0 !important; }
+            #admin-view { min-height: 0 !important; height: auto !important; overflow-y: visible !important; display: block !important; }
+            #admin-view > .container { min-height: 0 !important; height: auto !important; overflow-y: visible !important; width: 100% !important; margin: 0 !important; padding: 0 0.5rem 3rem 0.5rem !important; }
+            #reservationsTable { display: none !important; }
+            #reservasCardsMobile { display: block !important; overflow-y: visible; max-height: none; min-height: 200px; }
+            .container { overflow: visible !important; }
+            #admin-view, #admin-view > .container { display: block !important; align-items: initial !important; justify-content: initial !important; }
+        }
+        @media (min-width: 768px) {
+            #reservationsTable { display: table !important; }
+            #reservasCardsMobile { display: none !important; }
+        }
+    </style>
+  </head>
+<body class="antialiased text-gray-800">
+    <div id="app">
+        <div id="client-view">
+    <div class="min-h-screen p-4 flex flex-col items-center justify-center">
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 md:p-10">
+                    <!-- Botones de navegación -->
+                    <div class="absolute top-4 left-4 right-4 flex justify-between">
+                        <button id="back-button" title="Volver a la página anterior" class="p-2 bg-gray-100 text-gray-600 rounded-full shadow-sm hover:bg-gray-200 transition">
+                            <i class="ph ph-arrow-left text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Header con logo -->
+                    <div class="text-center mb-8 pt-10">
+                <img src="https://placehold.co/250x60/14532d/ffffff?text=Parrilla+Los+Nogales" alt="Logo" class="w-auto h-12 mx-auto">
+                <p class="text-lg text-gray-500 mt-4">Sistema de Reservas</p>
+            </div>
+                    
+                    <!-- Contenedor del formulario -->
+                    <div id="reservation-form-container">
+                        <form id="reservationForm" class="space-y-6">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Tus Datos</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre y Apellido</label>
+                                        <input type="text" id="name" name="name" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                        <input type="tel" id="phone" name="phone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-4 pt-4">
+                                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la Reserva</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                                        <input type="date" id="date" name="date" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label for="time" class="block text-sm font-medium text-gray-700 mb-1">Hora</label>
+                                        <input type="time" id="time" name="time" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label for="diners" class="block text-sm font-medium text-gray-700 mb-1">Comensales</label>
+                                        <input type="number" id="diners" name="diners" min="1" value="2" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-800 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                                <i class="ph ph-calendar-check text-xl"></i>Verificar y Reservar
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Área de mensajes -->
+            <div id="client-message-area" class="mt-6 text-center"></div>
+                    
+                    <!-- Botón de búsqueda -->
+            <div class="mt-6 text-center">
+                <button id="show-search-button" class="font-semibold text-green-700 hover:text-green-800">
+                    ¿Ya tienes una reserva? Búscala aquí
+                </button>
+            </div>
+                    
+                    <!-- Información de horarios -->
+            <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Nuestros Horarios</h3>
+                <p class="text-gray-600"><span class="font-semibold">Almuerzo:</span> Jueves a Domingo, 12:00-16:00 hs.</p>
+                <p class="text-gray-600"><span class="font-semibold">Cena:</span> Lunes a Sábado, 20:00-01:00 hs.</p>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <div id="search-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 overflow-y-auto"></div>
+
+    <template id="reservation-form-template">
+        <form id="reservationForm" class="space-y-6">
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Tus Datos</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre y Apellido</label>
+                        <input type="text" id="name" name="name" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <input type="tel" id="phone" name="phone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4 pt-4">
+                <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la Reserva</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="date" id="date" name="date" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="time" class="block text-sm font-medium text-gray-700 mb-1">Hora</label>
+                        <input type="time" id="time" name="time" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="diners" class="block text-sm font-medium text-gray-700 mb-1">Comensales</label>
+                        <input type="number" id="diners" name="diners" min="1" value="2" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-800 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                <i class="ph ph-calendar-check text-xl"></i>Verificar y Reservar
+            </button>
+        </form>
+    </template>
+    <template id="search-modal-template">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Buscar Reserva</h3>
+                    <button id="close-search-modal-button" class="text-gray-400 hover:text-gray-600">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+                <form id="search-form" class="space-y-4">
+                    <div>
+                        <label for="search-phone" class="block text-sm font-medium text-gray-700 mb-1">Nombre o Teléfono</label>
+                        <input type="text" id="search-phone" name="search-phone" required class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="Ingresa tu nombre o teléfono">
+                    </div>
+                    <button type="submit" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-800 transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <i class="ph ph-magnifying-glass text-xl"></i>Buscar Reserva
+                    </button>
+                </form>
+                <div id="search-message" class="mt-4 text-center text-sm"></div>
+                <div id="search-results-container" class="mt-4"></div>
+            </div>
+        </div>
+    </template>
+
+    <script type="module" src="./src/cliente.js"></script>
+    <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+      <div class="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center animate-fade-in-up min-w-[300px]">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 animate-pop">
+          <i class="ph ph-check-circle text-4xl text-green-600"></i>
+        </div>
+        <h3 class="text-xl font-bold text-green-700 mb-2">¡Listo!</h3>
+        <p id="success-modal-message" class="text-gray-700 text-center mb-2">Reserva actualizada correctamente.</p>
+      </div>
+    </div>
+  </body>
+</html>

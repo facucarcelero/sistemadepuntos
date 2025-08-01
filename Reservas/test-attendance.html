@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Asistencias</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/index.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-pending {
+            border-left: 4px solid #10b981;
+            background-color: #f0fdf4;
+        }
+        .status-present {
+            border-left: 4px solid #3b82f6;
+            background-color: #eff6ff;
+        }
+        .status-absent {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-present {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-present:hover {
+            background-color: #2563eb;
+        }
+        .btn-absent {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-absent:hover {
+            background-color: #dc2626;
+        }
+        .btn-pending {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-pending:hover {
+            background-color: #059669;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-pending {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .badge-present {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-absent {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h1>🧪 Test Sistema de Asistencias</h1>
+        <p>Este es un test visual del sistema de asistencias por tiempo.</p>
+    </div>
+
+    <div class="test-card status-pending">
+        <h3>📋 Reserva #1 - Juan Pérez</h3>
+        <p><strong>Fecha:</strong> 2024-01-15 | <strong>Hora:</strong> 20:00 | <strong>Comensales:</strong> 4</p>
+        <span class="status-badge badge-pending">Pendiente</span>
+        <div class="button-group">
+            <button class="btn btn-present">✅ Presente</button>
+            <button class="btn btn-absent">❌ Ausente</button>
+            <button class="btn btn-pending">⏰ Pendiente</button>
+        </div>
+    </div>
+
+    <div class="test-card status-present">
+        <h3>📋 Reserva #2 - María García</h3>
+        <p><strong>Fecha:</strong> 2024-01-15 | <strong>Hora:</strong> 19:30 | <strong>Comensales:</strong> 2</p>
+        <span class="status-badge badge-present">Presente</span>
+        <div class="button-group">
+            <button class="btn btn-present">✅ Presente</button>
+            <button class="btn btn-absent">❌ Ausente</button>
+            <button class="btn btn-pending">⏰ Pendiente</button>
+        </div>
+    </div>
+
+    <div class="test-card status-absent">
+        <h3>📋 Reserva #3 - Carlos López</h3>
+        <p><strong>Fecha:</strong> 2024-01-15 | <strong>Hora:</strong> 18:00 | <strong>Comensales:</strong> 6</p>
+        <span class="status-badge badge-absent">Ausente</span>
+        <div class="button-group">
+            <button class="btn btn-present">✅ Presente</button>
+            <button class="btn btn-absent">❌ Ausente</button>
+            <button class="btn btn-pending">⏰ Pendiente</button>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h3>📊 Estados del Sistema</h3>
+        <ul>
+            <li><strong>🟢 Pendiente:</strong> Reserva antes de la hora (verde)</li>
+            <li><strong>🔵 Presente:</strong> Cliente confirmado presente (azul)</li>
+            <li><strong>🔴 Ausente:</strong> Cliente no asistió (rojo - se elimina automáticamente)</li>
+        </ul>
+        
+        <h4>⚙️ Funcionalidades:</h4>
+        <ul>
+            <li>✅ Verificación automática cada minuto</li>
+            <li>✅ Tolerancia de 15 minutos después de la hora</li>
+            <li>✅ Control manual del admin</li>
+            <li>✅ Cambios de color automáticos</li>
+            <li>✅ Eliminación automática de ausentes</li>
+            <li>✅ Notificaciones en tiempo real</li>
+        </ul>
+    </div>
+
+    <script>
+        // Simular interacción con botones
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.test-card');
+                const statusBadge = card.querySelector('.status-badge');
+                
+                // Remover clases de estado anteriores
+                card.classList.remove('status-pending', 'status-present', 'status-absent');
+                statusBadge.classList.remove('badge-pending', 'badge-present', 'badge-absent');
+                
+                if (this.classList.contains('btn-present')) {
+                    card.classList.add('status-present');
+                    statusBadge.classList.add('badge-present');
+                    statusBadge.textContent = 'Presente';
+                } else if (this.classList.contains('btn-absent')) {
+                    card.classList.add('status-absent');
+                    statusBadge.classList.add('badge-absent');
+                    statusBadge.textContent = 'Ausente';
+                } else if (this.classList.contains('btn-pending')) {
+                    card.classList.add('status-pending');
+                    statusBadge.classList.add('badge-pending');
+                    statusBadge.textContent = 'Pendiente';
+                }
+                
+                // Mostrar notificación
+                showNotification(`Estado cambiado a: ${statusBadge.textContent}`, 'success');
+            });
+        });
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.backgroundColor = '#10b981';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#ef4444';
+            } else {
+                notification.style.backgroundColor = '#3b82f6';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto-remover
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obtener Token FCM - Parrilla Los Nogales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+    <div class="min-h-screen p-4 flex flex-col items-center justify-center">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">🔑 Obtener Token FCM</h1>
+                <p class="text-gray-600">Esta página te ayudará a obtener un nuevo token FCM para las notificaciones push</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="requestPermission" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">
+                    📱 Solicitar Permisos de Notificación
+                </button>
+                
+                <button id="getToken" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition" disabled>
+                    🔑 Obtener Token FCM
+                </button>
+                
+                <div id="tokenDisplay" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Token FCM:</label>
+                    <textarea id="tokenText" class="w-full p-3 border border-gray-300 rounded-lg text-xs font-mono" rows="4" readonly></textarea>
+                    <button id="copyToken" class="w-full mt-2 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition">
+                        📋 Copiar Token
+                    </button>
+                </div>
+                
+                <div id="status" class="text-center text-sm"></div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                <h3 class="font-semibold text-yellow-800 mb-2">📋 Instrucciones:</h3>
+                <ol class="text-sm text-yellow-700 space-y-1">
+                    <li>1. Abre esta página en tu celular</li>
+                    <li>2. Haz clic en "Solicitar Permisos de Notificación"</li>
+                    <li>3. Acepta los permisos cuando el navegador lo solicite</li>
+                    <li>4. Haz clic en "Obtener Token FCM"</li>
+                    <li>5. Copia el token y actualízalo en functions/index.js</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS_eGNLqUH8SshfrnBaUvRTcjJKy5tFiI",
+            authDomain: "losnogales-reservas.firebaseapp.com",
+            projectId: "losnogales-reservas",
+            storageBucket: "losnogales-reservas.appspot.com",
+            messagingSenderId: "707614707617",
+            appId: "1:707614707617:web:57ef12cf519d99ff8585e0",
+            measurementId: "G-MBGF0QWF7K"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        const VAPID_KEY = "BNajMopvmxkuBroh5TYWc4ZAQjnRhRfdDeTNYPn6guoHF6aOrS-yXetEeguxhq5J1ANsD1CvxlJm_teh33DR7N0";
+
+        const statusEl = document.getElementById('status');
+        const requestPermissionBtn = document.getElementById('requestPermission');
+        const getTokenBtn = document.getElementById('getToken');
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        const tokenText = document.getElementById('tokenText');
+        const copyTokenBtn = document.getElementById('copyToken');
+
+        function updateStatus(message, type = 'info') {
+            const colors = {
+                info: 'text-blue-600',
+                success: 'text-green-600',
+                error: 'text-red-600',
+                warning: 'text-yellow-600'
+            };
+            statusEl.className = `text-center text-sm ${colors[type]}`;
+            statusEl.textContent = message;
+        }
+
+        requestPermissionBtn.addEventListener('click', async () => {
+            try {
+                updateStatus('Solicitando permisos...', 'info');
+                
+                if (!('Notification' in window)) {
+                    throw new Error('Este navegador no soporta notificaciones');
+                }
+
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    updateStatus('✅ Permisos concedidos', 'success');
+                    getTokenBtn.disabled = false;
+                } else if (permission === 'denied') {
+                    updateStatus('❌ Permisos denegados. Por favor, habilita las notificaciones en la configuración del navegador.', 'error');
+                } else {
+                    updateStatus('⚠️ Permisos cancelados', 'warning');
+                }
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('Error solicitando permisos:', error);
+            }
+        });
+
+        getTokenBtn.addEventListener('click', async () => {
+            try {
+                updateStatus('Obteniendo token...', 'info');
+                
+                if (!('serviceWorker' in navigator)) {
+                    throw new Error('Service Worker no soportado');
+                }
+
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('Service Worker registrado:', registration);
+
+                const currentToken = await getToken(messaging, { 
+                    vapidKey: VAPID_KEY, 
+                    serviceWorkerRegistration: registration 
+                });
+
+                if (currentToken) {
+                    tokenText.value = currentToken;
+                    tokenDisplay.classList.remove('hidden');
+                    updateStatus('✅ Token obtenido exitosamente', 'success');
+                    console.log('Token FCM:', currentToken);
+                } else {
+                    updateStatus('❌ No se pudo obtener el token', 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ Error obteniendo token: ${error.message}`, 'error');
+                console.error('Error obteniendo token:', error);
+            }
+        });
+
+        copyTokenBtn.addEventListener('click', () => {
+            tokenText.select();
+            document.execCommand('copy');
+            updateStatus('✅ Token copiado al portapapeles', 'success');
+        });
+
+        // Recibir mensajes en primer plano
+        onMessage(messaging, (payload) => {
+            console.log('Mensaje recibido en primer plano:', payload);
+            updateStatus('📱 Notificación recibida en primer plano', 'success');
+        });
+
+        // Verificar permisos al cargar
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                updateStatus('✅ Permisos ya concedidos', 'success');
+                getTokenBtn.disabled = false;
+            } else if (Notification.permission === 'denied') {
+                updateStatus('❌ Permisos denegados. Habilita las notificaciones en la configuración del navegador.', 'error');
+            }
+        }
+    </script>
+</body>
+</html> 
