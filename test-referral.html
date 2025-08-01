@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Referidos - Parrilla Los Nogales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button.danger {
+            background: #f44336;
+        }
+        .test-button.danger:hover {
+            background: #da190b;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Sistema de Referidos</h1>
+    <p>Este archivo permite probar la funcionalidad del sistema de referidos.</p>
+
+    <div class="test-section">
+        <h2>1. Verificar Estado del Sistema</h2>
+        <button class="test-button" onclick="checkSystemStatus()">Verificar Estado</button>
+        <div id="systemStatus" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Login de Usuario Existente</h2>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="loginEmail" placeholder="facucarcelero6@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>Contraseña:</label>
+            <input type="password" id="loginPassword" placeholder="Tu contraseña">
+        </div>
+        <button class="test-button" onclick="testLogin()">Iniciar Sesión</button>
+        <button class="test-button danger" onclick="testLogout()">Cerrar Sesión</button>
+        <div id="loginResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Obtener Código de Referido del Usuario Actual</h2>
+        <button class="test-button" onclick="getCurrentUserReferralCode()">Obtener Mi Código</button>
+        <div id="referralCodeResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Validar Código de Referido</h2>
+        <div class="form-group">
+            <label>Código a Validar:</label>
+            <input type="text" id="codeToValidate" placeholder="Ingresa un código de referido">
+        </div>
+        <button class="test-button" onclick="validateReferralCode()">Validar Código</button>
+        <div id="validationResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Registrar Nuevo Usuario con Código de Referido</h2>
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="newUserName" placeholder="Nombre del nuevo usuario">
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="newUserEmail" placeholder="nuevo@email.com">
+        </div>
+        <div class="form-group">
+            <label>Teléfono:</label>
+            <input type="tel" id="newUserPhone" placeholder="264-123-4567">
+        </div>
+        <div class="form-group">
+            <label>Contraseña:</label>
+            <input type="password" id="newUserPassword" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="form-group">
+            <label>Código de Referido:</label>
+            <input type="text" id="newUserReferral" placeholder="Código de referido (opcional)">
+        </div>
+        <button class="test-button" onclick="testRegisterWithReferral()">Registrar con Referido</button>
+        <div id="registerResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Verificar Puntos Después del Registro</h2>
+        <button class="test-button" onclick="checkPointsAfterRegistration()">Verificar Puntos</button>
+        <div id="pointsResult" class="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Loyalty API -->
+    <script src="loyalty-api.js"></script>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('systemStatus');
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        async function checkSystemStatus() {
+            log('=== Verificando Estado del Sistema ===', 'info');
+            log(`Firebase Auth disponible: ${typeof firebase !== 'undefined' && firebase.auth}`, 'info');
+            log(`Firestore disponible: ${typeof firebase !== 'undefined' && firebase.firestore}`, 'info');
+            log(`LoyaltyAPI disponible: ${typeof LoyaltyAPI !== 'undefined'}`, 'info');
+            
+            const currentUser = LoyaltyAPI.getCurrentUser();
+            const userData = LoyaltyAPI.getUserData();
+            const userPoints = LoyaltyAPI.getUserPoints();
+            
+            log(`Usuario actual: ${currentUser || 'No logueado'}`, 'info');
+            log(`Datos de usuario: ${userData ? 'Cargados' : 'No cargados'}`, 'info');
+            log(`Puntos actuales: ${userPoints}`, 'info');
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                log('❌ Por favor ingresa email y contraseña', 'error');
+                return;
+            }
+            
+            log(`=== Test de Login ===`, 'info');
+            log(`Intentando login con: ${email}`, 'info');
+            
+            const result = await LoyaltyAPI.loginUser(email, password);
+            log(`Resultado login: ${JSON.stringify(result)}`, 'info');
+            
+            if (result.success) {
+                log('✅ Login exitoso!', 'success');
+                const userData = LoyaltyAPI.getUserData();
+                log(`Datos cargados: ${JSON.stringify(userData)}`, 'info');
+            } else {
+                log(`❌ Login falló: ${result.message}`, 'error');
+            }
+        }
+
+        async function testLogout() {
+            log('=== Test de Logout ===', 'info');
+            const result = await LoyaltyAPI.logoutUser();
+            log(`Resultado logout: ${JSON.stringify(result)}`, 'info');
+            if (result.success) {
+                log('✅ Logout exitoso!', 'success');
+            } else {
+                log(`❌ Logout falló: ${result.message}`, 'error');
+            }
+        }
+
+        async function getCurrentUserReferralCode() {
+            const logElement = document.getElementById('referralCodeResult');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            logElement.innerHTML += `[${timestamp}] === Obteniendo Código de Referido ===\n`;
+            const userData = LoyaltyAPI.getUserData();
+            if (userData && userData.referralCode) {
+                logElement.innerHTML += `[${timestamp}] ✅ Tu código de referido: ${userData.referralCode}\n`;
+                logElement.innerHTML += `[${timestamp}] Puedes compartir este código con amigos para que ambos ganen puntos!\n`;
+            } else {
+                logElement.innerHTML += `[${timestamp}] ❌ No se pudo obtener el código de referido\n`;
+            }
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        async function validateReferralCode() {
+            const code = document.getElementById('codeToValidate').value;
+            const logElement = document.getElementById('validationResult');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (!code) {
+                logElement.innerHTML += `[${timestamp}] ❌ Por favor ingresa un código para validar\n`;
+                return;
+            }
+            
+            logElement.innerHTML += `[${timestamp}] === Validando Código: ${code} ===\n`;
+            const result = await LoyaltyAPI.validateReferralCode(code);
+            logElement.innerHTML += `[${timestamp}] Resultado validación: ${JSON.stringify(result)}\n`;
+            
+            if (result.valid) {
+                logElement.innerHTML += `[${timestamp}] ✅ Código válido!\n`;
+            } else {
+                logElement.innerHTML += `[${timestamp}] ❌ Código inválido: ${result.message}\n`;
+            }
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        async function testRegisterWithReferral() {
+            const name = document.getElementById('newUserName').value;
+            const email = document.getElementById('newUserEmail').value;
+            const phone = document.getElementById('newUserPhone').value;
+            const password = document.getElementById('newUserPassword').value;
+            const referral = document.getElementById('newUserReferral').value;
+            const logElement = document.getElementById('registerResult');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (!name || !email || !phone || !password) {
+                logElement.innerHTML += `[${timestamp}] ❌ Por favor completa todos los campos obligatorios\n`;
+                return;
+            }
+            
+            logElement.innerHTML += `[${timestamp}] === Test de Registro con Referido ===\n`;
+            logElement.innerHTML += `[${timestamp}] Nombre: ${name}\n`;
+            logElement.innerHTML += `[${timestamp}] Email: ${email}\n`;
+            logElement.innerHTML += `[${timestamp}] Teléfono: ${phone}\n`;
+            logElement.innerHTML += `[${timestamp}] Código de referido: ${referral || 'Ninguno'}\n`;
+            
+            const result = await LoyaltyAPI.registerUser(email, password, name, phone, referral);
+            logElement.innerHTML += `[${timestamp}] Resultado registro: ${JSON.stringify(result)}\n`;
+            
+            if (result.success) {
+                logElement.innerHTML += `[${timestamp}] ✅ Registro exitoso!\n`;
+                if (referral) {
+                    logElement.innerHTML += `[${timestamp}] 🎉 ¡Puntos de referido deberían haberse agregado!\n`;
+                }
+            } else {
+                logElement.innerHTML += `[${timestamp}] ❌ Registro falló: ${result.message}\n`;
+            }
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        async function checkPointsAfterRegistration() {
+            const logElement = document.getElementById('pointsResult');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            logElement.innerHTML += `[${timestamp}] === Verificando Puntos Después del Registro ===\n`;
+            const userData = LoyaltyAPI.getUserData();
+            const userPoints = LoyaltyAPI.getUserPoints();
+            
+            logElement.innerHTML += `[${timestamp}] Puntos actuales: ${userPoints}\n`;
+            logElement.innerHTML += `[${timestamp}] Total puntos ganados: ${userData ? userData.totalPointsEarned : 'N/A'}\n`;
+            logElement.innerHTML += `[${timestamp}] Referido por: ${userData && userData.referredBy ? userData.referredBy : 'Ninguno'}\n`;
+            
+            if (userData && userData.referredBy) {
+                logElement.innerHTML += `[${timestamp}] ✅ Usuario registrado con código de referido\n`;
+            } else {
+                logElement.innerHTML += `[${timestamp}] ℹ️ Usuario registrado sin código de referido\n`;
+            }
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Inicializar al cargar la página
+        window.addEventListener('load', function() {
+            log('=== Sistema de Test de Referidos Inicializado ===', 'info');
+            log('Para usar este test:', 'info');
+            log('1. Primero inicia sesión con un usuario existente', 'info');
+            log('2. Obtén tu código de referido', 'info');
+            log('3. Registra un nuevo usuario usando ese código', 'info');
+            log('4. Verifica que ambos usuarios reciban puntos', 'info');
+        });
+    </script>
+</body>
+</html> 

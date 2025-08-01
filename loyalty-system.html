@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Fidelización - Parrilla Los Nogales</title>
+    <!-- VERSIÓN ACTUALIZADA CON MENÚ HAMBURGUESA, LOGIN INICIAL CENTRADO Y HEADER PRINCIPAL - v6.3 -->
     <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
     
     <!-- Fuentes -->
@@ -13,6 +14,7 @@
     
     <!-- Iconos -->
     <link href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" rel="stylesheet">
+    <link href="icons.css" rel="stylesheet">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
@@ -21,17 +23,450 @@
     
     <!-- Estilos -->
     <link rel="stylesheet" href="loyalty-styles.css">
+    
+    <style>
+        /* Estilos para el menú de hamburguesa - VERSIÓN ACTUALIZADA */
+        .hamburger-btn {
+            display: block !important; /* Forzar visibilidad */
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: var(--primary-color);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 40px 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sidebar-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .sidebar-subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            gap: 12px;
+            margin: 5px 0;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            border-left: 4px solid white;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            font-weight: 500;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger-btn {
+                display: block;
+            }
+            
+            .loyalty-nav {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .sidebar {
+                left: -280px;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Ajustes para el header */
+        .loyalty-header {
+            margin: -0px -20px 0px -20px;
+        }
+
+        .header-content {
+            padding: 0px 35px;
+        }
+        
+        /* Ocultar la navegación original en todas las pantallas */
+        .loyalty-nav {
+            display: none !important;
+        }
+        
+        /* Ocultar elementos inicialmente hasta que el usuario inicie sesión */
+        .hamburger-btn,
+        .sidebar,
+        .overlay,
+        .loyalty-header,
+        .loyalty-nav,
+        .main-header {
+            display: none !important;
+        }
+        
+        /* Mostrar solo el formulario de autenticación inicialmente */
+        .loyalty-container {
+            padding-top: 0;
+        }
+        
+        /* Clase para mostrar elementos después del login */
+        .logged-in .hamburger-btn,
+        .logged-in .sidebar,
+        .logged-in .overlay,
+        .logged-in .main-header {
+            display: block !important;
+        }
+        
+        /* Mantener ocultos el header y nav originales incluso después del login */
+        .logged-in .loyalty-header,
+        .logged-in .loyalty-nav {
+            display: none !important;
+        }
+        
+        .logged-in .hamburger-btn {
+            display: block !important;
+        }
+        
+        .logged-in .loyalty-container {
+            padding-top: 20px;
+        }
+        
+        /* Ocultar la sección de autenticación cuando el usuario está logueado */
+        .logged-in #authSection {
+            display: none !important;
+        }
+        
+        /* Estilos específicos para centrar el formulario de autenticación */
+        #authSection {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        #authSection .form-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0;
+            padding: 40px 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        #authSection .text-center h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        #authSection .text-secondary {
+            font-size: 1em;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        
+        /* Estilos para el header principal después del login */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .main-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .main-header .header-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+        
+        .main-header .header-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .logout-btn i {
+            font-size: 16px;
+        }
+        
+        /* Ajustar el contenido principal para el header fijo */
+        .logged-in .loyalty-container {
+            padding-top: 80px;
+        }
+        
+        /* Ocultar el header original después del login */
+        .logged-in .loyalty-header {
+            display: none !important;
+        }
+        
+        /* Responsive para el formulario de autenticación */
+        @media (max-width: 768px) {
+            #authSection {
+                padding: 15px;
+                min-height: 100vh;
+            }
+            
+            #authSection .form-container {
+                padding: 30px 20px;
+                max-width: 100%;
+            }
+            
+            #authSection .text-center h2 {
+                font-size: 1.5em;
+            }
+            
+            #authSection .text-secondary {
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #authSection {
+                padding: 10px;
+            }
+            
+            #authSection .form-container {
+                padding: 25px 15px;
+            }
+            
+            #authSection .text-center h2 {
+                font-size: 1.3em;
+            }
+            
+            #authSection .text-secondary {
+                font-size: 0.85em;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            #authSection .form-container {
+                padding: 20px 12px;
+            }
+            
+            #authSection .text-center h2 {
+                font-size: 1.2em;
+            }
+            
+            #authSection .text-secondary {
+                font-size: 0.8em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="loyalty-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="./Logo/Logo Los Nogales.png" alt="Los Nogales" class="sidebar-logo">
+            <h3 class="sidebar-title">Sistema de Fidelización</h3>
+            <p class="sidebar-subtitle">Parrilla Los Nogales</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" onclick="showSection('dashboard'); toggleMenu();">
+                <i class="ph-house"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('rewards'); toggleMenu();">
+                <i class="ph-gift"></i>
+                <span>Premios</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('history'); toggleMenu();">
+                <i class="ph-clock"></i>
+                <span>Historial</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('profile'); toggleMenu();">
+                <i class="ph-user"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="#" class="nav-item" id="adminButtonSidebar" onclick="openAdminPanel(); toggleMenu();" style="display: none;">
+                <i class="ph-gear"></i>
+                <span>Admin</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('auth'); toggleMenu();">
+                <i class="ph-sign-in"></i>
+                <span>Iniciar Sesión</span>
+            </a>
+            <a href="#" class="nav-item" onclick="logout(); toggleMenu();">
+                <i class="ph-sign-out"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Header principal después del login -->
+    <header class="main-header" id="mainHeader">
+        <div class="header-left">
+            <button class="hamburger-btn" onclick="toggleMenu()">
+                <i class="ph-list"></i>
+            </button>
+            <img src="./Logo/Logo Los Nogales.png" alt="Los Nogales" class="header-logo">
+            <h2 class="header-title">Sistema de Fidelización</h2>
+        </div>
+        <div class="header-right">
+            <button class="logout-btn" onclick="logout()">
+                <i class="ph-sign-out"></i>
+                Cerrar Sesión
+            </button>
+        </div>
+    </header>
+
+    <div class="loyalty-container main-content">
         <!-- Header -->
         <header class="loyalty-header">
-                            <img src="./Logo/Logo Los Nogales.png" alt="Los Nogales" class="loyalty-logo">
-            <h1 class="loyalty-title">Sistema de Fidelización</h1>
-            <p class="loyalty-subtitle">Parrilla Los Nogales</p>
+            <div class="header-content">
+                <img src="./Logo/Logo Los Nogales.png" alt="Los Nogales" class="loyalty-logo">
+                <h1 class="loyalty-title">Sistema de Fidelización</h1>
+                <p class="loyalty-subtitle">Parrilla Los Nogales</p>
+            </div>
         </header>
 
-        <!-- Navegación -->
+        <!-- Navegación (oculta en móviles) -->
         <nav class="loyalty-nav" id="loyaltyNav">
             <button class="nav-button active" onclick="showSection('dashboard')">
                 <i class="ph-house"></i>
@@ -49,9 +484,9 @@
                 <i class="ph-user"></i>
                 Perfil
             </button>
-            <button class="nav-button" id="adminButton" onclick="showSection('admin')" style="display: none;">
+            <button class="nav-button" id="adminButton" onclick="openAdminPanel()" style="display: none;">
                 <i class="ph-gear"></i>
-                Administración
+                Admin
             </button>
             <button class="nav-button secondary" onclick="showSection('auth')">
                 <i class="ph-sign-in"></i>
@@ -596,24 +1031,37 @@
             // Configurar listeners de formularios
             setupFormListeners();
             
+
+            
             // Configurar listener de Firebase Auth
             firebase.auth().onAuthStateChanged(async function(user) {
                 if (user) {
+                    // Agregar clase logged-in al body para mostrar elementos
+                    document.body.classList.add('logged-in');
+                    
                     // Verificar si es admin
                     userIsAdmin = await LoyaltyAPI.isAdmin(user.uid);
                     
-                    // Mostrar/ocultar botón de admin
+                    // Mostrar/ocultar botón de admin en ambas ubicaciones
                     const adminButton = document.getElementById('adminButton');
+                    const adminButtonSidebar = document.getElementById('adminButtonSidebar');
+                    
                     if (adminButton) {
                         adminButton.style.display = userIsAdmin ? 'inline-flex' : 'none';
+                    }
+                    if (adminButtonSidebar) {
+                        adminButtonSidebar.style.display = userIsAdmin ? 'flex' : 'none';
                     }
                     
                     // Cargar datos del usuario PASANDO EL USER.UID DIRECTAMENTE
                     await loadUserData(user.uid);
                     
-                    // Mostrar dashboard
+                    // Mostrar dashboard por defecto
                     showSection('dashboard');
                 } else {
+                    // Remover clase logged-in del body para ocultar elementos
+                    document.body.classList.remove('logged-in');
+                    
                     // Mostrar formulario de login
                     showSection('auth');
                     resetUI();
@@ -634,11 +1082,40 @@
             
             // Profile
             document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
+            
+            // Validación en tiempo real del código de referido
+            const referralInput = document.getElementById('registerReferral');
+            if (referralInput) {
+                let validationTimeout;
+                referralInput.addEventListener('input', function() {
+                    clearTimeout(validationTimeout);
+                    const code = this.value.trim();
+                    
+                    if (code.length > 0) {
+                        validationTimeout = setTimeout(async () => {
+                            const result = await LoyaltyAPI.validateReferralCode(code);
+                            if (result.valid) {
+                                this.style.borderColor = '#4CAF50';
+                                this.title = 'Código de referido válido';
+                            } else {
+                                this.style.borderColor = '#f44336';
+                                this.title = result.message;
+                            }
+                        }, 500);
+                    } else {
+                        this.style.borderColor = '';
+                        this.title = '';
+                    }
+                });
+            }
         }
 
         // Manejar cambios de estado de autenticación
         async function handleAuthStateChange(isLoggedIn, user) {
             if (isLoggedIn && user) {
+                // Agregar clase logged-in al body para mostrar elementos
+                document.body.classList.add('logged-in');
+                
                 // Verificar si es admin
                 userIsAdmin = await LoyaltyAPI.isAdmin(user.uid);
                 
@@ -649,7 +1126,7 @@
                 // Cargar datos del usuario
                 await loadUserData();
                 
-                // Mostrar dashboard
+                // Mostrar dashboard por defecto
                 showSection('dashboard');
             } else {
                 // Mostrar formulario de login
@@ -742,39 +1219,89 @@
         }
 
         // Cargar premios
+        // Verificar estado de los íconos
+        
+
         async function loadRewards() {
             const rewards = await LoyaltyAPI.getAvailableRewards();
+            console.log('📦 Rewards cargados desde Firebase:', rewards);
+            
             const grid = document.getElementById('rewardsGrid');
             const currentPoints = LoyaltyAPI.getUserPoints();
             
-            grid.innerHTML = rewards.map(reward => `
+            grid.innerHTML = rewards.map(reward => {
+                console.log('🎁 Procesando premio:', reward);
+                
+                // Obtener el ícono para este premio
+                const iconHtml = getRewardIcon(reward.id, reward.name);
+                console.log('🎯 HTML del ícono generado para', reward.name, ':', iconHtml);
+                
+                const rewardCardHtml = `
                 <div class="reward-card">
                     <div class="reward-icon">
-                        ${getRewardIcon(reward.id)}
+                        ${iconHtml}
                     </div>
                     <div class="reward-name">${reward.name}</div>
                     <div class="reward-description">${reward.description}</div>
-                    <div class="reward-points">${reward.points} puntos</div>
+                    <div class="reward-points">${reward.pointsRequired || reward.pointsCost || reward.points} puntos</div>
                     <button class="reward-button" 
-                            onclick="showRedemptionModal('${reward.id}', '${reward.name}', ${reward.points})"
-                            ${currentPoints < reward.points ? 'disabled' : ''}>
-                        ${currentPoints < reward.points ? 'Puntos Insuficientes' : 'Canjear'}
+                            onclick="showRedemptionModal('${reward.id}', '${reward.name}', ${reward.pointsRequired || reward.pointsCost || reward.points})"
+                            ${currentPoints < (reward.pointsRequired || reward.pointsCost || reward.points) ? 'disabled' : ''}>
+                        ${currentPoints < (reward.pointsRequired || reward.pointsCost || reward.points) ? 'Puntos Insuficientes' : 'Canjear'}
                     </button>
                 </div>
-            `).join('');
+            `;
+                
+                console.log('🎯 HTML completo del reward card para', reward.name, ':', rewardCardHtml);
+                return rewardCardHtml;
+            }).join('');
+            
+
         }
 
         // Obtener icono del premio
-        function getRewardIcon(rewardId) {
-            const icons = {
-                'soda': '<i class="ph-cup-soda"></i>',
-                'entrada': '<i class="ph-cooking-pot"></i>',
-                'descuento': '<i class="ph-percent"></i>',
-                'vino': '<i class="ph-wine"></i>',
-                'parrillada': '<i class="ph-fire"></i>'
-            };
-            return icons[rewardId] || '<i class="ph-gift"></i>';
+            function getRewardIcon(rewardId, rewardName) {
+        // Debug: mostrar información del premio
+        console.log('🔍 getRewardIcon - rewardId:', rewardId, 'rewardName:', rewardName);
+        
+        // Detectar el tipo de premio basándose en el nombre
+        const name = rewardName.toLowerCase();
+        console.log('🔍 Nombre en minúsculas:', name);
+        
+        // Estilos inline para asegurar visibilidad
+        const iconStyle = 'style="display: inline-block; font-size: 2.5em; color: #28a745; margin-bottom: 15px;"';
+        
+        if (name.includes('gaseosa') || name.includes('postre') || name.includes('soda')) {
+            console.log('✅ Detectado: Gaseosa/Postre - Retornando ph-cup-soda');
+            return `<i class="ph-cup-soda" ${iconStyle}></i>`;
+        } else if (name.includes('entrada') || name.includes('empanada')) {
+            console.log('✅ Detectado: Entrada/Empanada - Retornando ph-cooking-pot');
+            return `<i class="ph-cooking-pot" ${iconStyle}></i>`;
+        } else if (name.includes('descuento') || name.includes('%')) {
+            console.log('✅ Detectado: Descuento - Retornando ph-percent');
+            return `<i class="ph-percent" ${iconStyle}></i>`;
+        } else if (name.includes('vino') || name.includes('regional')) {
+            console.log('✅ Detectado: Vino - Retornando ph-wine');
+            return `<i class="ph-wine" ${iconStyle}></i>`;
+        } else if (name.includes('parrillada') || name.includes('libre')) {
+            console.log('✅ Detectado: Parrillada - Retornando ph-fire');
+            return `<i class="ph-fire" ${iconStyle}></i>`;
         }
+        
+        console.log('❌ No se detectó tipo específico, usando fallback');
+        
+        // Fallback para IDs específicos (por compatibilidad)
+        const icons = {
+            'soda': `<i class="ph-cup-soda" ${iconStyle}></i>`,
+            'entrada': `<i class="ph-cooking-pot" ${iconStyle}></i>`,
+            'descuento': `<i class="ph-percent" ${iconStyle}></i>`,
+            'vino': `<i class="ph-wine" ${iconStyle}></i>`,
+            'parrillada': `<i class="ph-fire" ${iconStyle}></i>`
+        };
+        const fallbackIcon = icons[rewardId] || `<i class="ph-gift" ${iconStyle}></i>`;
+        console.log('🔄 Usando fallback:', fallbackIcon);
+        return fallbackIcon;
+    }
 
         // Cargar historial de transacciones
         async function loadTransactionHistory() {
@@ -921,17 +1448,38 @@
             // Mostrar sección seleccionada
             document.getElementById(sectionName + 'Section').classList.add('active');
             
-            // Actualizar navegación
+            // Ocultar la sección de autenticación si se muestra cualquier otra sección
+            if (sectionName !== 'auth') {
+                const authSection = document.getElementById('authSection');
+                if (authSection) {
+                    authSection.style.display = 'none';
+                }
+            }
+            
+            // Actualizar navegación principal
             document.querySelectorAll('.nav-button').forEach(button => {
                 button.classList.remove('active');
             });
             
-            // Marcar botón activo
+            // Marcar botón activo en navegación principal
             const activeButton = Array.from(document.querySelectorAll('.nav-button')).find(button => 
                 button.getAttribute('onclick')?.includes(sectionName)
             );
             if (activeButton) {
                 activeButton.classList.add('active');
+            }
+            
+            // Actualizar navegación del sidebar
+            document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Marcar item activo en sidebar
+            const activeSidebarItem = Array.from(document.querySelectorAll('.sidebar .nav-item')).find(item => 
+                item.getAttribute('onclick')?.includes(sectionName)
+            );
+            if (activeSidebarItem) {
+                activeSidebarItem.classList.add('active');
             }
             
             currentSection = sectionName;
@@ -979,17 +1527,11 @@
             buttonText.style.display = 'none';
             loading.classList.remove('hidden');
             
-            const result = await LoyaltyAPI.registerUser(email, password, name, phone);
+            const result = await LoyaltyAPI.registerUser(email, password, name, phone, referral);
             
             if (result.success) {
                 showMessage(result.message, 'success');
                 closeModal('registerModal');
-                
-                // Si hay código de referido, procesarlo
-                if (referral) {
-                    // Aquí se procesaría el código de referido
-                    // Por simplicidad, no lo implementamos en esta versión
-                }
             } else {
                 showMessage(result.message, 'error');
             }
@@ -1061,6 +1603,11 @@
             }
         }
 
+        // Función para abrir el panel de administración
+        function openAdminPanel() {
+            window.open('admin-panel.html', '_blank');
+        }
+
         async function claimReviewPoints() {
             const result = await LoyaltyAPI.addSurveyPoints();
             
@@ -1099,7 +1646,7 @@
             const result = await LoyaltyAPI.redeemReward(
                 selectedReward.id, 
                 selectedReward.name, 
-                selectedReward.points
+                selectedReward.pointsRequired || selectedReward.pointsCost || selectedReward.points
             );
             
             if (result.success) {
@@ -1173,6 +1720,9 @@
         }
 
         function resetUI() {
+            // Remover clase logged-in del body para ocultar elementos
+            document.body.classList.remove('logged-in');
+            
             document.getElementById('currentPoints').textContent = '0';
             document.getElementById('totalEarned').textContent = '0';
             document.getElementById('totalRedeemed').textContent = '0';
@@ -1460,6 +2010,27 @@
                 return 'Desktop';
             }
         }
+
+        // Funciones para el menú de hamburguesa
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        // Verificar que el menú está funcionando
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Menú de hamburguesa cargado correctamente');
+            const hamburgerBtn = document.querySelector('.hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            if (hamburgerBtn && sidebar) {
+                console.log('✅ Elementos del menú encontrados');
+                // No forzar display block aquí - dejar que CSS maneje la visibilidad
+            } else {
+                console.error('❌ Elementos del menú no encontrados');
+            }
+        });
     </script>
 </body>
 </html> 

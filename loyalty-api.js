@@ -35,7 +35,7 @@ let userData = null;
 // ===== FUNCIONES DE AUTENTICACIÓN =====
 
 // Registrar nuevo usuario
-async function registerUser(email, password, name, phone) {
+async function registerUser(email, password, name, phone, referralCode = null) {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
@@ -43,8 +43,27 @@ async function registerUser(email, password, name, phone) {
         // Enviar email de verificación
         await user.sendEmailVerification();
         
+        // Buscar referidor si se proporcionó un código de referido
+        let referrerId = null;
+        if (referralCode && referralCode.trim()) {
+            const referrerQuery = await db.collection('users')
+                .where('referralCode', '==', referralCode.trim())
+                .limit(1)
+                .get();
+            
+            if (!referrerQuery.empty) {
+                const referrerDoc = referrerQuery.docs[0];
+                referrerId = referrerDoc.id;
+                
+                // Verificar que no sea el mismo usuario (aunque esto no debería pasar en registro)
+                if (referrerId === user.uid) {
+                    referrerId = null;
+                }
+            }
+        }
+        
         // Crear documento de usuario en Firestore
-        await db.collection('users').doc(user.uid).set({
+        const userData = {
             email: email,
             name: name,
             phone: phone,
@@ -55,10 +74,47 @@ async function registerUser(email, password, name, phone) {
             lastVisit: null,
             isEmailVerified: false,
             referralCode: generateReferralCode(),
-            referredBy: null,
+            referredBy: referrerId,
             dailyVisitClaimed: false,
             lastDailyVisit: null
-        });
+        };
+        
+        await db.collection('users').doc(user.uid).set(userData);
+        
+        // Si hay un referidor válido, agregar puntos a ambos usuarios
+        if (referrerId) {
+            try {
+                // Agregar puntos al nuevo usuario
+                await db.collection('users').doc(user.uid).update({
+                    points: 20,
+                    totalPointsEarned: 20
+                });
+                
+                // Agregar puntos al referidor
+                const referrerDoc = await db.collection('users').doc(referrerId).get();
+                if (referrerDoc.exists) {
+                    const referrerData = referrerDoc.data();
+                    await db.collection('users').doc(referrerId).update({
+                        points: (referrerData.points || 0) + 20,
+                        totalPointsEarned: (referrerData.totalPointsEarned || 0) + 20
+                    });
+                    
+                    // Registrar transacciones
+                    await addPointTransaction('Referido - Nuevo usuario registrado', 20, 'earned', referrerId);
+                }
+                
+                // Registrar transacción para el nuevo usuario
+                await addPointTransaction('Registro con código de referido', 20, 'earned', user.uid);
+                
+                return { 
+                    success: true, 
+                    message: 'Usuario registrado exitosamente. ¡+20 puntos por usar código de referido! Por favor verifica tu email (revisa también la carpeta de spam).' 
+                };
+            } catch (error) {
+                console.error('Error al procesar referido:', error);
+                // Continuar con el registro aunque falle el procesamiento del referido
+            }
+        }
         
         return { success: true, message: 'Usuario registrado exitosamente. Por favor verifica tu email (revisa también la carpeta de spam).' };
     } catch (error) {
@@ -111,6 +167,29 @@ async function resetPassword(email) {
 }
 
 // ===== FUNCIONES DE PUNTOS =====
+
+// Validar código de referido
+async function validateReferralCode(code) {
+    if (!code || !code.trim()) {
+        return { valid: false, message: 'Código de referido requerido.' };
+    }
+    
+    try {
+        const query = await db.collection('users')
+            .where('referralCode', '==', code.trim())
+            .limit(1)
+            .get();
+        
+        if (query.empty) {
+            return { valid: false, message: 'Código de referido inválido.' };
+        }
+        
+        return { valid: true, message: 'Código de referido válido.' };
+    } catch (error) {
+        console.error('Error validando código de referido:', error);
+        return { valid: false, message: 'Error al validar código de referido.' };
+    }
+}
 
 // Cargar datos del usuario
 async function loadUserData(userId) {
@@ -362,13 +441,11 @@ async function addSurveyPoints() {
 // Obtener premios disponibles
 async function getAvailableRewards() {
     try {
-        const rewards = [
-            { id: 'soda', name: 'Gaseosa o postre gratis', points: 50, description: 'Disfruta de una gaseosa o postre de la casa' },
-            { id: 'entrada', name: 'Entrada o empanada gratis', points: 100, description: 'Entrada o empanada de tu elección' },
-            { id: 'descuento', name: '10% descuento en mesa', points: 200, description: '10% de descuento en tu cuenta total' },
-            { id: 'vino', name: 'Vino regional o parrillada para 1', points: 300, description: 'Vino regional o parrillada individual' },
-            { id: 'parrillada', name: 'Parrillada libre completa para 2', points: 500, description: 'Parrillada libre completa para 2 personas' }
-        ];
+        const snapshot = await db.collection('rewards').get();
+        const rewards = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
         return rewards;
     } catch (error) {
         console.error('Error obteniendo premios:', error);
@@ -376,20 +453,56 @@ async function getAvailableRewards() {
     }
 }
 
+// Inicializar premios en Firebase (solo se ejecuta una vez)
+async function initializeRewards() {
+    try {
+        const snapshot = await db.collection('rewards').get();
+        
+        // Si ya hay premios, no inicializar
+        if (!snapshot.empty) {
+            console.log('Los premios ya están inicializados en Firebase');
+            return;
+        }
+        
+        const defaultRewards = [
+            { name: 'Gaseosa o postre gratis', pointsRequired: 50, description: 'Disfruta de una gaseosa o postre de la casa', active: true, quantity: 1 },
+            { name: 'Entrada o empanada gratis', pointsRequired: 100, description: 'Entrada o empanada de tu elección', active: true, quantity: 1 },
+            { name: '10% descuento en mesa', pointsRequired: 200, description: '10% de descuento en tu cuenta total', active: true, quantity: 1 },
+            { name: 'Vino regional o parrillada para 1', pointsRequired: 300, description: 'Vino regional o parrillada individual', active: true, quantity: 1 },
+            { name: 'Parrillada libre completa para 2', pointsRequired: 500, description: 'Parrillada libre completa para 2 personas', active: true, quantity: 1 }
+        ];
+        
+        const batch = db.batch();
+        defaultRewards.forEach(reward => {
+            const docRef = db.collection('rewards').doc();
+            batch.set(docRef, {
+                ...reward,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+        });
+        
+        await batch.commit();
+        console.log('Premios inicializados exitosamente en Firebase');
+    } catch (error) {
+        console.error('Error inicializando premios:', error);
+    }
+}
+
 // Canjear premio
-async function redeemReward(rewardId, rewardName, pointsCost) {
+async function redeemReward(rewardId, rewardName, pointsRequired) {
     if (!currentUser) return { success: false, message: 'Debes iniciar sesión.' };
     
-    if (userPoints < pointsCost) {
+    if (userPoints < pointsRequired) {
         return { success: false, message: 'No tienes suficientes puntos para este premio.' };
     }
     
     try {
-        const newPoints = userPoints - pointsCost;
+        const newPoints = userPoints - pointsRequired;
         
         await db.collection('users').doc(currentUser).update({
             points: newPoints,
-            totalPointsRedeemed: userData.totalPointsRedeemed + pointsCost
+            totalPointsRedeemed: userData.totalPointsRedeemed + pointsRequired
         });
         
         // Registrar canje
@@ -399,18 +512,18 @@ async function redeemReward(rewardId, rewardName, pointsCost) {
             userName: userData.name,
             rewardId: rewardId,
             rewardName: rewardName,
-            pointsCost: pointsCost,
+            pointsCost: pointsRequired,
             redeemedAt: new Date(),
             status: 'pending',
             validatedBy: null,
             validatedAt: null
         });
         
-        await addPointTransaction(rewardName, -pointsCost, 'redeemed');
+        await addPointTransaction(rewardName, -pointsRequired, 'redeemed');
         
         userPoints = newPoints;
         userData.points = newPoints;
-        userData.totalPointsRedeemed += pointsCost;
+        userData.totalPointsRedeemed += pointsRequired;
         
         return { success: true, message: `¡Premio canjeado exitosamente!`, points: newPoints };
     } catch (error) {
@@ -445,7 +558,7 @@ async function addPointTransaction(description, points, type, userId = null) {
 // Obtener historial de transacciones
     async function getTransactionHistory(userId = null) {
         try {
-            const targetUserId = userId || currentUser;
+            const targetUserId = userId || (currentUser && typeof currentUser === 'string' ? currentUser : null);
             if (!targetUserId) {
                 return [];
             }
@@ -484,6 +597,20 @@ async function isAdmin(userId) {
         return doc.exists;
     } catch (error) {
         return false;
+    }
+}
+
+// Agregar permisos de administrador a un usuario
+async function addAdminPermissions(userId) {
+    try {
+        await db.collection('admins').doc(userId).set({
+            addedAt: new Date(),
+            permissions: ['all']
+        });
+        return { success: true, message: 'Permisos de administrador agregados exitosamente.' };
+    } catch (error) {
+        console.error('Error agregando permisos de admin:', error);
+        return { success: false, message: 'Error agregando permisos de administrador.' };
     }
 }
 
@@ -710,6 +837,7 @@ window.LoyaltyAPI = {
     loginUser,
     logoutUser,
     resetPassword,
+    validateReferralCode,
     loadUserData,
     claimDailyVisit,
     addReservationPoints,
@@ -718,9 +846,11 @@ window.LoyaltyAPI = {
     addInstagramPostPoints,
     addSurveyPoints,
     getAvailableRewards,
+    initializeRewards,
     redeemReward,
     getTransactionHistory,
     isAdmin,
+    addAdminPermissions,
     getAllUsers,
     modifyUserPoints,
     getPendingRedemptions,

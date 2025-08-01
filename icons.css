@@ -1,0 +1,251 @@
+/* Phosphor Icons CSS - Fallback con Emojis */
+[class^="ph-"], [class*=" ph-"] {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Íconos específicos que necesitamos con emojis como fallback */
+.ph-cup-soda:before {
+  content: "🥤";
+}
+
+.ph-cooking-pot:before {
+  content: "🍳";
+}
+
+.ph-percent:before {
+  content: "%";
+  font-weight: bold;
+}
+
+.ph-wine:before {
+  content: "🍷";
+}
+
+.ph-fire:before {
+  content: "🔥";
+}
+
+.ph-gift:before {
+  content: "🎁";
+}
+
+.ph-user:before {
+  content: "👤";
+}
+
+.ph-envelope:before {
+  content: "✉️";
+}
+
+.ph-phone:before {
+  content: "📞";
+}
+
+.ph-star:before {
+  content: "⭐";
+}
+
+.ph-heart:before {
+  content: "❤️";
+}
+
+.ph-check-circle:before {
+  content: "✅";
+}
+
+.ph-x-circle:before {
+  content: "❌";
+}
+
+.ph-warning:before {
+  content: "⚠️";
+}
+
+.ph-info:before {
+  content: "ℹ️";
+}
+
+.ph-gear:before {
+  content: "⚙️";
+}
+
+.ph-chart-bar:before {
+  content: "📊";
+}
+
+.ph-list:before {
+  content: "📋";
+}
+
+.ph-plus:before {
+  content: "➕";
+}
+
+.ph-minus:before {
+  content: "➖";
+}
+
+.ph-pencil:before {
+  content: "✏️";
+}
+
+.ph-trash:before {
+  content: "🗑️";
+}
+
+.ph-arrow-right:before {
+  content: "➡️";
+}
+
+.ph-arrow-left:before {
+  content: "⬅️";
+}
+
+.ph-arrow-up:before {
+  content: "⬆️";
+}
+
+.ph-arrow-down:before {
+  content: "⬇️";
+}
+
+.ph-magnifying-glass:before {
+  content: "🔍";
+}
+
+.ph-funnel:before {
+  content: "🔽";
+}
+
+.ph-sort-ascending:before {
+  content: "📈";
+}
+
+.ph-sort-descending:before {
+  content: "📉";
+}
+
+.ph-download:before {
+  content: "⬇️";
+}
+
+.ph-upload:before {
+  content: "⬆️";
+}
+
+.ph-print:before {
+  content: "🖨️";
+}
+
+.ph-share:before {
+  content: "📤";
+}
+
+.ph-bookmark:before {
+  content: "🔖";
+}
+
+.ph-calendar:before {
+  content: "📅";
+}
+
+.ph-clock:before {
+  content: "🕐";
+}
+
+.ph-map-pin:before {
+  content: "📍";
+}
+
+.ph-house:before {
+  content: "🏠";
+}
+
+.ph-shopping-cart:before {
+  content: "🛒";
+}
+
+.ph-credit-card:before {
+  content: "💳";
+}
+
+.ph-wallet:before {
+  content: "👛";
+}
+
+.ph-receipt:before {
+  content: "🧾";
+}
+
+.ph-ticket:before {
+  content: "🎫";
+}
+
+.ph-medal:before {
+  content: "🏅";
+}
+
+.ph-trophy:before {
+  content: "🏆";
+}
+
+.ph-crown:before {
+  content: "👑";
+}
+
+.ph-target:before {
+  content: "🎯";
+}
+
+.ph-bullseye:before {
+  content: "🎯";
+}
+
+.ph-trend-up:before {
+  content: "📈";
+}
+
+.ph-trend-down:before {
+  content: "📉";
+}
+
+.ph-chart-line:before {
+  content: "📈";
+}
+
+.ph-chart-pie:before {
+  content: "🥧";
+}
+
+.ph-chart-donut:before {
+  content: "🍩";
+}
+
+.ph-coins:before {
+  content: "🪙";
+}
+
+.ph-bank:before {
+  content: "🏦";
+}
+
+.ph-piggy-bank:before {
+  content: "🐷";
+}
+
+.ph-money:before {
+  content: "💰";
+}
+
+/* Fallback para íconos no encontrados */
+.ph-:before {
+  content: "❓";
+  color: #ff0000;
+} 

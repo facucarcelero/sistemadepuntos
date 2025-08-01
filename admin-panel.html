@@ -1,0 +1,3828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Sistema de Fidelización Los Nogales</title>
+    <link rel="icon" type="image/x-icon" href="./Logo/favicon.ico">
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
+    <link href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="loyalty-styles.css">
+    
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+            padding: 20px;
+            margin: -20px -20px 40px -20px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .admin-title {
+            color: white;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .admin-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1em;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .admin-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            min-width: 200px;
+        }
+
+        .filter-input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .users-table th {
+            background: rgba(40, 167, 69, 0.1);
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+        
+        .users-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Tabla responsiva para móviles */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right, transparent, var(--bg-primary));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .table-container.has-overflow::after {
+            opacity: 1;
+        }
+        
+        /* Indicador de scroll horizontal mejorado */
+        .table-container::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right, transparent, var(--bg-primary));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Estilos para mensajes */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-left: 4px solid rgba(255,255,255,0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-left-color: #34d399;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-left-color: #f87171;
+        }
+        
+        .message.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-left-color: #60a5fa;
+        }
+        
+        .message.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-left-color: #fbbf24;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .message-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-icon {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .message-text {
+            flex: 1;
+            line-height: 1.4;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .table-container.has-overflow::after {
+            opacity: 1;
+        }
+        
+        /* Scroll horizontal bien implementado para móviles */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto !important;
+                scrollbar-width: thin;
+                scrollbar-color: var(--border-color) transparent;
+            }
+            
+            .table-container::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .table-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .table-container::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 4px;
+            }
+            
+            .table-container::-webkit-scrollbar-thumb:hover {
+                background: var(--text-secondary);
+            }
+        }
+        
+        .action-buttons {
+            display: flex !important;
+            gap: 8px;
+            flex-wrap: wrap;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            border-radius: 6px;
+        }
+        
+        /* Asegurar que la columna de acciones siempre sea visible */
+        .users-table th:last-child,
+        .users-table td:last-child {
+            display: table-cell !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-width: 120px !important;
+            width: auto !important;
+        }
+        
+        /* Asegurar que todas las columnas de la tabla de premios sean visibles */
+        #rewardsTable th,
+        #rewardsTable td {
+            display: table-cell !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Asegurar que la tabla tenga el ancho completo */
+        #rewardsTable {
+            width: 100% !important;
+            min-width: 700px !important;
+        }
+        
+        /* Asegurar que el contenedor permita scroll completo */
+        .table-container {
+            position: relative;
+            overflow-x: auto;
+            width: 100%;
+        }
+        
+        /* Mejorar la columna de descripción para que no se trunque */
+        #rewardsTable th:nth-child(2),
+        #rewardsTable td:nth-child(2) {
+            max-width: 250px !important;
+            min-width: 200px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.3 !important;
+        }
+        
+        /* Tooltip para descripciones largas */
+        #rewardsTable td:nth-child(2) {
+            position: relative;
+        }
+        
+        #rewardsTable td:nth-child(2):hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            z-index: 1000;
+            white-space: normal;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-size: 12px;
+        }
+        
+        /* Hacer los botones más visibles */
+        .action-button {
+            background: var(--primary-color) !important;
+            color: white !important;
+            border: none !important;
+            padding: 6px 12px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 0.85em !important;
+            margin: 2px !important;
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .action-button.secondary {
+            background: var(--danger-color) !important;
+        }
+        
+        .redemption-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+        
+        .status-validated {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+        }
+
+        /* ===== PANTALLA DE LOGIN ===== */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .login-btn {
+            background: var(--primary-green);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-green-dark);
+        }
+
+        /* ===== PANEL PRINCIPAL ===== */
+        .admin-container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER CON MENÚ HAMBURGUESA ===== */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+            color: white;
+            padding: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin: -0px -20px 0px -20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0px 35px;
+            min-height: 90px;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .header-title {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ===== MENÚ LATERAL ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-primary);
+            transition: left 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sidebar-nav {
+            padding: 40px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 22px 25px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: background 0.3s ease;
+            border-left: 3px solid transparent;
+            margin: 8px 0;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-secondary);
+            border-left-color: var(--primary-green);
+        }
+
+        .nav-item.active {
+            background: var(--primary-green);
+            color: white;
+        }
+        
+        .nav-item i {
+            font-size: 1.3em;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* ===== CONTENIDO PRINCIPAL ===== */
+        .main-content {
+            margin-top: 70px;
+            padding: 20px;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .content-section {
+            display: none;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        /* ===== OVERLAY PARA MENÚ ===== */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        /* Sidebar oculto por defecto en todas las pantallas */
+        .sidebar {
+            left: -280px;
+            position: fixed;
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+        }
+        
+        /* Botón de hamburguesa siempre visible */
+        .hamburger-btn {
+            display: block;
+        }
+        
+        /* Estilos específicos para pantallas medianas y pequeñas */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .user-filters {
+            flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filter-input {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .category-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .category-header input {
+                font-size: 1.2em;
+            }
+            
+            .category-actions {
+                justify-content: space-between;
+        }
+
+        .menu-item-inputs input,
+        .menu-item-inputs textarea {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+            
+            .btn-icon {
+                padding: 10px;
+                font-size: 1.1em;
+            }
+            
+            .action-button {
+            padding: 8px 12px;
+                font-size: 0.9em;
+            }
+        
+            .action-button.active {
+                background: var(--primary-green);
+                color: white;
+            }
+            
+            /* Tablas responsivas */
+            .table-container {
+                margin-top: 15px;
+            }
+            
+            .users-table {
+                min-width: 500px; /* Aumentado para dar más espacio a las descripciones */
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 8px 4px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            
+            .users-table th:first-child,
+            .users-table td:first-child {
+                position: sticky;
+                left: 0;
+                background: var(--bg-primary);
+                z-index: 1;
+            }
+            
+            /* Ocultar columnas menos importantes en pantallas medianas */
+            .users-table th:nth-child(3),
+            .users-table td:nth-child(3) {
+                display: none; /* Ocultar teléfono */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-item {
+                padding: 10px;
+                margin-top: 10px;
+            }
+            
+            .menu-item-inputs {
+                gap: 5px;
+            }
+            
+            .menu-item-actions > div {
+                gap: 3px !important;
+            }
+            
+            .menu-item-actions input[type="number"] {
+                width: 70px !important;
+                min-width: 70px;
+                font-size: 14px;
+            }
+            
+            .menu-item-actions .flex input[type="number"] {
+                width: 50px !important;
+                min-width: 50px;
+            }
+            
+            .menu-item-actions .flex select {
+                width: 35px !important;
+                min-width: 35px;
+                font-size: 12px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+                font-size: 1em;
+            }
+            
+            .category-header input {
+                font-size: 1.1em;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 1.8em;
+            }
+            
+            .stat-label {
+                font-size: 0.8em;
+            }
+            
+            /* Tablas ultra responsivas para móviles pequeños */
+            .users-table {
+                min-width: 350px; /* Más compacto para móviles pequeños */
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 6px 3px;
+                font-size: 11px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            .btn-small {
+                padding: 4px 6px;
+                font-size: 0.75em;
+            }
+            
+            /* Ocultar columnas menos importantes en móviles muy pequeños */
+            .users-table th:nth-child(3),
+            .users-table td:nth-child(3) {
+                display: none; /* Ocultar teléfono */
+            }
+            
+            .users-table th:nth-child(5),
+            .users-table td:nth-child(5) {
+                display: none; /* Ocultar "Miembro desde" */
+            }
+            
+            /* Optimizaciones específicas para tabla de premios */
+            #rewardsTable th:nth-child(2),
+            #rewardsTable td:nth-child(2) {
+                max-width: 120px;
+                min-width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                position: relative;
+            }
+            
+            #rewardsTable td:nth-child(2):hover::after {
+                content: attr(title);
+                position: absolute;
+                left: 0;
+                top: 100%;
+            background: var(--bg-secondary);
+                color: var(--text-primary);
+                padding: 8px;
+                border-radius: 4px;
+            border: 1px solid var(--border-color);
+                z-index: 1000;
+                white-space: normal;
+                max-width: 300px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+            
+            /* Optimizaciones específicas para tabla de canjes */
+            #redemptionsTable th:nth-child(4),
+            #redemptionsTable td:nth-child(4) {
+                display: none; /* Ocultar fecha en móviles muy pequeños */
+            }
+                }
+
+        /* Estilos específicos para pantallas muy pequeñas (como Samsung Galaxy S23) */
+        @media (max-width: 360px) {
+            /* Ajustes para el sidebar en pantallas muy pequeñas */
+            .sidebar {
+                width: 260px !important;
+                left: -260px !important;
+            }
+            
+            .sidebar.open {
+                left: 0 !important;
+            }
+            
+            .sidebar-header {
+                padding: 15px !important;
+            }
+            
+            .sidebar-header h2 {
+                font-size: 1.2em !important;
+            }
+            
+            .sidebar-header p {
+                font-size: 0.9em !important;
+            }
+            
+            .nav-item {
+                padding: 12px 15px !important;
+                font-size: 0.9em !important;
+            }
+            
+            .nav-item i {
+                font-size: 1.1em !important;
+            }
+            /* Scroll horizontal bien implementado */
+            .table-container {
+                overflow-x: auto !important;
+                max-width: 100% !important;
+                scrollbar-width: thin;
+                scrollbar-color: var(--border-color) transparent;
+            }
+            
+            .table-container::-webkit-scrollbar {
+                height: 6px;
+            }
+            
+            .table-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .table-container::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 3px;
+            }
+            
+            .users-table {
+                min-width: 700px !important;
+                max-width: none !important;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 8px 6px !important;
+                font-size: 12px !important;
+            }
+            
+            /* Tabla de premios con mejor tamaño */
+            #rewardsTable {
+                min-width: 700px !important;
+                max-width: none !important;
+                width: auto !important;
+                table-layout: auto !important;
+            }
+            
+            #rewardsTable th,
+            #rewardsTable td {
+                padding: 10px 8px !important;
+                font-size: 12px !important;
+                vertical-align: middle !important;
+                white-space: nowrap !important;
+            }
+            
+            /* Mostrar todas las columnas */
+            #rewardsTable th:nth-child(4),
+            #rewardsTable td:nth-child(4) {
+                display: table-cell !important;
+            }
+            
+            /* Distribución de columnas mejorada */
+            #rewardsTable th:nth-child(1),
+            #rewardsTable td:nth-child(1) {
+                width: auto !important;
+                min-width: 140px !important;
+            }
+            
+            #rewardsTable th:nth-child(2),
+            #rewardsTable td:nth-child(2) {
+                width: auto !important;
+                min-width: 200px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                line-height: 1.3 !important;
+                max-width: 200px !important;
+            }
+            
+            #rewardsTable th:nth-child(3),
+            #rewardsTable td:nth-child(3) {
+                width: auto !important;
+                min-width: 100px !important;
+                text-align: center !important;
+            }
+            
+            #rewardsTable th:nth-child(4),
+            #rewardsTable td:nth-child(4) {
+                width: auto !important;
+                min-width: 80px !important;
+                text-align: center !important;
+            }
+            
+            #rewardsTable th:nth-child(5),
+            #rewardsTable td:nth-child(5) {
+                width: auto !important;
+                min-width: 120px !important;
+            }
+            
+            /* Botones de acciones mejorados */
+            .action-buttons {
+                flex-direction: row !important;
+                gap: 4px !important;
+            }
+            
+            .btn-small {
+                padding: 6px 8px !important;
+                font-size: 11px !important;
+                min-width: auto !important;
+                width: auto !important;
+                height: auto !important;
+                line-height: 1.2 !important;
+            }
+            
+            .btn-small i {
+                font-size: 12px !important;
+            }
+        }
+
+        /* Estilos para precios con descuento */
+        .price-with-discount {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            margin-top: 5px;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9em;
+            font-weight: normal;
+            opacity: 0.7;
+        }
+
+        .discount-badge {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .final-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary-blue);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .final-price.discounted {
+            color: #e53e3e;
+            font-size: 1.4em;
+            text-shadow: 0 2px 4px rgba(229, 62, 62, 0.3);
+        }
+
+        /* Estilos para productos premium */
+        .premium-badge {
+            color: #ffd700;
+            font-size: 1.2em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Estilos para checkboxes personalizados */
+        .form-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-checkbox:checked {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+        }
+
+        /* Estilos para flex gap */
+        .flex {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        /* Estilos para el sistema avanzado de menú */
+        .menu-category {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: opacity 0.3s;
+            background-color: var(--bg-primary);
+        }
+
+        .menu-category.is-hidden {
+            opacity: 0.5;
+            background-color: var(--bg-secondary);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-header input {
+            font-size: 1.5em;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            padding: 5px;
+            border-bottom: 2px solid transparent;
+            flex-grow: 1;
+            color: var(--text-primary);
+        }
+
+        .category-header input:focus {
+            border-bottom-color: var(--primary-green);
+            outline: none;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .menu-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 15px;
+            align-items: flex-start;
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .menu-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .menu-item-actions {
+                justify-self: stretch;
+            }
+            
+            .menu-item-actions > div {
+                flex-direction: row !important;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .menu-item-actions input[type="number"] {
+                width: 80px !important;
+                min-width: 80px;
+            }
+            
+            .menu-item-actions .flex {
+                gap: 5px !important;
+            }
+            
+            .menu-item-actions .flex input[type="number"] {
+                width: 60px !important;
+                min-width: 60px;
+            }
+            
+            .menu-item-actions .flex select {
+                width: 40px !important;
+                min-width: 40px;
+            }
+        }
+
+        .menu-item.is-hidden {
+            opacity: 0.5;
+            background-color: var(--bg-secondary);
+        }
+
+        .menu-item-inputs {
+            display: flex;
+                flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item-inputs input,
+        .menu-item-inputs textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .menu-item-inputs textarea {
+            font-family: inherit;
+            resize: none;
+            overflow: hidden;
+            min-height: 60px;
+            max-height: 200px;
+            transition: height 0.2s ease;
+            }
+
+            .menu-item-actions {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+            color: var(--text-primary);
+        }
+
+        .btn-icon:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .btn-icon.premium-active {
+            background-color: #ffd700 !important;
+            color: #8b4513 !important;
+        }
+
+        .draggable-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+            font-size: 1.2em;
+        }
+
+        .sortable-ghost {
+            background-color: rgba(40, 167, 69, 0.1);
+            opacity: 0.7;
+        }
+
+        /* Variables CSS para el sistema de menú */
+        :root {
+            --menu-transition: 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== PANTALLA DE LOGIN ===== -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">Bienvenido al Programa de Fidelización</h1>
+            <p class="login-subtitle">Accede a tu cuenta o regístrate para comenzar</p>
+            
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="email" required placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" required placeholder="Contraseña">
+                </div>
+                <button type="submit" class="login-btn">Iniciar Sesión</button>
+            </form>
+                </div>
+                </div>
+
+    <!-- ===== PANEL PRINCIPAL ===== -->
+    <div id="adminPanel" class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="hamburger-btn" onclick="toggleSidebar()">
+                        <i class="ph-list"></i>
+                    </button>
+                    <h1 class="header-title">Parrilla Los Nogales</h1>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="ph-sign-out"></i>
+                </button>
+                </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Panel de Administración</h2>
+                <p>Parrilla Los Nogales</p>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="ph-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('users')">
+                    <i class="ph-users"></i>
+                    <span>Gestión de Usuarios</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('rewards')">
+                    <i class="ph-gift"></i>
+                    <span>Gestión de Premios</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('redemptions')">
+                    <i class="ph-clock"></i>
+                    <span>Historial de Canjes</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('menu')">
+                    <i class="ph-fork-knife"></i>
+                    <span>Gestión de Menú</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('analytics')">
+                    <i class="ph-chart-bar"></i>
+                    <span>Análisis</span>
+                </a>
+        </div>
+        </nav>
+
+        <!-- Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-chart-line"></i>
+                        Dashboard
+                    </h2>
+                    </div>
+                <div class="section-content">
+                    <div class="stats-overview" id="statsOverview">
+                        <!-- Las estadísticas se cargarán dinámicamente -->
+                    </div>
+
+                    <!-- Actividad Reciente -->
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-clock"></i>
+                            Actividad Reciente
+                        </h3>
+                        <div class="transaction-list" id="recentActivity">
+                            <!-- La actividad reciente se cargará dinámicamente -->
+                    </div>
+                </div>
+
+                    <!-- Canjes Pendientes -->
+                <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-warning"></i>
+                            Canjes Pendientes
+                        </h3>
+                        <div class="transaction-list" id="pendingRedemptions">
+                            <!-- Los canjes pendientes se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-users"></i>
+                        Gestión de Usuarios
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-users"></i>
+                            Usuarios Registrados
+                        </h3>
+
+                        <!-- Filtros -->
+                        <div class="user-filters">
+                            <input type="text" class="filter-input" id="userSearch" placeholder="Buscar por nombre o email...">
+                            <select class="filter-input" id="userSort">
+                                <option value="memberSince">Más recientes</option>
+                                <option value="points">Más puntos</option>
+                                <option value="name">Por nombre</option>
+                        </select>
+                                                        <button class="action-button" onclick="exportUsers()">
+                                <i class="ph-download"></i>
+                                Exportar
+                            </button>
+                            <button class="action-button" id="toggleColumnsBtn" onclick="toggleExtraColumns()">
+                                <i class="ph-columns"></i>
+                                <span id="toggleColumnsText">Más Columnas</span>
+                        </button>
+                    </div>
+
+                        <!-- Tabla de Usuarios -->
+                    <div class="table-container">
+                            <div class="users-table" id="usersTable">
+                                <!-- La tabla se cargará dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+            <!-- Rewards Section -->
+            <div id="rewards" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-gift"></i>
+                        Gestión de Premios
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-gift"></i>
+                            Premios Disponibles
+                        </h3>
+
+                        <!-- Filtros -->
+                        <div class="user-filters">
+                            <input type="text" class="filter-input" id="rewardSearch" placeholder="Buscar premio...">
+                            <select class="filter-input" id="rewardStatus">
+                                <option value="all">Todos los estados</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
+                            <button class="action-button" onclick="showAddRewardModal()">
+                            <i class="ph-plus"></i>
+                            Agregar Premio
+                        </button>
+                            <button class="action-button" onclick="exportRewards()">
+                                <i class="ph-download"></i>
+                                Exportar
+                        </button>
+                    </div>
+
+                        <!-- Tabla de Premios -->
+                    <div class="table-container">
+                            <div class="users-table" id="rewardsTable">
+                                <!-- La tabla se cargará dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+            <!-- Redemptions Section -->
+            <div id="redemptions" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-clock"></i>
+                        Historial de Canjes
+                    </h2>
+                    </div>
+                <div class="section-content">
+                <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-clock"></i>
+                            Canjes Realizados
+                        </h3>
+
+                        <!-- Filtros -->
+                        <div class="user-filters">
+                            <select class="filter-input" id="redemptionStatus">
+                                <option value="all">Todos los estados</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="validated">Validados</option>
+                                </select>
+                            <input type="date" class="filter-input" id="redemptionDate">
+                            <button class="action-button" onclick="exportRedemptions()">
+                                <i class="ph-download"></i>
+                                Exportar
+                            </button>
+                    </div>
+
+                        <!-- Tabla de Canjes -->
+                    <div class="table-container">
+                            <div class="users-table" id="redemptionsTable">
+                                <!-- La tabla se cargará dinámicamente -->
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Section -->
+            <div id="menu" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-fork-knife"></i>
+                        Gestión de Menú
+                    </h2>
+                            </div>
+                <div class="section-content">
+                    <!-- Dashboard de Estadísticas -->
+                    <div class="stats-overview" id="menuStats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalCategories">0</div>
+                            <div class="stat-label">Categorías</div>
+                            </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalItems">0</div>
+                            <div class="stat-label">Platos Totales</div>
+                            </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="visibleItems">0</div>
+                            <div class="stat-label">Platos Visibles</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="hiddenItems">0</div>
+                            <div class="stat-label">Platos Ocultos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="avgPrice">$0</div>
+                            <div class="stat-label">Precio Promedio</div>
+                            </div>
+                        </div>
+                        
+                    <!-- Controles de Administración -->
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-gear"></i>
+                            Controles
+                        </h3>
+                        
+                        <div class="user-filters">
+                            <input type="text" class="filter-input" id="menuSearch" placeholder="Buscar platos o categorías..." oninput="searchMenuItems(this.value)">
+                            <select class="filter-input" id="statusFilter" onchange="filterByStatus(this.value)">
+                                <option value="all">Todos los estados</option>
+                                <option value="visible">Solo visibles</option>
+                                <option value="hidden">Solo ocultos</option>
+                            </select>
+                            <input type="number" class="filter-input" id="minPrice" placeholder="Precio mínimo" onchange="filterByPrice()">
+                            <input type="number" class="filter-input" id="maxPrice" placeholder="Precio máximo" onchange="filterByPrice()">
+                            <select class="filter-input" id="sortBy" onchange="sortMenuItems(this.value)">
+                                <option value="name">Ordenar por nombre</option>
+                                <option value="price">Ordenar por precio</option>
+                                <option value="created">Ordenar por fecha</option>
+                            </select>
+                            <button class="action-button" onclick="clearMenuFilters()">
+                                <i class="ph-arrows-clockwise"></i>
+                                Limpiar Filtros
+                            </button>
+                        </div>
+
+                        <div class="user-filters">
+                            <input type="text" class="filter-input" id="newCategoryName" placeholder="Crear nueva categoría...">
+                            <button class="action-button" onclick="addCategory()">
+                                <i class="ph-plus"></i>
+                                Crear Categoría
+                            </button>
+                            <button class="action-button" onclick="showAddMenuItemModal()">
+                                <i class="ph-plus-circle"></i>
+                                Agregar Producto
+                            </button>
+                            <button class="action-button" id="toggleHiddenBtn" onclick="toggleHiddenFilter()">
+                                <i class="ph-eye-slash"></i>
+                                Mostrar Ocultos
+                            </button>
+                            <button class="action-button" id="togglePricesBtn" onclick="togglePrices()">
+                                <i class="ph-eye"></i>
+                                Ocultar Precios
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de Categorías -->
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-list"></i>
+                            Categorías y Productos
+                        </h3>
+                        
+                        <div id="categoriesContainer">
+                            <!-- Las categorías se cargarán dinámicamente -->
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-chart-bar"></i>
+                        Análisis
+                    </h2>
+                    </div>
+                <div class="section-content">
+                    <!-- Gráfico de Puntos -->
+                    <div class="chart-container">
+                        <h3 class="section-subtitle">
+                            <i class="ph-chart-line"></i>
+                            Evolución de Puntos
+                        </h3>
+                        <div class="chart-placeholder">
+                            <div class="text-center">
+                                <i class="ph-chart-line" style="font-size: 3em; margin-bottom: 15px;"></i>
+                                <p>Gráfico de evolución de puntos en el tiempo</p>
+                                <p class="text-secondary">(Se implementará con Chart.js)</p>
+                </div>
+            </div>
+                    </div>
+
+                    <!-- Gráfico de Premios -->
+                    <div class="chart-container">
+                        <h3 class="section-subtitle">
+                            <i class="ph-chart-pie"></i>
+                            Premios Más Populares
+                        </h3>
+                        <div class="chart-placeholder">
+                            <div class="text-center">
+                                <i class="ph-chart-pie" style="font-size: 3em; margin-bottom: 15px;"></i>
+                                <p>Distribución de premios canjeados</p>
+                                <p class="text-secondary">(Se implementará con Chart.js)</p>
+                    </div>
+                </div>
+            </div>
+
+                    <!-- Métricas de Engagement -->
+                    <div class="stats-overview">
+                        <div class="stat-card">
+                            <div class="stat-number" id="avgPointsPerUser">0</div>
+                            <div class="stat-label">Promedio de puntos por usuario</div>
+                    </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="activeUsers">0</div>
+                            <div class="stat-label">Usuarios activos (30 días)</div>
+                    </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="redemptionRate">0%</div>
+                            <div class="stat-label">Tasa de canje</div>
+                </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="avgTimeToRedeem">0</div>
+                            <div class="stat-label">Días promedio para canjear</div>
+        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+            </div>
+
+    <!-- Modal de Modificación de Puntos -->
+    <div class="modal" id="modifyPointsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modificar Puntos</h3>
+                <button class="modal-close" onclick="closeModal('modifyPointsModal')">&times;</button>
+            </div>
+            
+            <form id="modifyPointsForm">
+                    <div class="form-group">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" class="form-input" id="modifyUserName" readonly>
+                    </div>
+                    <div class="form-group">
+                    <label class="form-label">Puntos Actuales</label>
+                    <input type="number" class="form-input" id="modifyCurrentPoints" readonly>
+                    </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos a Agregar/Quitar</label>
+                    <input type="number" class="form-input" id="modifyPointsAmount" placeholder="+10 o -5" required>
+                    </div>
+                <div class="form-group">
+                    <label class="form-label">Razón</label>
+                    <input type="text" class="form-input" id="modifyPointsReason" placeholder="Motivo del ajuste" required>
+                </div>
+                <button type="submit" class="form-button">
+                    <span id="modifyButtonText">Aplicar Cambio</span>
+                    <div class="loading hidden" id="modifyLoading"></div>
+                        </button>
+                </form>
+            </div>
+                    </div>
+
+    <!-- Modal de Detalles de Usuario -->
+    <div class="modal" id="userDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detalles del Usuario</h3>
+                <button class="modal-close" onclick="closeModal('userDetailsModal')">&times;</button>
+                    </div>
+
+            <div id="userDetailsContent">
+                <!-- Los detalles se cargarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Agregar Premio -->
+    <div class="modal" id="addRewardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Nuevo Premio</h3>
+                <button class="modal-close" onclick="closeModal('addRewardModal')">&times;</button>
+            </div>
+            
+            <form id="addRewardForm">
+                    <div class="form-group">
+                    <label class="form-label">Nombre del Premio</label>
+                    <input type="text" class="form-input" id="rewardName" placeholder="Ej: Descuento 20%" required>
+                    </div>
+                    <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input" id="rewardDescription" placeholder="Descripción del premio" rows="3"></textarea>
+                    </div>
+                        <div class="form-group">
+                    <label class="form-label">Puntos Requeridos</label>
+                    <input type="number" class="form-input" id="rewardPoints" placeholder="100" required>
+                    </div>
+                        <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-input" id="rewardActive">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                            </select>
+                        </div>
+                <button type="submit" class="form-button">
+                    <span id="addRewardButtonText">Agregar Premio</span>
+                    <div class="loading hidden" id="addRewardLoading"></div>
+                </button>
+                </form>
+        </div>
+    </div>
+
+    <!-- Modal de Agregar Producto del Menú -->
+    <div class="modal" id="addMenuItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Nuevo Producto</h3>
+                <button class="modal-close" onclick="closeModal('addMenuItemModal')">&times;</button>
+            </div>
+            
+            <form id="addMenuItemForm">
+                    <div class="form-group">
+                    <label class="form-label">Nombre del Producto</label>
+                    <input type="text" class="form-input" id="menuItemName" placeholder="Ej: Parrillada Mixta" required>
+                    </div>
+                    <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input" id="menuItemDescription" placeholder="Descripción del producto" rows="3"></textarea>
+                    </div>
+                        <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-input" id="menuItemCategory" required>
+                                <option value="">Seleccionar categoría</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                    <label class="form-label">Precio</label>
+                    <input type="number" class="form-input" id="menuItemPrice" placeholder="25.00" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                    <label class="form-label">Descuento</label>
+                    <div class="flex gap-2">
+                        <input type="number" class="form-input flex-1" id="menuItemDiscount" placeholder="0" min="0" step="0.01">
+                        <select class="form-input" id="menuItemDiscountType">
+                            <option value="percentage">%</option>
+                            <option value="pesos">$</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                    <label class="form-label">Opciones</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="menuItemPremium" class="form-checkbox">
+                            <span class="ml-2">Producto Premium</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="menuItemVisible" class="form-checkbox" checked>
+                            <span class="ml-2">Visible</span>
+                        </label>
+                    </div>
+                    </div>
+                <button type="submit" class="form-button">
+                    <span id="addMenuItemButtonText">Agregar Producto</span>
+                    <div class="loading hidden" id="addMenuItemLoading"></div>
+                </button>
+                </form>
+        </div>
+    </div>
+
+    <!-- Modal de Editar Premio -->
+    <div class="modal" id="editRewardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Premio</h3>
+                <button class="modal-close" onclick="closeModal('editRewardModal')">&times;</button>
+            </div>
+            
+                <form id="editRewardForm">
+                <input type="hidden" id="editRewardId">
+                    <div class="form-group">
+                    <label class="form-label">Nombre del Premio</label>
+                    <input type="text" class="form-input" id="editRewardName" required>
+                    </div>
+                    <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input" id="editRewardDescription" rows="3"></textarea>
+                    </div>
+                        <div class="form-group">
+                    <label class="form-label">Puntos Requeridos</label>
+                    <input type="number" class="form-input" id="editRewardPoints" required>
+                        </div>
+                        <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-input" id="editRewardActive">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                        </div>
+                <button type="submit" class="form-button">
+                    <span id="editRewardButtonText">Actualizar Premio</span>
+                    <div class="loading hidden" id="editRewardLoading"></div>
+                </button>
+                </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="loyalty-api.js"></script>
+    <script>
+        // Variables globales
+        let adminCurrentUser = null;
+        let allUsers = [];
+        let allRedemptions = [];
+        let allRewards = [];
+        let allMenuItems = [];
+        let selectedUser = null;
+        let selectedReward = null;
+        
+        // Variables para el sistema avanzado de menú
+        let menuData = [];
+        let showHiddenInAdmin = false;
+        let hidePrices = false;
+        let searchQuery = '';
+        let priceFilter = { min: 0, max: 999999 };
+        let statusFilter = 'all';
+        let sortBy = 'name';
+        let sortOrder = 'asc';
+        
+        // Listeners para tiempo real
+        let realTimeListeners = [];
+        
+        // Función auxiliar para manejar timestamps de forma segura
+        function safeToDate(timestamp) {
+            if (!timestamp) return new Date();
+            if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+                return timestamp.toDate();
+            }
+            return new Date(timestamp);
+        }
+        
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            // Íconos según el tipo de mensaje
+            const icons = {
+                success: '✓',
+                error: '✕',
+                info: 'ℹ',
+                warning: '⚠'
+            };
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <span class="message-icon">${icons[type] || icons.info}</span>
+                    <span class="message-text">${message}</span>
+                </div>
+            `;
+            
+            const container = document.querySelector('.admin-container');
+            if (container) {
+                container.insertBefore(messageDiv, container.firstChild);
+                
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 5000);
+            } else {
+                // Fallback si no encuentra el contenedor
+                alert(message);
+            }
+        }
+        
+        // Cargar datos del resumen
+        async function loadOverviewData() {
+            try {
+                // Cargar estadísticas generales
+                const stats = await LoyaltyAPI.getProgramStats();
+                if (stats) {
+                    document.getElementById('statsOverview').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalUsers}</div>
+                            <div class="stat-label">Usuarios Registrados</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalPointsEarned}</div>
+                            <div class="stat-label">Puntos Otorgados</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalRedemptions}</div>
+                            <div class="stat-label">Premios Canjeados</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.activePoints}</div>
+                            <div class="stat-label">Puntos Activos</div>
+                        </div>
+                    `;
+                }
+
+                // Cargar actividad reciente
+                await loadRecentActivity();
+
+                // Cargar canjes pendientes
+                await loadPendingRedemptions();
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthState();
+            setupEventListeners();
+            
+            // Verificar overflow en tablas cuando cambie el tamaño de la ventana
+            window.addEventListener('resize', checkTableOverflow);
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            document.getElementById('loginForm').addEventListener('submit', handleAuth);
+            document.getElementById('modifyPointsForm').addEventListener('submit', handleModifyPoints);
+            document.getElementById('addRewardForm').addEventListener('submit', handleAddReward);
+            document.getElementById('editRewardForm').addEventListener('submit', handleEditReward);
+            document.getElementById('addMenuItemForm').addEventListener('submit', handleAddMenuItem);
+        }
+
+        // Verificar estado de autenticación
+        function checkAuthState() {
+            firebase.auth().onAuthStateChanged(async function(user) {
+                if (user) {
+                    adminCurrentUser = user;
+                    const isAdmin = await LoyaltyAPI.isAdmin(user.uid);
+                    
+                    if (isAdmin) {
+                        showAdminPanel();
+                        await loadAdminData();
+                    } else {
+                        alert('Acceso denegado. Solo administradores pueden acceder al panel.');
+                        logout();
+                    }
+                } else {
+                    showLoginScreen();
+                }
+            });
+        }
+
+        // Manejar autenticación
+        async function handleAuth(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                await firebase.auth().signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Mostrar pantalla de login
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        // Mostrar panel de administración
+        function showAdminPanel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        // Cerrar sesión
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                showLoginScreen();
+            }).catch((error) => {
+                console.error('Error al cerrar sesión:', error);
+            });
+        }
+
+        // Funciones del menú hamburguesa
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Mostrar sección
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los items del menú
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Mostrar sección seleccionada
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Agregar clase active al item del menú
+            event.target.classList.add('active');
+            
+            // Cargar datos de la sección
+            switch(sectionId) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'rewards':
+                    loadRewards();
+                    break;
+                case 'redemptions':
+                    loadRedemptions();
+                    break;
+                case 'menu':
+                    loadMenu();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+            }
+            
+            // Cerrar sidebar en móviles
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        }
+
+        // Cargar datos de administración
+        async function loadAdminData() {
+            await loadDashboard();
+            await loadUsers();
+            await loadRewards();
+            await loadRedemptions();
+            await loadMenu();
+            await loadAnalytics();
+            
+            // Configurar listeners de tiempo real
+            setupRealTimeListeners();
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                const stats = await LoyaltyAPI.getProgramStats();
+                
+                const statsHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalUsers || 0}</div>
+                        <div class="stat-label">Usuarios Registrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalPointsEarned || 0}</div>
+                        <div class="stat-label">Puntos Otorgados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.totalRedemptions || 0}</div>
+                        <div class="stat-label">Premios Canjeados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.activePoints || 0}</div>
+                        <div class="stat-label">Puntos Activos</div>
+                    </div>
+                `;
+                
+                document.getElementById('statsOverview').innerHTML = statsHTML;
+                
+                loadRecentActivity();
+                loadPendingRedemptions();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const activityContainer = document.getElementById('recentActivity');
+                activityContainer.innerHTML = '<p>Cargando actividad reciente...</p>';
+                
+                // Load recent transactions
+                const transactions = await getRecentTransactions();
+                const recentTransactions = transactions.slice(0, 10);
+                
+                if (recentTransactions.length === 0) {
+                    activityContainer.innerHTML = '<p>No hay actividad reciente.</p>';
+                    return;
+                }
+                
+                const activityHTML = recentTransactions.map(transaction => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-title">${transaction.userName || 'Usuario'} - ${transaction.description}</div>
+                            <div class="transaction-details">${transaction.timestamp ? (transaction.timestamp.toDate ? transaction.timestamp.toDate().toLocaleString() : new Date(transaction.timestamp).toLocaleString()) : new Date().toLocaleString()}</div>
+                        </div>
+                        <div class="transaction-amount">${transaction.points} pts</div>
+                    </div>
+                `).join('');
+                
+                activityContainer.innerHTML = activityHTML;
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+            }
+        }
+
+        async function loadPendingRedemptions() {
+            try {
+                const container = document.getElementById('pendingRedemptions');
+                container.innerHTML = '<p>Cargando canjes pendientes...</p>';
+                
+                const redemptions = await LoyaltyAPI.getPendingRedemptions();
+                
+                if (redemptions.length === 0) {
+                    container.innerHTML = '<p>No hay canjes pendientes.</p>';
+                    return;
+                }
+                
+                const redemptionsHTML = redemptions.map(redemption => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-title">${redemption.userName} - ${redemption.rewardName}</div>
+                            <div class="transaction-details">${redemption.redeemedAt ? (redemption.redeemedAt.toDate ? redemption.redeemedAt.toDate().toLocaleDateString() : new Date(redemption.redeemedAt).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
+                        </div>
+                        <div class="transaction-amount">-${redemption.pointsCost} pts</div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = redemptionsHTML;
+            } catch (error) {
+                console.error('Error loading pending redemptions:', error);
+            }
+        }
+
+        // Obtener transacciones recientes
+        async function getRecentTransactions() {
+            try {
+                const query = await firebase.firestore().collection('pointTransactions')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+            } catch (error) {
+                console.error('Error obteniendo transacciones recientes:', error);
+                return [];
+            }
+        }
+
+        // Users functions
+        async function loadUsers() {
+            try {
+                allUsers = await LoyaltyAPI.getAllUsers();
+                renderUsersTable(allUsers);
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function renderUsersTable(users) {
+            const table = document.getElementById('usersTable');
+                
+                if (users.length === 0) {
+                table.innerHTML = '<p>No hay usuarios registrados</p>';
+                    return;
+                }
+                
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Puntos</th>
+                            <th>Miembro desde</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                                <td>${user.phone || '-'}</td>
+                                <td>${user.points}</td>
+                                <td>${user.memberSince ? (user.memberSince.toDate ? user.memberSince.toDate().toLocaleDateString() : new Date(user.memberSince).toLocaleDateString()) : '-'}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-button btn-small" onclick="showUserDetails('${user.id}')">
+                                            <i class="ph-eye"></i>
+                                            Ver
+                            </button>
+                                        <button class="action-button btn-small secondary" onclick="showModifyPointsModal('${user.id}', '${user.name}', ${user.points})">
+                                            <i class="ph-plus"></i>
+                                            Puntos
+                            </button>
+                                    </div>
+                        </td>
+                    </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Obtener transacciones recientes
+        async function getRecentTransactions() {
+            try {
+                const query = await firebase.firestore().collection('pointTransactions')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+            } catch (error) {
+                console.error('Error obteniendo transacciones recientes:', error);
+                return [];
+            }
+        }
+
+        // Rewards functions
+        async function loadRewards() {
+            try {
+                allRewards = await LoyaltyAPI.getAvailableRewards();
+                renderRewardsTable(allRewards);
+            } catch (error) {
+                console.error('Error loading rewards:', error);
+            }
+        }
+
+        function renderRewardsTable(rewards) {
+            const table = document.getElementById('rewardsTable');
+            console.log('Renderizando tabla de premios con', rewards.length, 'premios');
+            console.log('Datos de premios:', rewards);
+                
+                if (rewards.length === 0) {
+                table.innerHTML = '<p>No hay premios disponibles</p>';
+                    return;
+                }
+                
+            const tableHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Premio</th>
+                            <th>Descripción</th>
+                            <th>Puntos Requeridos</th>
+                            <th>Disponible</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rewards.map(reward => {
+                            console.log('Procesando premio:', reward);
+                            console.log('Campos de puntos disponibles:', {
+                                pointsRequired: reward.pointsRequired,
+                                pointsCost: reward.pointsCost,
+                                points: reward.points,
+                                cost: reward.cost
+                            });
+                            const points = reward.pointsRequired || reward.pointsCost || reward.points || reward.cost || 0;
+                            const isActive = reward.active !== false;
+                        return `
+                            <tr>
+                                <td>${reward.name || 'Sin nombre'}</td>
+                                <td title="${reward.description || ''}">${reward.description || 'Sin descripción'}</td>
+                                <td>${points}</td>
+                                <td><span class="redemption-status ${isActive ? 'status-validated' : 'status-pending'}">${isActive ? 'Sí' : 'No'}</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-button btn-small" onclick="editReward('${reward.id}')" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin: 2px;">
+                                        <i class="ph-pencil"></i>
+                                            Editar
+                                    </button>
+                                        <button class="action-button btn-small secondary" onclick="deleteReward('${reward.id}')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin: 2px;">
+                                        <i class="ph-trash"></i>
+                                            Eliminar
+                                    </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `}).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            console.log('HTML generado para la tabla de premios:', tableHTML);
+            table.innerHTML = tableHTML;
+            
+            // Verificar overflow después de renderizar
+            setTimeout(checkTableOverflow, 100);
+        }
+
+        // Redemptions functions
+        async function loadRedemptions() {
+            try {
+                allRedemptions = await getAllRedemptions();
+                renderRedemptionsTable(allRedemptions);
+            } catch (error) {
+                console.error('Error loading redemptions:', error);
+            }
+        }
+
+        async function getAllRedemptions() {
+            try {
+                const query = await firebase.firestore().collection('redemptions')
+                    .orderBy('redeemedAt', 'desc')
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    redeemedAt: doc.data().redeemedAt.toDate(),
+                    validatedAt: doc.data().validatedAt ? doc.data().validatedAt.toDate() : null
+                }));
+            } catch (error) {
+                console.error('Error obteniendo canjes:', error);
+                return [];
+            }
+        }
+
+        function renderRedemptionsTable(redemptions) {
+            const table = document.getElementById('redemptionsTable');
+                
+                if (redemptions.length === 0) {
+                table.innerHTML = '<p>No hay canjes registrados</p>';
+                    return;
+                }
+                
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Premio</th>
+                            <th>Puntos</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${redemptions.map(redemption => `
+                    <tr>
+                        <td>${redemption.userName}</td>
+                        <td>${redemption.rewardName}</td>
+                        <td>${redemption.pointsCost}</td>
+                                <td>${redemption.redeemedAt.toLocaleDateString()}</td>
+                                <td>
+                                    <span class="redemption-status ${redemption.status === 'pending' ? 'status-pending' : 'status-validated'}">
+                                        ${redemption.status === 'pending' ? 'Pendiente' : 'Validado'}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${redemption.status === 'pending' ? `
+                                        <button class="action-button btn-small" onclick="validateRedemption('${redemption.id}')">
+                                <i class="ph-check"></i>
+                                Validar
+                            </button>
+                                    ` : '-'}
+                        </td>
+                    </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+                // Menu functions
+        async function loadMenu() {
+            try {
+                console.log('Cargando menú...');
+
+                // Cargar categorías y productos
+                const [categoriesSnapshot, itemsSnapshot] = await Promise.all([
+                    firebase.firestore().collection('menuCategories').orderBy('order').get(),
+                    firebase.firestore().collection('menu').orderBy('order').get()
+                ]);
+                
+                const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                console.log('Categorías cargadas:', categories.length);
+                console.log('Productos cargados:', items.length);
+                
+                // Organizar datos por categorías
+                menuData = categories.map(category => ({
+                    ...category,
+                    items: items.filter(item => item.categoryId === category.id).sort((a, b) => (a.order || 0) - (b.order || 0))
+                }));
+
+                console.log('Datos organizados:', menuData);
+                
+                // Actualizar estadísticas
+                updateMenuStats();
+                
+                // Renderizar vista de categorías
+                renderCategoriesView();
+                
+            } catch (error) {
+                console.error('Error loading menu:', error);
+            }
+        }
+
+        async function getMenuItems() {
+            try {
+                // Obtener categorías primero
+                const categoriesSnapshot = await firebase.firestore().collection('menuCategories').orderBy('order').get();
+                const categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Obtener productos del menú
+                const itemsSnapshot = await firebase.firestore().collection('menu').orderBy('order').get();
+                const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Combinar productos con información de categorías
+                return items.map(item => {
+                    const category = categories.find(cat => cat.id === item.categoryId);
+                    return {
+                        ...item,
+                        categoryName: category ? category.name : 'Sin categoría'
+                    };
+                });
+            } catch (error) {
+                console.error('Error obteniendo productos del menú:', error);
+                return [];
+            }
+        }
+
+        function renderMenuTable(menuItems) {
+            const table = document.getElementById('menuTable');
+            
+            if (menuItems.length === 0) {
+                table.innerHTML = '<p>No hay productos en el menú</p>';
+                return;
+            }
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Descripción</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Premium</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${menuItems.map(item => {
+                            const hasDiscount = item.discount && item.discount > 0;
+                            const discountText = hasDiscount ? 
+                                (item.discountType === 'percentage' ? `${item.discount}%` : `$${item.discount}`) : 
+                                '-';
+                            const finalPrice = hasDiscount ? 
+                                (item.discountType === 'percentage' ? 
+                                    item.price * (1 - item.discount / 100) : 
+                                    item.price - item.discount) : 
+                                item.price;
+                            
+                            return `
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            ${item.premium ? '<span class="premium-badge">⭐</span>' : ''}
+                                            <span>${item.name}</span>
+                                        </div>
+                                    </td>
+                                    <td>${item.description || '-'}</td>
+                                    <td>${item.categoryName || getCategoryName(item.category)}</td>
+                                    <td>
+                                        ${hasDiscount ? 
+                                            `<div class="price-with-discount">
+                                                <span class="original-price">$${item.price?.toFixed(2) || '0.00'}</span>
+                                                <span class="final-price discounted">$${finalPrice.toFixed(2)}</span>
+                                            </div>` : 
+                                            `<span class="final-price">$${item.price?.toFixed(2) || '0.00'}</span>`
+                                        }
+                                    </td>
+                                    <td>${discountText}</td>
+                                    <td>
+                                        <span class="redemption-status ${item.premium ? 'status-validated' : 'status-pending'}">
+                                            ${item.premium ? 'Sí' : 'No'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="redemption-status ${item.visible !== false ? 'status-validated' : 'status-pending'}">
+                                            ${item.visible !== false ? 'Visible' : 'Oculto'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-button btn-small" onclick="editMenuItem('${item.id}')">
+                                                <i class="ph-pencil"></i>
+                                                Editar
+                                            </button>
+                                            <button class="action-button btn-small secondary" onclick="deleteMenuItem('${item.id}')">
+                                                <i class="ph-trash"></i>
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function getCategoryName(category) {
+            const categories = {
+                'entradas': 'Entradas',
+                'principales': 'Platos Principales',
+                'postres': 'Postres',
+                'bebidas': 'Bebidas'
+            };
+            return categories[category] || category;
+        }
+
+        // Funciones del sistema avanzado de menú
+                function updateMenuStats() {
+            const totalCategories = menuData.length;
+            const totalItems = menuData.reduce((sum, cat) => sum + cat.items.length, 0);
+            const visibleItems = menuData.reduce((sum, cat) => sum + cat.items.filter(item => !item.hidden).length, 0);
+            const hiddenItems = totalItems - visibleItems;
+            const avgPrice = totalItems > 0 ? menuData.reduce((sum, cat) => sum + cat.items.reduce((catSum, item) => catSum + (item.price || 0), 0), 0) / totalItems : 0;
+            
+            document.getElementById('totalCategories').textContent = totalCategories;
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('visibleItems').textContent = visibleItems;
+            document.getElementById('hiddenItems').textContent = hiddenItems;
+            document.getElementById('avgPrice').textContent = `$${Math.round(avgPrice).toLocaleString('es-AR')}`;
+        }
+
+        function renderCategoriesView() {
+            const container = document.getElementById('categoriesContainer');
+            
+            console.log('Renderizando vista de categorías con datos:', menuData);
+            
+            if (!menuData || menuData.length === 0) {
+                container.innerHTML = '<p>No hay categorías disponibles. Crea una categoría para comenzar.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            menuData.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = `menu-category ${category.hidden ? 'is-hidden' : ''}`;
+                categoryDiv.dataset.id = category.id;
+                
+                                let itemsHtml = '';
+                if (category.items && category.items.length > 0) {
+                    category.items.forEach(item => {
+                        const lastModified = item.updatedAt ? 
+                            (item.updatedAt.toDate ? new Date(item.updatedAt.toDate()).toLocaleDateString('es-AR') : new Date(item.updatedAt).toLocaleDateString('es-AR')) : 
+                            'N/A';
+                        itemsHtml += `
+                            <div class="menu-item ${item.hidden ? 'is-hidden' : ''}" data-id="${item.id}">
+                                <i class="ph-fill ph-dots-six-vertical draggable-handle"></i>
+                                <div class="menu-item-inputs">
+                                    <input type="text" value="${item.name || ''}" onchange="updateMenuItem('${item.id}', 'name', this.value)" placeholder="Nombre del plato">
+                                    <textarea oninput="autoResizeTextarea(this); updateMenuItem('${item.id}', 'description', this.value)" placeholder="Descripción del plato">${item.description || ''}</textarea>
+                                    <small style="color: #666; font-size: 0.8em;">Última modificación: ${lastModified}</small>
+                                </div>
+                                <div class="menu-item-actions">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <input type="number" value="${item.price || 0}" onchange="updateMenuItem('${item.id}', 'price', Number(this.value))" style="width: 100px; text-align: right;" placeholder="Precio" min="0" step="0.01">
+                                        <div class="flex" style="gap: 2px;">
+                                            <input type="number" value="${item.discountValue || 0}" onchange="updateMenuItem('${item.id}', 'discountValue', Number(this.value))" style="width: 80px; text-align: right;" placeholder="Desc" min="0" step="0.01" title="Valor del descuento">
+                                            <select onchange="updateMenuItem('${item.id}', 'discountType', this.value)" style="width: 30px; padding: 2px;">
+                                        <option value="percentage" ${(item.discountType || 'percentage') === 'percentage' ? 'selected' : ''}>%</option>
+                                        <option value="pesos" ${(item.discountType || 'percentage') === 'pesos' ? 'selected' : ''}>$</option>
+                                    </select>
+                                        </div>
+                                        <div style="display: flex; gap: 5px;">
+                                            <button class="btn-icon" onclick="updateMenuItem('${item.id}', 'hidden', ${!item.hidden})" title="${item.hidden ? 'Mostrar' : 'Ocultar'}">
+                                                <i class="ph ${item.hidden ? 'ph-eye-slash' : 'ph-eye'}"></i>
+                                    </button>
+                                            <button class="btn-icon ${item.premium ? 'premium-active' : ''}" onclick="updateMenuItem('${item.id}', 'premium', ${!item.premium})" title="${item.premium ? 'Quitar Premium' : 'Marcar Premium'}">⭐</button>
+                                            <button class="btn-icon" onclick="duplicateMenuItem('${item.id}')" title="Duplicar plato">
+                                                <i class="ph ph-copy"></i>
+                                    </button>
+                                            <button class="action-button btn-small secondary" onclick="deleteMenuItem('${item.id}')" title="Eliminar">X</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <i class="ph-fill ph-dots-six-vertical draggable-handle"></i>
+                        <input type="text" value="${category.name || ''}" onchange="updateCategory('${category.id}', 'name', this.value)">
+                        <div class="category-actions">
+                            <button class="btn-icon" onclick="updateCategory('${category.id}', 'hidden', ${!category.hidden})">
+                                <i class="ph ${category.hidden ? 'ph-eye-slash' : 'ph-eye'}"></i>
+                            </button>
+                            <button class="action-button btn-small secondary" onclick="deleteCategory('${category.id}')">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="items-container" data-category-id="${category.id}">${itemsHtml}</div>
+                `;
+                
+                container.appendChild(categoryDiv);
+            });
+            
+            // Aplicar filtros
+            applyMenuFilters();
+        }
+
+        // Funciones de actualización
+        async function updateMenuItem(itemId, field, value) {
+            try {
+                await firebase.firestore().collection('menu').doc(itemId).update({
+                    [field]: value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Actualizar datos locales
+                const item = menuData.flatMap(cat => cat.items).find(item => item.id === itemId);
+                if (item) {
+                    item[field] = value;
+                    item.updatedAt = firebase.firestore.Timestamp.now();
+                }
+                
+                updateMenuStats();
+            } catch (error) {
+                console.error('Error updating menu item:', error);
+                alert('Error al actualizar el producto: ' + error.message);
+            }
+        }
+
+        async function updateCategory(categoryId, field, value) {
+            try {
+                await firebase.firestore().collection('menuCategories').doc(categoryId).update({
+                    [field]: value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Actualizar datos locales
+                const category = menuData.find(cat => cat.id === categoryId);
+                if (category) {
+                    category[field] = value;
+                    category.updatedAt = firebase.firestore.Timestamp.now();
+                }
+                
+                updateMenuStats();
+            } catch (error) {
+                console.error('Error updating category:', error);
+                alert('Error al actualizar la categoría: ' + error.message);
+            }
+        }
+
+        // Funciones de filtrado y búsqueda
+        function searchMenuItems(query) {
+            searchQuery = query.toLowerCase();
+            applyMenuFilters();
+        }
+
+        function filterByStatus(status) {
+            statusFilter = status;
+            applyMenuFilters();
+        }
+
+        function filterByPrice() {
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            
+            priceFilter.min = minPrice ? parseFloat(minPrice) : 0;
+            priceFilter.max = maxPrice ? parseFloat(maxPrice) : 999999;
+            
+            applyMenuFilters();
+        }
+
+        function sortMenuItems(sort) {
+            sortBy = sort;
+            applyMenuFilters();
+        }
+
+        function clearMenuFilters() {
+            searchQuery = '';
+            statusFilter = 'all';
+            priceFilter = { min: 0, max: 999999 };
+            sortBy = 'name';
+            
+            document.getElementById('menuSearch').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('sortBy').value = 'name';
+            
+            applyMenuFilters();
+        }
+
+        function applyMenuFilters() {
+            const categories = document.querySelectorAll('.menu-category');
+            
+            categories.forEach(category => {
+                const items = category.querySelectorAll('.menu-item');
+                let visibleItems = 0;
+                
+                items.forEach(item => {
+                    const itemData = menuData.flatMap(cat => cat.items).find(i => i.id === item.dataset.id);
+                    if (!itemData) return;
+                    
+                    let shouldShow = true;
+                    
+                    // Filtro de búsqueda
+            if (searchQuery) {
+                        const matchesSearch = itemData.name.toLowerCase().includes(searchQuery) ||
+                                            (itemData.description && itemData.description.toLowerCase().includes(searchQuery));
+                        if (!matchesSearch) shouldShow = false;
+                    }
+                    
+                    // Filtro de estado
+                    if (statusFilter === 'visible' && itemData.hidden) shouldShow = false;
+                    if (statusFilter === 'hidden' && !itemData.hidden) shouldShow = false;
+                    
+                    // Filtro de precio
+                    if (itemData.price < priceFilter.min || itemData.price > priceFilter.max) shouldShow = false;
+                    
+                    // Mostrar/ocultar elemento
+                    item.style.display = shouldShow ? 'grid' : 'none';
+                    if (shouldShow) visibleItems++;
+                });
+                
+                // Mostrar/ocultar categoría
+                category.style.display = visibleItems > 0 ? 'block' : 'none';
+            });
+        }
+
+        function toggleHiddenFilter() {
+            showHiddenInAdmin = !showHiddenInAdmin;
+            const button = document.getElementById('toggleHiddenBtn');
+            button.innerHTML = showHiddenInAdmin ? 
+                '<i class="ph-eye"></i> Ocultar Ocultos' : 
+                '<i class="ph-eye-slash"></i> Mostrar Ocultos';
+            
+            const hiddenElements = document.querySelectorAll('.is-hidden');
+            hiddenElements.forEach(el => {
+                el.style.display = showHiddenInAdmin ? '' : 'none';
+            });
+        }
+
+        function togglePrices() {
+            hidePrices = !hidePrices;
+            const button = document.getElementById('togglePricesBtn');
+            button.innerHTML = hidePrices ? 
+                '<i class="ph-eye"></i> Mostrar Precios' : 
+                '<i class="ph-eye-slash"></i> Ocultar Precios';
+            
+            // Aquí se implementaría la lógica para ocultar/mostrar precios
+            // Por ahora solo cambiamos el texto del botón
+        }
+
+        async function addCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            if (!name) {
+                alert('Por favor ingresa un nombre para la categoría');
+                return;
+            }
+            
+            try {
+                const docRef = await firebase.firestore().collection('menuCategories').add({
+                    name: name,
+                    order: Date.now(),
+                    hidden: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                document.getElementById('newCategoryName').value = '';
+                await loadMenu();
+                alert('Categoría creada exitosamente');
+            } catch (error) {
+                console.error('Error creating category:', error);
+                alert('Error al crear la categoría: ' + error.message);
+            }
+        }
+
+        async function deleteCategory(categoryId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta categoría? Esto también eliminará todos los productos asociados.')) {
+                return;
+            }
+            
+            try {
+                // Eliminar todos los productos de la categoría
+                const items = menuData.find(cat => cat.id === categoryId)?.items || [];
+                for (const item of items) {
+                    await firebase.firestore().collection('menu').doc(item.id).delete();
+                }
+                
+                // Eliminar la categoría
+                await firebase.firestore().collection('menuCategories').doc(categoryId).delete();
+                
+                await loadMenu();
+                alert('Categoría eliminada exitosamente');
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                alert('Error al eliminar la categoría: ' + error.message);
+            }
+        }
+
+        async function duplicateMenuItem(itemId) {
+            try {
+                const item = menuData.flatMap(cat => cat.items).find(item => item.id === itemId);
+                if (!item) return;
+                
+                const newItem = {
+                    ...item,
+                    name: item.name + ' (Copia)',
+                    order: Date.now(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                delete newItem.id;
+                
+                await firebase.firestore().collection('menu').add(newItem);
+                await loadMenu();
+                alert('Producto duplicado exitosamente');
+            } catch (error) {
+                console.error('Error duplicating item:', error);
+                alert('Error al duplicar el producto: ' + error.message);
+            }
+        }
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        }
+
+        // Función para detectar overflow en tablas
+        function checkTableOverflow() {
+            const tableContainers = document.querySelectorAll('.table-container');
+            tableContainers.forEach(container => {
+                const hasOverflow = container.scrollWidth > container.clientWidth;
+                container.classList.toggle('has-overflow', hasOverflow);
+            });
+        }
+
+        // Función para mostrar/ocultar columnas adicionales
+        function toggleExtraColumns() {
+            const hiddenColumns = document.querySelectorAll('.users-table th:nth-child(3), .users-table td:nth-child(3), .users-table th:nth-child(5), .users-table td:nth-child(5)');
+            const toggleBtn = document.getElementById('toggleColumnsBtn');
+            const toggleText = document.getElementById('toggleColumnsText');
+            
+            const isHidden = hiddenColumns[0].style.display === 'none' || hiddenColumns[0].style.display === '';
+            
+            hiddenColumns.forEach(col => {
+                col.style.display = isHidden ? 'table-cell' : 'none';
+            });
+            
+            toggleText.textContent = isHidden ? 'Menos Columnas' : 'Más Columnas';
+            toggleBtn.classList.toggle('active', isHidden);
+            
+            // Verificar overflow después del cambio
+            setTimeout(checkTableOverflow, 100);
+        }
+
+        // Verificar overflow cuando se cargan las tablas
+        function renderUsersTable(users) {
+            const table = document.getElementById('usersTable');
+                
+                if (users.length === 0) {
+                table.innerHTML = '<p>No hay usuarios registrados</p>';
+                    return;
+                }
+                
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Puntos</th>
+                            <th>Miembro desde</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || '-'}</td>
+                                <td>${user.points}</td>
+                                <td>${user.memberSince ? (user.memberSince.toDate ? user.memberSince.toDate().toLocaleDateString() : new Date(user.memberSince).toLocaleDateString()) : '-'}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-button btn-small" onclick="showUserDetails('${user.id}')">
+                                            <i class="ph-eye"></i>
+                                            Ver
+                            </button>
+                                        <button class="action-button btn-small secondary" onclick="showModifyPointsModal('${user.id}', '${user.name}', ${user.points})">
+                                            <i class="ph-plus"></i>
+                                            Puntos
+                            </button>
+                                    </div>
+                        </td>
+                    </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            // Verificar overflow después de renderizar
+            setTimeout(checkTableOverflow, 100);
+        }
+
+        // Analytics functions
+        async function loadAnalytics() {
+            try {
+                // Calcular métricas de engagement
+                const avgPointsPerUser = allUsers.length > 0 ? 
+                    Math.round(allUsers.reduce((sum, user) => sum + user.points, 0) / allUsers.length) : 0;
+                
+                const activeUsers = allUsers.filter(user => {
+                    const lastVisit = user.lastDailyVisit ? new Date(user.lastDailyVisit.toDate()) : null;
+                    return lastVisit && (new Date() - lastVisit) < 30 * 24 * 60 * 60 * 1000;
+                }).length;
+                
+                const redemptionRate = allUsers.length > 0 ? 
+                    Math.round((allRedemptions.length / allUsers.length) * 100) : 0;
+                
+                // Actualizar métricas
+                document.getElementById('avgPointsPerUser').textContent = avgPointsPerUser;
+                document.getElementById('activeUsers').textContent = activeUsers;
+                document.getElementById('redemptionRate').textContent = redemptionRate + '%';
+                document.getElementById('avgTimeToRedeem').textContent = '15'; // Placeholder
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Cargar datos de usuarios
+        async function loadUsersData() {
+            allUsers = await LoyaltyAPI.getAllUsers();
+            renderUsersTable(allUsers);
+        }
+
+        // Renderizar tabla de usuarios
+        function renderUsersTable(users) {
+            const table = document.getElementById('usersTable');
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Puntos</th>
+                            <th>Miembro desde</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || '-'}</td>
+                                <td>${user.points}</td>
+                                <td>${user.memberSince.toLocaleDateString()}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-button btn-small" onclick="showUserDetails('${user.id}')">
+                                            <i class="ph-eye"></i>
+                                            Ver
+                            </button>
+                                        <button class="action-button btn-small secondary" onclick="showModifyPointsModal('${user.id}', '${user.name}', ${user.points})">
+                                            <i class="ph-plus"></i>
+                                            Puntos
+                            </button>
+                    </div>
+                        </td>
+                    </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Cargar datos de canjes
+        async function loadRedemptionsData() {
+            allRedemptions = await getAllRedemptions();
+            renderRedemptionsTable(allRedemptions);
+        }
+
+        // Obtener todos los canjes
+        async function getAllRedemptions() {
+            try {
+                const query = await firebase.firestore().collection('redemptions')
+                    .orderBy('redeemedAt', 'desc')
+                    .get();
+                
+                return query.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    redeemedAt: doc.data().redeemedAt.toDate(),
+                    validatedAt: doc.data().validatedAt ? doc.data().validatedAt.toDate() : null
+                }));
+            } catch (error) {
+                console.error('Error obteniendo canjes:', error);
+                return [];
+            }
+        }
+
+        // Renderizar tabla de canjes
+        function renderRedemptionsTable(redemptions) {
+            const table = document.getElementById('redemptionsTable');
+            
+            table.innerHTML = `
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Premio</th>
+                            <th>Puntos</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${redemptions.map(redemption => `
+                            <tr>
+                                <td>${redemption.userName}</td>
+                                <td>${redemption.rewardName}</td>
+                                <td>${redemption.pointsCost}</td>
+                                <td>${redemption.redeemedAt.toLocaleDateString()}</td>
+                                <td>
+                                    <span class="redemption-status ${redemption.status === 'pending' ? 'status-pending' : 'status-validated'}">
+                                        ${redemption.status === 'pending' ? 'Pendiente' : 'Validado'}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${redemption.status === 'pending' ? `
+                                        <button class="action-button btn-small" onclick="validateRedemption('${redemption.id}')">
+                                            <i class="ph-check"></i>
+                                            Validar
+                            </button>
+                                    ` : '-'}
+                        </td>
+                    </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Cargar datos de análisis
+        async function loadAnalyticsData() {
+            // Calcular métricas de engagement
+            const avgPointsPerUser = allUsers.length > 0 ? 
+                Math.round(allUsers.reduce((sum, user) => sum + user.points, 0) / allUsers.length) : 0;
+            
+            const activeUsers = allUsers.filter(user => {
+                const lastVisit = user.lastDailyVisit ? new Date(user.lastDailyVisit.toDate()) : null;
+                return lastVisit && (new Date() - lastVisit) < 30 * 24 * 60 * 60 * 1000;
+            }).length;
+            
+            const redemptionRate = allUsers.length > 0 ? 
+                Math.round((allRedemptions.length / allUsers.length) * 100) : 0;
+            
+            // Actualizar métricas
+            document.getElementById('avgPointsPerUser').textContent = avgPointsPerUser;
+            document.getElementById('activeUsers').textContent = activeUsers;
+            document.getElementById('redemptionRate').textContent = redemptionRate + '%';
+            document.getElementById('avgTimeToRedeem').textContent = '15'; // Placeholder
+        }
+
+        // Funciones de navegación
+        function showAdminSection(sectionName) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.loyalty-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar sección seleccionada
+            document.getElementById(sectionName + 'Section').classList.add('active');
+            
+            // Actualizar navegación
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Marcar botón activo
+            const activeButton = Array.from(document.querySelectorAll('.nav-button')).find(button => 
+                button.getAttribute('onclick')?.includes(sectionName)
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            currentAdminSection = sectionName;
+        }
+
+        // Funciones de autenticación
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('adminLoginButtonText');
+            const loading = document.getElementById('adminLoginLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.loginUser(email, password);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+        }
+
+        // Management functions
+        async function showUserDetails(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const modal = document.getElementById('userDetailsModal');
+            const content = document.getElementById('userDetailsContent');
+            
+            content.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-input" value="${user.name}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" value="${user.email}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-input" value="${user.phone || '-'}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Actuales</label>
+                    <input type="number" class="form-input" value="${user.points}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Totales Ganados</label>
+                    <input type="number" class="form-input" value="${user.totalPointsEarned || 0}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Puntos Totales Canjeados</label>
+                    <input type="number" class="form-input" value="${user.totalPointsRedeemed || 0}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Miembro desde</label>
+                    <input type="text" class="form-input" value="${user.memberSince ? (user.memberSince.toDate ? user.memberSince.toDate().toLocaleDateString() : new Date(user.memberSince).toLocaleDateString()) : '-'}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código de Referido</label>
+                    <input type="text" class="form-input" value="${user.referralCode || '-'}" readonly>
+                </div>
+            `;
+            
+            showModal('userDetailsModal');
+        }
+
+        function showModifyPointsModal(userId, userName, currentPoints) {
+            selectedUser = { id: userId, name: userName, points: currentPoints };
+            
+            document.getElementById('modifyUserName').value = userName;
+            document.getElementById('modifyCurrentPoints').value = currentPoints;
+            document.getElementById('modifyPointsAmount').value = '';
+            document.getElementById('modifyPointsReason').value = '';
+            
+            showModal('modifyPointsModal');
+        }
+
+        async function handleModifyPoints(e) {
+            e.preventDefault();
+            
+            if (!selectedUser) return;
+            
+            const points = parseInt(document.getElementById('modifyPointsAmount').value);
+            const reason = document.getElementById('modifyPointsReason').value;
+            
+            if (!points || !reason) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+            
+            try {
+                const result = await LoyaltyAPI.modifyUserPoints(selectedUser.id, points, reason);
+                
+                if (result.success) {
+                    alert(result.message);
+                    closeModal('modifyPointsModal');
+                    await loadUsers();
+                    await loadDashboard();
+                } else {
+                    alert(result.message);
+                }
+    } catch (error) {
+                alert('Error al modificar puntos: ' + error.message);
+            }
+            
+            selectedUser = null;
+        }
+
+        async function validateRedemption(redemptionId) {
+            try {
+                const result = await LoyaltyAPI.validateRedemption(redemptionId, adminCurrentUser);
+                
+                if (result.success) {
+                    alert(result.message);
+                    await loadDashboard();
+                    await loadRedemptions();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('Error al validar canje: ' + error.message);
+            }
+        }
+
+        function showAddRewardModal() {
+            showModal('addRewardModal');
+        }
+
+        async function handleAddReward(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('rewardName').value;
+            const description = document.getElementById('rewardDescription').value;
+            const points = parseInt(document.getElementById('rewardPoints').value);
+            const active = document.getElementById('rewardActive').value === 'true';
+            
+            if (!name || !points) {
+                alert('Por favor completa todos los campos requeridos');
+                return;
+            }
+
+            try {
+                const rewardData = {
+                    name: name,
+                    description: description,
+                    pointsRequired: points,
+                    active: active
+                };
+                
+                const result = await LoyaltyAPI.addReward(rewardData);
+                
+                if (result.success) {
+                    alert('Premio agregado exitosamente');
+                    closeModal('addRewardModal');
+                    await loadRewards();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('Error al agregar premio: ' + error.message);
+            }
+        }
+
+        function editReward(rewardId) {
+            const reward = allRewards.find(r => r.id === rewardId);
+            if (!reward) return;
+
+            selectedReward = reward;
+            
+            document.getElementById('editRewardId').value = reward.id;
+            document.getElementById('editRewardName').value = reward.name;
+            document.getElementById('editRewardDescription').value = reward.description || '';
+            document.getElementById('editRewardPoints').value = reward.pointsRequired || reward.pointsCost || 0;
+            document.getElementById('editRewardActive').value = reward.active !== false ? 'true' : 'false';
+            
+            showModal('editRewardModal');
+        }
+
+        async function handleEditReward(e) {
+            e.preventDefault();
+            
+            if (!selectedReward) return;
+            
+            const name = document.getElementById('editRewardName').value;
+            const description = document.getElementById('editRewardDescription').value;
+            const points = parseInt(document.getElementById('editRewardPoints').value);
+            const active = document.getElementById('editRewardActive').value === 'true';
+            
+            if (!name || !points) {
+                alert('Por favor completa todos los campos requeridos');
+                return;
+            }
+
+            try {
+                const rewardData = {
+                    name: name,
+                    description: description,
+                    pointsRequired: points,
+                    active: active
+                };
+                
+                const result = await LoyaltyAPI.updateReward(selectedReward.id, rewardData);
+                
+                if (result.success) {
+                    alert('Premio actualizado exitosamente');
+                    closeModal('editRewardModal');
+                    await loadRewards();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('Error al actualizar premio: ' + error.message);
+            }
+            
+            selectedReward = null;
+        }
+
+        async function deleteReward(rewardId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este premio?')) {
+                try {
+                    const result = await LoyaltyAPI.deleteReward(rewardId);
+                    
+                    if (result.success) {
+                        alert('Premio eliminado exitosamente');
+                        await loadRewards();
+                    } else {
+                        alert(result.message);
+                    }
+            } catch (error) {
+                    alert('Error al eliminar premio: ' + error.message);
+                }
+            }
+        }
+
+        // Menu management functions
+        function showAddMenuItemModal() {
+            // Cargar categorías dinámicamente
+            const categorySelect = document.getElementById('menuItemCategory');
+            categorySelect.innerHTML = '<option value="">Seleccionar categoría</option>';
+            
+            menuData.forEach(category => {
+                if (!category.hidden) {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                }
+            });
+            
+            showModal('addMenuItemModal');
+        }
+
+        async function handleAddMenuItem(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('menuItemName').value;
+            const description = document.getElementById('menuItemDescription').value;
+            const category = document.getElementById('menuItemCategory').value;
+            const price = parseFloat(document.getElementById('menuItemPrice').value);
+            const discount = parseFloat(document.getElementById('menuItemDiscount').value) || 0;
+            const discountType = document.getElementById('menuItemDiscountType').value;
+            const premium = document.getElementById('menuItemPremium').checked;
+            const visible = document.getElementById('menuItemVisible').checked;
+            
+            if (!name || !category || !price) {
+                alert('Por favor completa todos los campos requeridos');
+                return;
+            }
+
+            try {
+                // Buscar la categoría seleccionada
+                const selectedCategory = menuData.find(cat => cat.name === category || cat.id === category);
+                if (!selectedCategory) {
+                    alert('Por favor selecciona una categoría válida');
+                    return;
+                }
+
+                const menuItemData = {
+                    name: name,
+                    description: description,
+                    categoryId: selectedCategory.id,
+                    price: price,
+                    discountValue: discount,
+                    discountType: discountType,
+                    premium: premium,
+                    hidden: !visible,
+                    order: Date.now(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await firebase.firestore().collection('menu').add(menuItemData);
+                
+                alert('Producto agregado exitosamente');
+                closeModal('addMenuItemModal');
+                document.getElementById('addMenuItemForm').reset();
+                await loadMenu();
+            } catch (error) {
+                alert('Error al agregar producto: ' + error.message);
+            }
+        }
+
+        async function addMenuItem(menuItemData) {
+            try {
+                await firebase.firestore().collection('menu').add({
+                    ...menuItemData,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                return { success: true, message: 'Producto agregado exitosamente' };
+            } catch (error) {
+                return { success: false, message: error.message };
+            }
+        }
+
+        function editMenuItem(itemId) {
+            alert('Función de editar producto en desarrollo');
+        }
+
+        async function deleteMenuItem(itemId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                try {
+                    await firebase.firestore().collection('menu').doc(itemId).delete();
+                    alert('Producto eliminado exitosamente');
+                    await loadMenu();
+            } catch (error) {
+                    alert('Error al eliminar producto: ' + error.message);
+                }
+            }
+        }
+
+        function exportMenu() {
+            const csvContent = generateMenuCSV(allMenuItems);
+            downloadCSV(csvContent, 'menu_los_nogales.csv');
+        }
+
+        function generateMenuCSV(menuItems) {
+            const headers = ['Nombre', 'Descripción', 'Categoría', 'Precio', 'Descuento', 'Premium', 'Estado'];
+            const rows = menuItems.map(item => {
+                const hasDiscount = item.discount && item.discount > 0;
+                const discountText = hasDiscount ? 
+                    (item.discountType === 'percentage' ? `${item.discount}%` : `$${item.discount}`) : 
+                    '-';
+                const finalPrice = hasDiscount ? 
+                    (item.discountType === 'percentage' ? 
+                        item.price * (1 - item.discount / 100) : 
+                        item.price - item.discount) : 
+                    item.price;
+                
+                return [
+                    item.name,
+                    item.description || '',
+                    item.categoryName || getCategoryName(item.category),
+                    `$${finalPrice.toFixed(2)}`,
+                    discountText,
+                    item.premium ? 'Sí' : 'No',
+                    item.visible !== false ? 'Visible' : 'Oculto'
+                ];
+            });
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function showModifyPointsModal(userId, userName, currentPoints) {
+            selectedUser = { id: userId, name: userName, points: currentPoints };
+            
+            document.getElementById('modifyUserName').value = userName;
+            document.getElementById('modifyCurrentPoints').value = currentPoints;
+            document.getElementById('modifyPointsAmount').value = '';
+            document.getElementById('modifyPointsReason').value = '';
+            
+            showModal('modifyPointsModal');
+        }
+
+        async function handleModifyPoints(e) {
+            e.preventDefault();
+            
+            if (!selectedUser) return;
+            
+            const points = parseInt(document.getElementById('modifyPointsAmount').value);
+            const reason = document.getElementById('modifyPointsReason').value;
+            
+            if (!points || !reason) {
+                showMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+
+            const button = e.target.querySelector('button');
+            const buttonText = document.getElementById('modifyButtonText');
+            const loading = document.getElementById('modifyLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            const result = await LoyaltyAPI.modifyUserPoints(selectedUser.id, points, reason);
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                closeModal('modifyPointsModal');
+                await loadUsersData();
+                await loadOverviewData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            button.disabled = false;
+            buttonText.style.display = 'inline';
+            loading.classList.add('hidden');
+            
+            selectedUser = null;
+        }
+
+        // Funciones de validación
+        async function validateRedemption(redemptionId) {
+            const result = await LoyaltyAPI.validateRedemption(redemptionId, LoyaltyAPI.getCurrentUser());
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                await loadOverviewData();
+                await loadRedemptionsData();
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+
+        // Export functions
+        function exportUsers() {
+            const csvContent = generateUsersCSV(allUsers);
+            downloadCSV(csvContent, 'usuarios_los_nogales.csv');
+        }
+
+        function exportRedemptions() {
+            const csvContent = generateRedemptionsCSV(allRedemptions);
+            downloadCSV(csvContent, 'canjes_los_nogales.csv');
+        }
+
+        function exportRewards() {
+            const csvContent = generateRewardsCSV(allRewards);
+            downloadCSV(csvContent, 'premios_los_nogales.csv');
+        }
+
+        function generateUsersCSV(users) {
+            const headers = ['Nombre', 'Email', 'Teléfono', 'Puntos', 'Puntos Ganados', 'Puntos Canjeados', 'Miembro desde'];
+            const rows = users.map(user => [
+                user.name,
+                user.email,
+                user.phone || '',
+                user.points,
+                user.totalPointsEarned || 0,
+                user.totalPointsRedeemed || 0,
+                user.memberSince ? (user.memberSince.toDate ? user.memberSince.toDate().toLocaleDateString() : new Date(user.memberSince).toLocaleDateString()) : '-'
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function generateRedemptionsCSV(redemptions) {
+            const headers = ['Usuario', 'Email', 'Premio', 'Puntos', 'Fecha', 'Estado'];
+            const rows = redemptions.map(redemption => [
+                redemption.userName,
+                redemption.userEmail || '',
+                redemption.rewardName,
+                redemption.pointsCost,
+                redemption.redeemedAt.toLocaleDateString(),
+                redemption.status
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function generateRewardsCSV(rewards) {
+            const headers = ['Nombre', 'Descripción', 'Puntos Requeridos', 'Estado'];
+            const rows = rewards.map(reward => [
+                reward.name,
+                reward.description || '',
+                reward.pointsRequired || reward.pointsCost || 0,
+                reward.active !== false ? 'Activo' : 'Inactivo'
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Utility functions
+        function goToMainSystem() {
+            window.location.href = 'loyalty-system.html';
+        }
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Real-time functions
+        function setupRealTimeListeners() {
+            // Limpiar listeners anteriores
+            realTimeListeners.forEach(unsubscribe => unsubscribe());
+            realTimeListeners = [];
+
+            // Listener para usuarios
+            const usersListener = firebase.firestore().collection('users')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadUsers();
+                        await loadDashboard();
+                        await loadAnalytics();
+                    }
+                });
+            realTimeListeners.push(usersListener);
+
+            // Listener para transacciones
+            const transactionsListener = firebase.firestore().collection('pointTransactions')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadDashboard();
+                    }
+                });
+            realTimeListeners.push(transactionsListener);
+
+            // Listener para canjes
+            const redemptionsListener = firebase.firestore().collection('redemptions')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadRedemptions();
+                        await loadDashboard();
+                    }
+                });
+            realTimeListeners.push(redemptionsListener);
+
+            // Listener para premios
+            const rewardsListener = firebase.firestore().collection('rewards')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadRewards();
+                    }
+                });
+            realTimeListeners.push(rewardsListener);
+
+            // Listener para productos del menú
+            const menuListener = firebase.firestore().collection('menu')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadMenu();
+                    }
+                });
+            realTimeListeners.push(menuListener);
+
+            // Listener para categorías del menú
+            const menuCategoriesListener = firebase.firestore().collection('menuCategories')
+                .onSnapshot(async (snapshot) => {
+                    const changes = snapshot.docChanges();
+                    let shouldUpdate = false;
+                    
+                    changes.forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified' || change.type === 'removed') {
+                            shouldUpdate = true;
+                        }
+                    });
+                    
+                    if (shouldUpdate) {
+                        await loadMenu();
+                    }
+                });
+            realTimeListeners.push(menuCategoriesListener);
+        }
+
+        // Limpiar listeners al cerrar sesión
+        function cleanupRealTimeListeners() {
+            realTimeListeners.forEach(unsubscribe => unsubscribe());
+            realTimeListeners = [];
+        }
+
+        // Actualizar la función de logout para limpiar listeners
+        const originalLogout = logout;
+        logout = function() {
+            cleanupRealTimeListeners();
+            originalLogout();
+        }
+    </script>
+</body>
+</html>
