@@ -22,7 +22,7 @@ app.get('/proxy-pdf', async (req, res) => {
 });
 
 // Endpoint para obtener la URL del comprobante PDF de Mercado Pago
-const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'APP_USR-4086574404132255-070717-861d73128d19bb0acc54bb80e4510138-2529041657';
+// const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
 app.get('/get-mp-receipt', async (req, res) => {
   const { paymentId } = req.query;
@@ -33,7 +33,7 @@ app.get('/get-mp-receipt', async (req, res) => {
     // Llamar a la API de Mercado Pago para obtener el receipt
     const response = await axios.get(`https://api.mercadopago.com/v1/payments/${paymentId}/receipt`, {
       headers: {
-        'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
+        // 'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
       }
     });
     if (response.data && response.data.receipt_url) {

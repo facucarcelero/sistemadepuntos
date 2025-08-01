@@ -18,7 +18,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // Configuración de MercadoPago
-const MP_ACCESS_TOKEN = import.meta.env.VITE_MP_ACCESS_TOKEN;
+// const MP_ACCESS_TOKEN = import.meta.env.VITE_MP_ACCESS_TOKEN;
 const DEPOSIT_AMOUNT = 10000;
 const WHATSAPP_NUMBER = "5492644593336";
 

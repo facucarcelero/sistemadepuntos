@@ -18,7 +18,7 @@ const firebaseConfig = {
 };
 
 // ========== CONFIGURACIÓN DE MERCADO PAGO ==========
-const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
+// const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
 const DEPOSIT_AMOUNT = 10000; // Monto de la seña en pesos
 const WHATSAPP_NUMBER = "5492644593336"; // Número para consultas
 const MAX_CAPACITY = 160; // 160 personas por turno
@@ -1361,11 +1361,11 @@ function displayClientMessage(message, type, extraHtml = '') {
 async function createDirectPaymentPreference(reservationData) {
     try {
         console.log('💳 [DIRECT_PAYMENT] Creando preferencia de pago directa desde el frontend');
-        const MP_ACCESS_TOKEN = import.meta.env.VITE_MP_ACCESS_TOKEN;
-        if (!MP_ACCESS_TOKEN) {
-            displayClientMessage('Error: No se encontró el Access Token de Mercado Pago. Configura la variable VITE_MP_ACCESS_TOKEN.', 'error');
-            return;
-        }
+            // const MP_ACCESS_TOKEN = import.meta.env.VITE_MP_ACCESS_TOKEN;
+    // if (!MP_ACCESS_TOKEN) {
+    //     displayClientMessage('Error: No se encontró el Access Token de Mercado Pago. Configura la variable VITE_MP_ACCESS_TOKEN.', 'error');
+    //     return;
+    // }
         const tempId = reservationData.tempId;
         const depositAmount = reservationData.depositAmount || calcularMontoSenia(reservationData.diners) || DEPOSIT_AMOUNT;
         let currentUrl = window.location.origin + window.location.pathname;
@@ -1376,7 +1376,7 @@ async function createDirectPaymentPreference(reservationData) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
+                // 'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
             },
             body: JSON.stringify({
                 items: [{
