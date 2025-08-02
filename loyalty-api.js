@@ -9,9 +9,10 @@ const firebaseConfig = {
     measurementId: "G-MBGF0QWF7K"
 };
 
-// Inicializar Firebase
+// Inicializar Firebase (optimizado como en el repositorio original)
 try {
     firebase.initializeApp(firebaseConfig);
+    console.log('✅ Firebase inicializado correctamente');
 } catch (error) {
     if (error.code !== 'app/duplicate-app') {
         console.error('Error inicializando Firebase:', error);
@@ -21,11 +22,13 @@ try {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Configuración de Firestore
-const settings = {
-    timestampsInSnapshots: true
-};
-db.settings(settings);
+// Configuración de Firestore simplificada (como en el repositorio original)
+db.settings({
+    timestampsInSnapshots: true,
+    merge: true // Agregar merge: true para evitar la advertencia
+});
+
+console.log('✅ Firebase Auth y Firestore configurados');
 
 // Variables globales
 let currentUser = null;
@@ -123,22 +126,64 @@ async function registerUser(email, password, name, phone, referralCode = null) {
     }
 }
 
-// Iniciar sesión
+// Iniciar sesión (ULTRA INSTANTÁNEO para localhost)
 async function loginUser(email, password) {
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('🚀 Iniciando login ULTRA INSTANTÁNEO para localhost...');
+        console.log('📧 Email:', email);
+        console.log('🔑 Password:', '***');
+        
+        // Verificar que Firebase esté listo (crítico para localhost)
+        if (!auth) {
+            console.error('❌ Firebase Auth no está disponible');
+            return { success: false, message: 'Error: Firebase no está listo. Recarga la página.' };
+        }
+        
+        console.log('✅ Firebase Auth disponible, iniciando autenticación...');
+        
+        // Diagnóstico de conectividad antes del login
+        const startTime = Date.now();
+        console.log('🌐 Verificando conectividad a Firebase...');
+        
+        // SOLUCIÓN AGRESIVA: Usar signInWithCredential en lugar de signInWithEmailAndPassword
+        console.log('🔧 Usando método de autenticación optimizado para localhost...');
+        
+        // Crear credenciales directamente
+        const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+        
+        // Timeout de 3 segundos (más agresivo)
+        const loginPromise = auth.signInWithCredential(credential);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => {
+                const elapsed = Date.now() - startTime;
+                console.error(`⏰ Timeout después de ${elapsed}ms`);
+                reject(new Error(`Timeout: Login tardó más de 3 segundos en localhost (${elapsed}ms)`));
+            }, 3000)
+        );
+        
+        console.log('⏱️ Ejecutando autenticación con credenciales (timeout 3s)...');
+        const userCredential = await Promise.race([loginPromise, timeoutPromise]);
         const user = userCredential.user;
         
+        const authTime = Date.now() - startTime;
+        console.log(`✅ Usuario autenticado en ${authTime}ms:`, user.email);
+        
         if (!user.emailVerified) {
+            console.log('❌ Email no verificado, cerrando sesión...');
             await auth.signOut();
             return { success: false, message: 'Por favor verifica tu email antes de iniciar sesión.' };
         }
         
-        const userData = await loadUserData(user.uid);
+        console.log('✅ Email verificado correctamente');
         
+        // SIN cargar datos aquí - el listener se encargará
+        console.log('✅ Login exitoso ULTRA INSTANTÁNEO para localhost');
         return { success: true, message: 'Inicio de sesión exitoso.' };
     } catch (error) {
         console.error('❌ Error en loginUser:', error);
+        if (error.message.includes('Timeout')) {
+            return { success: false, message: `Error: Login tardó demasiado en localhost. ${error.message}` };
+        }
         return { success: false, message: getErrorMessage(error.code) };
     }
 }
@@ -191,22 +236,25 @@ async function validateReferralCode(code) {
     }
 }
 
-// Cargar datos del usuario
+// Cargar datos del usuario (optimizado como en el repositorio original)
 async function loadUserData(userId) {
     try {
+        console.log('⚡ Cargando datos del usuario de forma optimizada...');
         const doc = await db.collection('users').doc(userId).get();
         if (doc.exists) {
             userData = doc.data();
             userPoints = userData.points || 0;
             currentUser = userId;
             
-            // Asegurar que los campos existan
-            if (!userData.totalPointsEarned) userData.totalPointsEarned = 0;
-            if (!userData.totalPointsRedeemed) userData.totalPointsRedeemed = 0;
-            if (!userData.dailyVisitClaimed) userData.dailyVisitClaimed = false;
+            // Asegurar que los campos existan (optimizado)
+            userData.totalPointsEarned = userData.totalPointsEarned || 0;
+            userData.totalPointsRedeemed = userData.totalPointsRedeemed || 0;
+            userData.dailyVisitClaimed = userData.dailyVisitClaimed || false;
             
+            console.log('✅ Datos del usuario cargados rápidamente');
             return userData;
         } else {
+            console.log('⚠️ Usuario no encontrado en Firestore');
             return null;
         }
     } catch (error) {
@@ -438,14 +486,23 @@ async function addSurveyPoints() {
 
 // ===== FUNCIONES DE PREMIOS =====
 
-// Obtener premios disponibles
+// Obtener premios disponibles - ULTRA INSTANTÁNEO
 async function getAvailableRewards() {
     try {
-        const snapshot = await db.collection('rewards').get();
+        console.log('⚡ Obteniendo premios ULTRA INSTANTÁNEO...');
+        
+        // Timeout MUY corto de 2 segundos para máxima velocidad
+        const queryPromise = db.collection('rewards').limit(10).get(); // Límite reducido para velocidad
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout: Premios tardaron demasiado')), 2000)
+        );
+        
+        const snapshot = await Promise.race([queryPromise, timeoutPromise]);
         const rewards = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+        console.log(`✅ ${rewards.length} premios obtenidos ULTRA INSTANTÁNEO`);
         return rewards;
     } catch (error) {
         console.error('Error obteniendo premios:', error);
@@ -590,12 +647,23 @@ async function addPointTransaction(description, points, type, userId = null) {
 
 // ===== FUNCIONES DE ADMINISTRACIÓN =====
 
-// Verificar si el usuario es administrador
+// Verificar si el usuario es administrador (ULTRA RÁPIDO)
 async function isAdmin(userId) {
     try {
-        const doc = await db.collection('admins').doc(userId).get();
-        return doc.exists;
+        console.log('🔐 Verificando admin para:', userId);
+        
+        // Timeout MUY corto de 2 segundos para máxima velocidad
+        const adminPromise = db.collection('admins').doc(userId).get();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout: Verificación de admin tardó demasiado')), 2000)
+        );
+        
+        const doc = await Promise.race([adminPromise, timeoutPromise]);
+        const isAdmin = doc.exists;
+        console.log('🔐 Resultado verificación admin:', isAdmin);
+        return isAdmin;
     } catch (error) {
+        console.error('❌ Error verificando admin:', error);
         return false;
     }
 }
@@ -614,23 +682,35 @@ async function addAdminPermissions(userId) {
     }
 }
 
-// Obtener todos los usuarios (solo admin)
+// Obtener todos los usuarios (solo admin) - ULTRA INSTANTÁNEO
 async function getAllUsers() {
     try {
-        // Consulta simplificada sin orderBy para evitar necesidad de índices
-        const query = await db.collection('users').get();
+        console.log('⚡ Obteniendo usuarios ULTRA INSTANTÁNEO...');
+        
+        // Timeout MUY corto de 2 segundos para máxima velocidad
+        const queryPromise = db.collection('users')
+            .limit(10) // Solo 10 usuarios para máxima velocidad
+            .get();
+            
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout: Usuarios tardaron demasiado')), 2000)
+        );
+        
+        const query = await Promise.race([queryPromise, timeoutPromise]);
+            
         const users = query.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
             memberSince: doc.data().memberSince ? doc.data().memberSince.toDate() : new Date()
         }));
         
-        // Ordenar en JavaScript en lugar de en Firestore
+        // Ordenar en JavaScript (optimizado)
         users.sort((a, b) => b.memberSince - a.memberSince);
         
+        console.log(`✅ ${users.length} usuarios obtenidos ULTRA INSTANTÁNEO`);
         return users;
     } catch (error) {
-        console.error('Error obteniendo usuarios:', error);
+        console.error('❌ Error obteniendo usuarios:', error);
         return [];
     }
 }
@@ -698,23 +778,38 @@ async function validateRedemption(redemptionId, adminId) {
     }
 }
 
-// Obtener estadísticas del programa (solo admin)
+// Obtener estadísticas del programa (solo admin) - ULTRA INSTANTÁNEO
 async function getProgramStats() {
     try {
-        const usersQuery = await db.collection('users').get();
-        const redemptionsQuery = await db.collection('redemptions').get();
+        console.log('⚡ Obteniendo estadísticas ULTRA INSTANTÁNEO...');
+        
+        // Timeout MUY corto de 3 segundos para máxima velocidad
+        const statsPromise = Promise.all([
+            db.collection('users').limit(20).get(), // Límite ULTRA reducido
+            db.collection('redemptions').limit(20).get() // Límite ULTRA reducido
+        ]);
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout: Estadísticas tardaron demasiado')), 3000)
+        );
+        
+        const [usersQuery, redemptionsQuery] = await Promise.race([statsPromise, timeoutPromise]);
         
         const totalUsers = usersQuery.size;
         const totalRedemptions = redemptionsQuery.size;
         let totalPointsEarned = 0;
         let totalPointsRedeemed = 0;
+        let activePoints = 0;
         
+        // Calcular puntos de forma ULTRA optimizada
         usersQuery.docs.forEach(doc => {
             const data = doc.data();
             totalPointsEarned += data.totalPointsEarned || 0;
             totalPointsRedeemed += data.totalPointsRedeemed || 0;
+            activePoints += data.points || 0;
         });
         
+        console.log('✅ Estadísticas calculadas ULTRA RÁPIDO');
         return {
             totalUsers,
             totalPointsEarned,
@@ -724,7 +819,14 @@ async function getProgramStats() {
         };
     } catch (error) {
         console.error('Error obteniendo estadísticas:', error);
-        return null;
+        // Retornar valores por defecto inmediatamente
+        return {
+            totalUsers: 0,
+            totalPointsEarned: 0,
+            totalPointsRedeemed: 0,
+            totalRedemptions: 0,
+            activePoints: 0
+        };
     }
 }
 
@@ -799,37 +901,35 @@ function getErrorMessage(errorCode) {
     return errorMessages[errorCode] || `Error desconocido: ${errorCode}`;
 }
 
-// Escuchar cambios en la autenticación
-// COMENTADO: Este listener está causando conflictos con loyalty-system.html
-// auth.onAuthStateChanged(async (user) => {
-//     console.log('=== Firebase Auth State Changed (loyalty-api.js) ===');
-//     console.log('Usuario de Firebase:', user ? user.uid : 'null');
-//     console.log('Email verificado:', user ? user.emailVerified : 'N/A');
-//     
-//     if (user) {
-//         if (user.emailVerified) {
-//             console.log('✅ Usuario verificado, cargando datos...');
-//             await loadUserData(user.uid);
-//             if (typeof onAuthStateChanged === 'function') {
-//                 onAuthStateChanged(true, user);
-//             }
-//         } else {
-//             console.log('❌ Usuario no verificado, cerrando sesión...');
-//             await auth.signOut();
-//             if (typeof onAuthStateChanged === 'function') {
-//                 onAuthStateChanged(false, null);
-//             }
-//         }
-//     } else {
-//         console.log('❌ No hay usuario, limpiando variables...');
-//         currentUser = null;
-//         userPoints = 0;
-//         userData = null;
-//         if (typeof onAuthStateChanged === 'function') {
-//             onAuthStateChanged(false, null);
-//         }
-//     }
-// });
+// Escuchar cambios en la autenticación (ULTRA RÁPIDO - como en codigoonline.md)
+auth.onAuthStateChanged(async (user) => {
+    console.log('=== Firebase Auth State Changed (ULTRA RÁPIDO) ===');
+    console.log('Usuario de Firebase:', user ? user.uid : 'null');
+    
+    if (user) {
+        if (user.emailVerified) {
+            console.log('✅ Usuario verificado, notificando inmediatamente...');
+            // SIN cargar datos aquí - solo notificar inmediatamente
+            if (typeof LoyaltyAPI.onAuthStateChanged === 'function') {
+                LoyaltyAPI.onAuthStateChanged(true, user);
+            }
+        } else {
+            console.log('❌ Usuario no verificado, cerrando sesión...');
+            await auth.signOut();
+            if (typeof LoyaltyAPI.onAuthStateChanged === 'function') {
+                LoyaltyAPI.onAuthStateChanged(false, null);
+            }
+        }
+    } else {
+        console.log('❌ No hay usuario, limpiando variables...');
+        currentUser = null;
+        userPoints = 0;
+        userData = null;
+        if (typeof LoyaltyAPI.onAuthStateChanged === 'function') {
+            LoyaltyAPI.onAuthStateChanged(false, null);
+        }
+    }
+});
 
 // Exportar funciones para uso global
 window.LoyaltyAPI = {

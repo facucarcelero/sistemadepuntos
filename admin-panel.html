@@ -14,10 +14,277 @@
     <!-- Iconos -->
     <link href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" rel="stylesheet">
     
-    <!-- Firebase -->
+    <!-- Firebase - OPTIMIZADO para localhost -->
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Preload crítico para localhost -->
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js" as="script">
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js" as="script">
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js" as="script">
+    
+    <!-- Optimizaciones específicas para localhost -->
+    <script src="localhost-optimization.js"></script>
+    
+    <!-- Diagnóstico específico para localhost -->
+    <script src="localhost-diagnostic.js"></script>
+    
+    <!-- Sistema de login ULTRA RÁPIDO para localhost -->
+    <script src="localhost-fast-login.js"></script>
+    
+    <!-- Función de login global -->
+    <script>
+        // Verificar que Firebase esté disponible
+        function checkFirebaseAvailability() {
+            if (typeof firebase === 'undefined') {
+                console.error('❌ Firebase no está disponible');
+                return false;
+            }
+            if (!firebase.auth) {
+                console.error('❌ Firebase Auth no está disponible');
+                return false;
+            }
+            console.log('✅ Firebase está disponible');
+            return true;
+        }
+
+        // Función principal de login (ULTRA INSTANTÁNEA para localhost)
+        async function handleLogin(event) {
+            // Prevenir el comportamiento por defecto del formulario
+            if (event) {
+                event.preventDefault();
+            }
+            
+            console.log('🔐 Login ULTRA INSTANTÁNEO para localhost...');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert('❌ Por favor completa email y contraseña');
+                return;
+            }
+            
+            // Verificar que Firebase esté listo (crítico para localhost)
+            if (!firebase || !firebase.auth) {
+                console.error('❌ Firebase no está listo, esperando...');
+                showMessage('Error: Firebase no está listo. Recarga la página.', 'error');
+                return;
+            }
+            
+            // SIN LOADING - Login ULTRA instantáneo para localhost
+            try {
+                console.log('🚀 Login ULTRA INSTANTÁNEO con LoyaltyAPI...');
+                
+                // Monitorear rendimiento del login
+                const monitor = window.monitorLoginPerformance();
+                monitor.start();
+                
+                // INTENTAR LOGIN ULTRA RÁPIDO PARA LOCALHOST
+                let result = null;
+                
+                // Primero intentar el sistema rápido de localhost
+                if (window.fastLocalhostLogin) {
+                    console.log('⚡ Intentando login ULTRA RÁPIDO para localhost...');
+                    result = await window.fastLocalhostLogin(email, password);
+                    
+                    if (result) {
+                        monitor.check('Login rápido exitoso');
+                        console.log('✅ Login rápido completado');
+                    } else {
+                        console.log('⚠️ Login rápido no disponible, usando método normal...');
+                    }
+                }
+                
+                // Si el login rápido no funcionó, usar el método normal
+                if (!result) {
+                    monitor.check('Usando método normal');
+                    console.log('🔄 Usando método normal de LoyaltyAPI...');
+                    
+                    // Timeout de 3 segundos para localhost (más agresivo)
+                    const loginPromise = LoyaltyAPI.loginUser(email, password);
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => {
+                            monitor.check('TIMEOUT');
+                            reject(new Error('Timeout: Login tardó más de 3 segundos en localhost'));
+                        }, 3000)
+                    );
+                    
+                    monitor.check('Iniciando login normal');
+                    result = await Promise.race([loginPromise, timeoutPromise]);
+                }
+                
+                if (result.success) {
+                    monitor.check('Login exitoso');
+                    console.log('✅ Login exitoso en localhost');
+                    showMessage(result.message, 'success');
+                    
+                    // FORZAR activación del callback inmediatamente
+                    console.log('🔄 Forzando activación del callback en localhost...');
+                    const currentUser = firebase.auth().currentUser;
+                    if (currentUser && typeof LoyaltyAPI.onAuthStateChanged === 'function') {
+                        monitor.check('Activando callback');
+                        console.log('👤 Usuario actual encontrado, activando callback...');
+                        LoyaltyAPI.onAuthStateChanged(true, currentUser);
+                        monitor.end();
+                    } else {
+                        console.log('❌ No se pudo activar el callback automáticamente');
+                        monitor.end();
+                    }
+                } else {
+                    monitor.check('Login falló');
+                    console.log('❌ Login falló:', result.message);
+                    showMessage(result.message, 'error');
+                    monitor.end();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en login:', error);
+                if (error.message.includes('Timeout')) {
+                    showMessage(`Error: Login tardó demasiado en localhost. ${error.message}`, 'error');
+                } else {
+                    showMessage('Error al iniciar sesión', 'error');
+                }
+            }
+        }
+
+        // Función para probar conectividad con Firebase (ELIMINADA - no necesaria como en el repositorio de GitHub)
+        // async function testFirebaseConnection() {
+        //     // Esta función se eliminó para hacer el sistema más rápido
+        // }
+
+        // Probar conectividad al cargar la página (ELIMINADO - no necesario)
+        // window.addEventListener('load', function() {
+        //     // Esta verificación se eliminó para hacer el sistema más rápido
+        // });
+
+        // Función para mostrar el panel de administración
+        function showAdminPanel() {
+            console.log('🚀 Mostrando panel de administración...');
+            const loginScreen = document.getElementById('loginScreen');
+            const adminPanel = document.getElementById('adminPanel');
+            
+            if (loginScreen) {
+                loginScreen.style.display = 'none';
+                console.log('✅ Pantalla de login ocultada');
+            }
+            
+            if (adminPanel) {
+                adminPanel.style.display = 'block';
+                console.log('✅ Panel de administración mostrado');
+            }
+        }
+
+        // Función para mostrar la pantalla de login
+        function showLoginScreen() {
+            console.log('🚪 Mostrando pantalla de login...');
+            const loginScreen = document.getElementById('loginScreen');
+            const adminPanel = document.getElementById('adminPanel');
+            
+            if (loginScreen) {
+                loginScreen.style.display = 'flex';
+                console.log('✅ Pantalla de login mostrada');
+            }
+            
+            if (adminPanel) {
+                adminPanel.style.display = 'none';
+                console.log('✅ Panel de administración ocultado');
+            }
+        }
+
+        // Función de logout
+        async function logout() {
+            console.log('🚪 Cerrando sesión...');
+            try {
+                await LoyaltyAPI.logoutUser();
+                showLoginScreen();
+                console.log('✅ Sesión cerrada exitosamente');
+            } catch (error) {
+                console.error('❌ Error al cerrar sesión:', error);
+                showLoginScreen();
+            }
+        }
+
+        // Función para verificar estado de autenticación (SIMPLIFICADA - como en el repositorio de GitHub)
+        function checkAuthState() {
+            console.log('🔍 Verificando estado de autenticación...');
+            // En el repositorio de GitHub, esta función es muy simple
+            // Solo verifica si hay un usuario autenticado
+            const currentUser = firebase.auth().currentUser;
+            if (currentUser) {
+                console.log('👤 Usuario ya autenticado:', currentUser.email);
+                // El callback onAuthStateChanged se encargará del resto
+            } else {
+                console.log('👤 No hay usuario autenticado');
+            }
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // Crear elemento de mensaje
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                max-width: 300px;
+                word-wrap: break-word;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                ${type === 'success' ? 'background: #10b981;' : ''}
+                ${type === 'error' ? 'background: #ef4444;' : ''}
+                ${type === 'warning' ? 'background: #f59e0b;' : ''}
+                ${type === 'info' ? 'background: #3b82f6;' : ''}
+            `;
+            
+            messageDiv.textContent = message;
+            
+            // Agregar al DOM
+            document.body.appendChild(messageDiv);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+
+        // Función para crear permisos de administrador
+        async function createAdminPermissions(userId, userEmail) {
+            console.log('🔐 Creando permisos de administrador para:', userEmail);
+            
+            try {
+                // Usar LoyaltyAPI si está disponible
+                if (typeof LoyaltyAPI !== 'undefined' && LoyaltyAPI.addAdminPermissions) {
+                    await LoyaltyAPI.addAdminPermissions(userId);
+                    console.log('✅ Permisos de administrador creados con LoyaltyAPI');
+                } else {
+                    // Crear directamente en Firestore
+                    await firebase.firestore().collection('admins').doc(userId).set({
+                        email: userEmail,
+                        role: 'admin',
+                        createdAt: new Date(),
+                        permissions: ['users', 'rewards', 'analytics', 'menu', 'reservations']
+                    });
+                    console.log('✅ Permisos de administrador creados directamente en Firestore');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Error creando permisos de administrador:', error);
+                throw error;
+            }
+        }
+    </script>
     
     <!-- Librerías para exportar y generar PDF -->
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
@@ -86,6 +353,41 @@
             padding: 30px;
             margin-bottom: 30px;
             backdrop-filter: blur(10px);
+        }
+        
+        /* Estilos para el grupo de contraseña */
+        .password-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-group input {
+            flex: 1;
+            padding-right: 50px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+        
+        .password-toggle:active {
+            transform: translateY(-50%) scale(0.95);
         }
 
         .section-title {
@@ -800,6 +1102,61 @@
             background: var(--card-bg) !important;
             border: 1px solid var(--border-color) !important;
             color: var(--text-primary) !important;
+        }
+        
+        /* Mejoras de espaciado para el diseño ordenado */
+        #reservations.active .bg-white.p-6.rounded-2xl.shadow-lg {
+            margin-bottom: 3rem !important;
+        }
+        
+        #reservations.active .flex.flex-col.sm\\:flex-row {
+            gap: 1rem !important;
+            margin-bottom: 2rem !important;
+        }
+        
+        #reservations.active .grid.grid-cols-1.gap-8 {
+            gap: 2rem !important;
+        }
+        
+        #reservations.active .grid.grid-cols-1.sm\\:grid-cols-2.gap-8 {
+            gap: 2rem !important;
+        }
+        
+        #reservations.active .grid.grid-cols-1.sm\\:grid-cols-3.gap-4 {
+            gap: 1rem !important;
+            margin-bottom: 2rem !important;
+        }
+        
+        /* Estadísticas mucho más grandes y prominentes */
+        #reservations.active #totalDinersPeriod {
+            min-height: 200px !important;
+            font-size: 1.5rem !important;
+        }
+        
+        #reservations.active #totalDinersLunch,
+        #reservations.active #totalDinersDinner {
+            min-height: 180px !important;
+            font-size: 1.3rem !important;
+        }
+        
+        /* Números gigantes */
+        #reservations.active #totalDinersPeriod p {
+            font-size: 8rem !important;
+            line-height: 1 !important;
+        }
+        
+        #reservations.active #totalDinersLunch p,
+        #reservations.active #totalDinersDinner p {
+            font-size: 6rem !important;
+            line-height: 1 !important;
+        }
+        
+        /* Títulos más grandes */
+        #reservations.active #totalDinersPeriod h3,
+        #reservations.active #totalDinersLunch h3,
+        #reservations.active #totalDinersDinner h3 {
+            font-size: 2rem !important;
+            margin-bottom: 1.5rem !important;
         }
         
         #reservations.active .text-gray-500 {
@@ -2138,11 +2495,22 @@
                 <div class="form-group">
                     <input type="email" id="email" required placeholder="Email">
                 </div>
-                <div class="form-group">
+                <div class="form-group password-group">
                     <input type="password" id="password" required placeholder="Contraseña">
+                    <button type="button" id="togglePassword" class="password-toggle" onclick="togglePasswordVisibility()">
+                        <i class="ph-eye" id="passwordIcon"></i>
+                    </button>
                 </div>
                 <button type="submit" class="login-btn">Iniciar Sesión</button>
             </form>
+            
+
+            
+
+            
+
+            
+
                 </div>
                 </div>
 
@@ -2157,9 +2525,14 @@
                     </button>
                     <h1 class="header-title">Parrilla Los Nogales</h1>
                 </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="ph-sign-out"></i>
-                </button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-primary" onclick="window.location.href='admin-management.html'" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        <i class="ph-users"></i> Gestionar Admins
+                    </button>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="ph-sign-out"></i>
+                    </button>
+                </div>
                 </div>
         </header>
 
@@ -2560,22 +2933,24 @@
 
                     <!-- Panel de control principal -->
                     <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-                        <div class="flex flex-col sm:flex-row items-center gap-4 mb-4 w-full">
-                            <label for="dateFilter" class="block text-sm font-medium text-gray-700">Seleccionar fecha base:</label>
-                            <div class="flex items-center w-full max-w-xs">
-                                <input type="date" id="dateFilter" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
-                                <button id="force-refresh-button" title="Forzar Actualización Completa" class="action-button ml-2 p-3 bg-green-100 text-green-700 rounded-full hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-transform transform hover:scale-110">
+                        <!-- Primera fila: Fecha base -->
+                        <div class="flex flex-col sm:flex-row items-center gap-4 mb-6 w-full">
+                            <label for="dateFilter" class="block text-sm font-medium text-gray-700 whitespace-nowrap">Seleccionar fecha base:</label>
+                            <div class="flex items-center gap-2 flex-1">
+                                <input type="date" id="dateFilter" class="flex-1 p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                                <button id="force-refresh-button" title="Forzar Actualización Completa" class="p-3 bg-green-100 text-green-700 rounded-full hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-transform transform hover:scale-110">
                                     <i class="ph ph-arrows-clockwise text-lg"></i>
                                 </button>
+                                <button id="show-search-button" title="Buscar Reserva" class="p-3 bg-gray-100 text-gray-600 rounded-full shadow-sm hover:bg-gray-200 transition">
+                                    <i class="ph ph-magnifying-glass text-lg"></i>
+                                </button>
                             </div>
-                            <button id="show-search-button" title="Buscar Reserva" class="admin-only p-2 bg-gray-100 text-gray-600 rounded-full shadow-sm hover:bg-gray-200 transition">
-                                <i class="ph ph-magnifying-glass text-2xl"></i>
-                            </button>
                         </div>
                         
+                        <!-- Segunda fila: Selector de período -->
                         <div class="flex flex-col sm:flex-row items-center gap-4 mb-6 w-full">
-                            <label for="periodSelector" class="block text-sm font-medium text-gray-700">Mostrar balance por:</label>
-                            <select id="periodSelector" class="p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                            <label for="periodSelector" class="block text-sm font-medium text-gray-700 whitespace-nowrap">Mostrar balance por:</label>
+                            <select id="periodSelector" class="flex-1 p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
                                 <option value="daily">Diario</option>
                                 <option value="weekly">Semanal</option>
                                 <option value="monthly">Mensual</option>
@@ -2584,47 +2959,53 @@
                             </select>
                         </div>
                         
-                        <div id="customDateRangeInputs" class="flex flex-col sm:flex-row items-center gap-4 mb-6 hidden w-full">
-                            <label for="dateRangeStart" class="block text-sm font-medium text-gray-700">Desde:</label>
-                            <input type="date" id="dateRangeStart" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
-                            <label for="dateRangeEnd" class="block text-sm font-medium text-gray-700">Hasta:</label>
-                            <input type="date" id="dateRangeEnd" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600">
+                        <!-- Campos de rango personalizado (ocultos por defecto) -->
+                        <div id="customDateRangeInputs" class="flex flex-col sm:flex-row items-center gap-4 mb-6 hidden w-full" style="display: none !important;">
+                            <label for="dateRangeStart" class="block text-sm font-medium text-gray-700 whitespace-nowrap">Desde:</label>
+                            <input type="date" id="dateRangeStart" class="flex-1 p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="dd/mm/aaaa">
+                            <label for="dateRangeEnd" class="block text-sm font-medium text-gray-700 whitespace-nowrap">Hasta:</label>
+                            <input type="date" id="dateRangeEnd" class="flex-1 p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" placeholder="dd/mm/aaaa">
                         </div>
                         
-                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4">
-                            <input id="admin-search-input" type="text" placeholder="Buscar en todas las reservas..." class="w-full sm:w-1/2 p-2 border rounded-lg" />
-                            <button id="export-excel-btn" class="admin-only bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800 flex items-center gap-2 relative">
+                        <!-- Tercera fila: Búsqueda y exportación -->
+                        <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
+                            <input id="admin-search-input" type="text" placeholder="Buscar en todas las reservas..." class="flex-1 p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600" />
+                            <button id="export-excel-btn" class="admin-only bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 flex items-center gap-2 transition-colors">
                                 <i class="ph ph-file-xls text-lg"></i> Exportar a Excel
                             </button>
                         </div>
                         
-                        <div class="grid grid-cols-1 gap-4 mt-6 text-center w-full">
-                            <div id="totalDinersPeriod" class="bg-gray-100 p-4 rounded-lg shadow-inner col-span-full cursor-pointer hover:bg-gray-200 transition-all duration-200 filter-card" data-filter="all" title="Click para ver todas las reservas">
-                                <h3 class="font-bold text-gray-600">Total Comensales <span id="periodDisplay"></span></h3>
-                                <p class="text-4xl font-extrabold text-gray-800">0</p>
+                        <!-- Estadísticas -->
+                        <div class="grid grid-cols-1 gap-12 mt-12 text-center w-full">
+                            <!-- Total Comensales -->
+                            <div id="totalDinersPeriod" class="bg-gray-100 p-12 rounded-3xl shadow-lg cursor-pointer hover:bg-gray-200 transition-all duration-200 filter-card" data-filter="all" title="Click para ver todas las reservas">
+                                <h3 class="font-bold text-gray-600 text-3xl mb-6">Total Comensales <span id="periodDisplay"></span></h3>
+                                <p class="text-9xl font-extrabold text-gray-800">0</p>
                             </div>
-                            <div id="turnTotalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-full">
-                                <div id="totalDinersLunch" class="bg-green-50 p-4 rounded-lg shadow-inner cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="almuerzo" title="Click para filtrar solo almuerzos">
-                                    <h3 id="lunchTurnTitle" class="font-bold text-green-700">Total Almuerzos</h3>
-                                    <p class="text-3xl font-extrabold text-green-800">0</p>
+                            
+                            <!-- Totales por turno -->
+                            <div id="turnTotalsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-12">
+                                <div id="totalDinersLunch" class="bg-green-50 p-12 rounded-3xl shadow-lg cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="almuerzo" title="Click para filtrar solo almuerzos">
+                                    <h3 id="lunchTurnTitle" class="font-bold text-green-700 text-3xl mb-6">Total Almuerzos</h3>
+                                    <p class="text-8xl font-extrabold text-green-800">0</p>
                                 </div>
-                                <div id="totalDinersDinner" class="bg-green-50 p-4 rounded-lg shadow-inner cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="cena" title="Click para filtrar solo cenas">
-                                    <h3 id="dinnerTurnTitle" class="font-bold text-green-700">Total Cenas</h3>
-                                    <p class="text-3xl font-extrabold text-green-800">0</p>
+                                <div id="totalDinersDinner" class="bg-green-50 p-12 rounded-3xl shadow-lg cursor-pointer hover:bg-green-100 transition-all duration-200 filter-card" data-filter="cena" title="Click para filtrar solo cenas">
+                                    <h3 id="dinnerTurnTitle" class="font-bold text-green-700 text-3xl mb-6">Total Cenas</h3>
+                                    <p class="text-8xl font-extrabold text-green-800">0</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Botones de gestión -->
-                    <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-                        <button id="add-reservation-button" class="admin-only bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <button id="add-reservation-button" class="admin-only bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
                             <i class="ph ph-plus-circle text-lg"></i> Agregar Reserva
                         </button>
-                        <button id="open-special-days-modal" class="admin-only bg-green-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-800 flex items-center justify-center gap-2">
+                        <button id="open-special-days-modal" class="admin-only bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 flex items-center justify-center gap-2 transition-colors">
                             <i class="ph ph-calendar-check text-lg"></i> Días Especiales
                         </button>
-                        <button id="open-cancellations-history-modal" class="admin-only bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2">
+                        <button id="open-cancellations-history-modal" class="admin-only bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 transition-colors">
                             <i class="ph ph-clock-counter-clockwise text-lg"></i> Historial de cancelaciones
                         </button>
                     </div>
@@ -3137,6 +3518,15 @@
     <!-- Scripts -->
     <script src="loyalty-api.js"></script>
     <script>
+        // Verificar que LoyaltyAPI esté disponible
+        console.log('=== Verificación de LoyaltyAPI ===');
+        console.log('LoyaltyAPI disponible:', typeof LoyaltyAPI !== 'undefined');
+        if (typeof LoyaltyAPI !== 'undefined') {
+            console.log('Funciones disponibles:', Object.keys(LoyaltyAPI));
+        } else {
+            console.error('❌ LoyaltyAPI no está disponible');
+        }
+        console.log('================================');
         // Variables globales
         let adminCurrentUser = null;
         let allUsers = [];
@@ -3239,238 +3629,194 @@
             }
         }
 
-        // Inicialización
+        // Inicialización (OPTIMIZADA)
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuthState();
-            setupEventListeners();
+            console.log('🚀 DOM cargado, iniciando configuración...');
             
-            // Verificar overflow en tablas cuando cambie el tamaño de la ventana
-            window.addEventListener('resize', checkTableOverflow);
+            try {
+                // Configurar callback de autenticación primero
+                if (typeof LoyaltyAPI !== 'undefined') {
+                    LoyaltyAPI.onAuthStateChanged = handleAdminAuthStateChange;
+                    console.log('✅ Callback de autenticación configurado');
+                } else {
+                    console.log('❌ LoyaltyAPI no disponible para configurar callback');
+                }
+                
+                // Configurar todo inmediatamente sin limpiar sesión
+                console.log('🔧 Llamando a checkAuthState...');
+                checkAuthState();
+                console.log('🔧 Llamando a setupEventListeners...');
+                setupEventListeners();
+                console.log('🔧 Llamando a setupSecretAccess...');
+                setupSecretAccess();
+                
+                // Verificar overflow en tablas cuando cambie el tamaño de la ventana
+                window.addEventListener('resize', checkTableOverflow);
+                console.log('✅ Configuración completada');
+            } catch (error) {
+                console.error('❌ Error en la inicialización:', error);
+            }
         });
 
         // Configurar event listeners
         function setupEventListeners() {
-            document.getElementById('loginForm').addEventListener('submit', handleAuth);
-            document.getElementById('modifyPointsForm').addEventListener('submit', handleModifyPoints);
-            document.getElementById('addRewardForm').addEventListener('submit', handleAddReward);
-            document.getElementById('editRewardForm').addEventListener('submit', handleEditReward);
-            document.getElementById('addMenuItemForm').addEventListener('submit', handleAddMenuItem);
+            console.log('🔧 Configurando event listeners...');
+            
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                console.log('✅ Formulario de login encontrado');
+                console.log('🔗 Agregando event listener al formulario...');
+                loginForm.addEventListener('submit', handleLogin);
+                console.log('✅ Event listener agregado al formulario de login');
+                
+                // Verificar que el botón de submit existe
+                const submitButton = loginForm.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    console.log('✅ Botón de submit encontrado:', submitButton.textContent);
+                } else {
+                    console.error('❌ Botón de submit no encontrado');
+                }
+            } else {
+                console.error('❌ Formulario de login no encontrado');
+            }
+            
+            document.getElementById('modifyPointsForm')?.addEventListener('submit', handleModifyPoints);
+            document.getElementById('addRewardForm')?.addEventListener('submit', handleAddReward);
+            document.getElementById('editRewardForm')?.addEventListener('submit', handleEditReward);
+            document.getElementById('addMenuItemForm')?.addEventListener('submit', handleAddMenuItem);
         }
 
-        // Verificar estado de autenticación
-        function checkAuthState() {
-            firebase.auth().onAuthStateChanged(async function(user) {
-                if (user) {
-                    adminCurrentUser = user;
-                    const isAdmin = await LoyaltyAPI.isAdmin(user.uid);
+        // Manejar cambios de estado de autenticación para admin (ULTRA RÁPIDO - como en codigoonline.md)
+        async function handleAdminAuthStateChange(isLoggedIn, user) {
+            console.log('🔄 === CALLBACK EJECUTADO ===');
+            console.log('🔄 Estado de autenticación cambiado:', isLoggedIn ? 'Usuario logueado' : 'No hay usuario');
+            console.log('🔄 Usuario:', user ? user.email : 'null');
+            
+            if (isLoggedIn && user) {
+                console.log('👤 Usuario actual:', user.email);
+                adminCurrentUser = user;
+                
+                // Verificación ULTRA RÁPIDA de admin (sin delays, sin verificaciones complejas)
+                try {
+                    console.log('🔐 Iniciando verificación de admin...');
+                    const isAdminUser = await LoyaltyAPI.isAdmin(user.uid);
+                    console.log('🔐 Verificación de admin:', isAdminUser);
                     
-                    if (isAdmin) {
+                    if (isAdminUser) {
+                        console.log('✅ Usuario es admin, mostrando panel ULTRA RÁPIDO');
                         showAdminPanel();
-                        await loadAdminData();
+                        // Cargar dashboard ULTRA RÁPIDO (sin loading, sin delays)
+                        loadDashboardOptimized();
                     } else {
-                        alert('Acceso denegado. Solo administradores pueden acceder al panel.');
-                        logout();
+                        console.log('❌ Usuario no es admin');
+                        showMessage('No tienes permisos de administrador', 'error');
+                        await LoyaltyAPI.logoutUser();
+                        showLoginScreen();
                     }
-                } else {
+                } catch (error) {
+                    console.error('❌ Error verificando admin:', error);
+                    showMessage('Error verificando permisos', 'error');
+                    await LoyaltyAPI.logoutUser();
                     showLoginScreen();
                 }
-            });
-        }
-
-        // Manejar autenticación
-        async function handleAuth(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                await firebase.auth().signInWithEmailAndPassword(email, password);
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        // Mostrar pantalla de login
-        function showLoginScreen() {
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-
-        // Mostrar panel de administración
-        function showAdminPanel() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-        }
-
-        // Cerrar sesión
-        function logout() {
-            firebase.auth().signOut().then(() => {
+            } else {
+                console.log('👤 No hay usuario autenticado');
                 showLoginScreen();
-            }).catch((error) => {
-                console.error('Error al cerrar sesión:', error);
-            });
-        }
-
-        // Funciones del menú hamburguesa
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
-        }
-
-        function closeSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-        }
-
-        // Mostrar sección
-        function showSection(sectionId) {
-            // Ocultar todas las secciones
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remover clase active de todos los items del menú
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Remover clase reservations-active del body
-            document.body.classList.remove('reservations-active');
-            console.log('Clase reservations-active removida');
-            
-            // Ocultar modales de reservas al cambiar de sección
-            hideReservationModals();
-            
-            // Mostrar sección seleccionada
-            document.getElementById(sectionId).classList.add('active');
-            
-            // Agregar clase active al item del menú
-            event.target.classList.add('active');
-            
-            // Cargar datos de la sección
-            switch(sectionId) {
-                case 'dashboard':
-                    loadDashboard();
-                    break;
-                case 'users':
-                    loadUsers();
-                    break;
-                case 'rewards':
-                    loadRewards();
-                    break;
-                case 'redemptions':
-                    loadRedemptions();
-                    break;
-                case 'menu':
-                    loadMenu();
-                    break;
-                case 'analytics':
-                    loadAnalytics();
-                    break;
-                case 'reservations':
-                    document.body.classList.add('reservations-active');
-                    console.log('Sección de reservas activada');
-                    loadReservations();
-                    break;
-            }
-            
-            // Cerrar sidebar en móviles
-            if (window.innerWidth <= 768) {
-                closeSidebar();
             }
         }
 
-        // Cargar datos de administración
-        async function loadAdminData() {
-            await loadDashboard();
-            await loadUsers();
-            await loadRewards();
-            await loadRedemptions();
-            await loadMenu();
-            await loadAnalytics();
-            
-            // Configurar listeners de tiempo real
-            setupRealTimeListeners();
-            
+        // Mostrar loading en dashboard (ELIMINADO - no necesario como en el repositorio de GitHub)
+        // function showDashboardLoading() {
+        //     // Esta función se eliminó para hacer el sistema instantáneo
+        // }
 
-            
-            // Forzar ocultamiento de modales de reservas al cargar
-            hideReservationModals();
-            
-            // Asegurar que los modales estén ocultos al cargar la página
-            setTimeout(() => {
-                hideReservationModals();
-            }, 100);
-        }
+        // Dashboard ULTRA RÁPIDO - Carga instantánea (como en codigoonline.md)
+        let dashboardLoading = false;
         
-        // Función para ocultar modales de reservas
-        function hideReservationModals() {
-            const modals = [
-                'special-days-modal',
-                'success-modal',
-                'cancellations-history-modal',
-                'editModal',
-                'add-reservation-modal'
-            ];
+        async function loadDashboardOptimized() {
+            // Evitar cargas múltiples
+            if (dashboardLoading) return;
+            dashboardLoading = true;
             
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.style.display = 'none';
-                    modal.style.visibility = 'hidden';
-                    modal.style.opacity = '0';
-                    modal.style.pointerEvents = 'none';
-                    modal.style.zIndex = '-9999';
-                }
-            });
+            console.log('🚀 Cargando dashboard ULTRA RÁPIDO...');
+            
+            try {
+                // Mostrar estadísticas por defecto INMEDIATAMENTE (sin esperar)
+                updateDashboardStats({
+                    totalUsers: 0,
+                    totalPointsEarned: 0,
+                    totalRedemptions: 0,
+                    activePoints: 0
+                });
+                
+                // Cargar estadísticas reales SIN DELAY (como en codigoonline.md)
+                const basicStats = await loadBasicStats();
+                updateDashboardStats(basicStats);
+                console.log('✅ Dashboard cargado ULTRA RÁPIDO');
+                
+                // Cargar actividad reciente SIN DELAY
+                loadRecentActivity();
+                
+            } catch (error) {
+                console.error('❌ Error loading dashboard:', error);
+            } finally {
+                dashboardLoading = false;
+            }
         }
 
-        // Dashboard functions
-        async function loadDashboard() {
+        // Cargar estadísticas básicas (ULTRA RÁPIDO - sin timeout como en codigoonline.md)
+        async function loadBasicStats() {
             try {
+                console.log('⚡ Cargando estadísticas ULTRA RÁPIDO...');
+                
+                // SIN TIMEOUT - llamada directa como en codigoonline.md
                 const stats = await LoyaltyAPI.getProgramStats();
-                
-                const statsHTML = `
-                    <div class="stat-card">
-                        <div class="stat-number">${stats.totalUsers || 0}</div>
-                        <div class="stat-label">Usuarios Registrados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${stats.totalPointsEarned || 0}</div>
-                        <div class="stat-label">Puntos Otorgados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${stats.totalRedemptions || 0}</div>
-                        <div class="stat-label">Premios Canjeados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${stats.activePoints || 0}</div>
-                        <div class="stat-label">Puntos Activos</div>
-                    </div>
-                `;
-                
-                document.getElementById('statsOverview').innerHTML = statsHTML;
-                
-                loadRecentActivity();
-                loadPendingRedemptions();
+                console.log('✅ Estadísticas cargadas ULTRA RÁPIDO');
+                return stats;
             } catch (error) {
-                console.error('Error loading dashboard:', error);
+                console.error('❌ Error cargando estadísticas básicas:', error);
+                // Retornar valores por defecto inmediatamente
+                return {
+                    totalUsers: 0,
+                    totalPointsEarned: 0,
+                    totalRedemptions: 0,
+                    activePoints: 0
+                };
             }
+        }
+
+        // Actualizar estadísticas del dashboard
+        function updateDashboardStats(stats) {
+                const statsContainer = document.getElementById('statsOverview');
+                        if (statsContainer) {
+                            statsContainer.innerHTML = `
+                                <div class="stat-card">
+                                    <div class="stat-number">${stats.totalUsers || 0}</div>
+                                    <div class="stat-label">Usuarios Registrados</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">${stats.totalPointsEarned || 0}</div>
+                                    <div class="stat-label">Puntos Otorgados</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">${stats.totalRedemptions || 0}</div>
+                                    <div class="stat-label">Premios Canjeados</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">${stats.activePoints || 0}</div>
+                                    <div class="stat-label">Puntos Activos</div>
+                                </div>
+                            `;
+                        }
         }
 
         async function loadRecentActivity() {
             try {
                 const activityContainer = document.getElementById('recentActivity');
-                activityContainer.innerHTML = '<p>Cargando actividad reciente...</p>';
+                // SIN LOADING - mostrar contenido inmediatamente como en codigoonline.md
+                activityContainer.innerHTML = '<p>No hay actividad reciente.</p>';
                 
-                // Load recent transactions
+                // Load recent transactions SIN DELAY
                 const transactions = await getRecentTransactions();
                 const recentTransactions = transactions.slice(0, 10);
                 
@@ -3542,13 +3888,31 @@
             }
         }
 
-        // Users functions
+        // Users functions (ULTRA RÁPIDO)
         async function loadUsers() {
+            try {
+                console.log('⚡ Cargando usuarios ULTRA RÁPIDO...');
+                
+                // Mostrar loading en la tabla
+                const table = document.getElementById('usersTable');
+                if (table) {
+                    table.innerHTML = '<p><i class="ph-circle-notch ph-spin"></i> Cargando usuarios...</p>';
+                }
+                
+                // Cargar usuarios INMEDIATAMENTE (sin delay)
             try {
                 allUsers = await LoyaltyAPI.getAllUsers();
                 renderUsersTable(allUsers);
+                    console.log('✅ Usuarios cargados ULTRA RÁPIDO');
             } catch (error) {
-                console.error('Error loading users:', error);
+                    console.error('❌ Error loading users:', error);
+                    if (table) {
+                        table.innerHTML = '<p>Error al cargar usuarios</p>';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading users:', error);
             }
         }
 
@@ -3618,13 +3982,31 @@
             }
         }
 
-        // Rewards functions
+        // Rewards functions (ULTRA RÁPIDO)
         async function loadRewards() {
+            try {
+                console.log('⚡ Cargando premios ULTRA RÁPIDO...');
+                
+                // Mostrar loading en la tabla
+                const table = document.getElementById('rewardsTable');
+                if (table) {
+                    table.innerHTML = '<p><i class="ph-circle-notch ph-spin"></i> Cargando premios...</p>';
+                }
+                
+                // Cargar premios INMEDIATAMENTE (sin delay)
             try {
                 allRewards = await LoyaltyAPI.getAvailableRewards();
                 renderRewardsTable(allRewards);
+                    console.log('✅ Premios cargados ULTRA RÁPIDO');
             } catch (error) {
-                console.error('Error loading rewards:', error);
+                    console.error('❌ Error loading rewards:', error);
+                    if (table) {
+                        table.innerHTML = '<p>Error al cargar premios</p>';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading rewards:', error);
             }
         }
 
@@ -4517,105 +4899,641 @@
             buttonText.style.display = 'none';
             loading.classList.remove('hidden');
             
-            const result = await LoyaltyAPI.loginUser(email, password);
-            
-            if (result.success) {
-                showMessage(result.message, 'success');
-            } else {
-                showMessage(result.message, 'error');
+            try {
+                // Login directo con Firebase Auth (sin verificación de email para admin)
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Verificar si es admin
+                const isAdmin = await LoyaltyAPI.isAdmin(user.uid);
+                if (!isAdmin) {
+                    await firebase.auth().signOut();
+                    showMessage('No tienes permisos de administrador.', 'error');
+                    return;
+                }
+                
+                // Cargar datos del usuario
+                await LoyaltyAPI.loadUserData(user.uid);
+                adminCurrentUser = user.uid;
+                
+                showMessage('Inicio de sesión exitoso.', 'success');
+                
+                // Ocultar formulario de login y mostrar panel
+                document.getElementById('adminLoginForm').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                
+                // Cargar datos del panel
+                await loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error en login:', error);
+                showMessage(getErrorMessage(error.code), 'error');
+            } finally {
+                button.disabled = false;
+                buttonText.style.display = 'inline';
+                loading.classList.add('hidden');
             }
-            
-            button.disabled = false;
-            buttonText.style.display = 'inline';
-            loading.classList.add('hidden');
         }
-
-        // Management functions
-        async function showUserDetails(userId) {
-            const user = allUsers.find(u => u.id === userId);
-            if (!user) return;
-
-            const modal = document.getElementById('userDetailsModal');
-            const content = document.getElementById('userDetailsContent');
+        
+        // Función para obtener mensaje de error
+        function getErrorMessage(errorCode) {
+            const errorMessages = {
+                'auth/user-not-found': 'No existe una cuenta con este email.',
+                'auth/wrong-password': 'Contraseña incorrecta.',
+                'auth/invalid-email': 'Email inválido.',
+                'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+                'auth/too-many-requests': 'Demasiados intentos fallidos. Intenta más tarde.',
+                'auth/network-request-failed': 'Error de conexión. Verifica tu internet.'
+            };
+            return errorMessages[errorCode] || `Error: ${errorCode}`;
+        }
+        
+        // Función para mostrar/ocultar contraseña
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('passwordIcon');
             
-            content.innerHTML = `
-                <div class="form-group">
-                    <label class="form-label">Nombre</label>
-                    <input type="text" class="form-input" value="${user.name}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" value="${user.email}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Teléfono</label>
-                    <input type="tel" class="form-input" value="${user.phone || '-'}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Puntos Actuales</label>
-                    <input type="number" class="form-input" value="${user.points}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Puntos Totales Ganados</label>
-                    <input type="number" class="form-input" value="${user.totalPointsEarned || 0}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Puntos Totales Canjeados</label>
-                    <input type="number" class="form-input" value="${user.totalPointsRedeemed || 0}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Miembro desde</label>
-                    <input type="text" class="form-input" value="${user.memberSince ? (user.memberSince.toDate ? user.memberSince.toDate().toLocaleDateString() : new Date(user.memberSince).toLocaleDateString()) : '-'}" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Código de Referido</label>
-                    <input type="text" class="form-input" value="${user.referralCode || '-'}" readonly>
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'ph-eye-slash';
+                passwordIcon.title = 'Ocultar contraseña';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'ph-eye';
+                passwordIcon.title = 'Mostrar contraseña';
+            }
+        }
+        
+        // Función para probar conexión de Firebase
+        async function testFirebaseConnection() {
+            console.log('🔍 Probando conexión de Firebase...');
+            
+            try {
+                // Verificar que Firebase esté disponible
+                if (!firebase) {
+                    throw new Error('Firebase no está cargado');
+                }
+                
+                console.log('✅ Firebase cargado');
+                
+                if (!firebase.auth) {
+                    throw new Error('Firebase Auth no está disponible');
+                }
+                
+                console.log('✅ Firebase Auth disponible');
+                
+                if (!firebase.firestore) {
+                    throw new Error('Firebase Firestore no está disponible');
+                }
+                
+                console.log('✅ Firebase Firestore disponible');
+                
+                // Probar una operación simple de Firestore
+                console.log('📊 Probando operación de Firestore...');
+                const testQuery = await firebase.firestore().collection('users').limit(1).get();
+                console.log('✅ Firestore funcionando, documentos encontrados:', testQuery.size);
+                
+                alert('✅ Firebase está funcionando correctamente!');
+                
+            } catch (error) {
+                console.error('❌ Error probando Firebase:', error);
+                alert('❌ Error en Firebase: ' + error.message);
+            }
+        }
+        
+        // Función para probar login
+        async function testLogin() {
+            console.log('🧪 Probando login...');
+            
+            const email = 'admin@losnogales.com';
+            const password = 'admin123456';
+            
+            try {
+                console.log('🔥 Intentando login con credenciales de prueba...');
+                console.log('📧 Email:', email);
+                console.log('🔑 Password:', password ? '***' : 'vacío');
+                
+                // Verificar que Firebase esté disponible
+                if (!firebase || !firebase.auth) {
+                    throw new Error('Firebase no está disponible');
+                }
+                
+                console.log('✅ Firebase disponible, iniciando autenticación...');
+                
+                // Agregar timeout para evitar que se quede colgado
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout: La autenticación tardó demasiado')), 10000);
+                });
+                
+                const authPromise = firebase.auth().signInWithEmailAndPassword(email, password);
+                const userCredential = await Promise.race([authPromise, timeoutPromise]);
+                
+                console.log('✅ Login de prueba exitoso:', userCredential.user.email);
+                alert('Login de prueba exitoso!');
+            } catch (error) {
+                console.error('❌ Error en login de prueba:', error);
+                console.error('❌ Código de error:', error.code);
+                console.error('❌ Mensaje de error:', error.message);
+                alert('Error en login de prueba: ' + error.message);
+            }
+        }
+        
+        // Función para limpiar sesión
+        async function clearSession() {
+            try {
+                await firebase.auth().signOut();
+                console.log('✅ Sesión limpiada manualmente');
+                alert('Sesión limpiada. Ahora puedes intentar login nuevamente.');
+                
+                // Limpiar campos del formulario
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                
+            } catch (error) {
+                console.error('Error limpiando sesión:', error);
+                alert('Error limpiando sesión: ' + error.message);
+            }
+        }
+        
+        // Función para verificar si es super-admin
+        async function isSuperAdmin(userId) {
+            try {
+                const adminDoc = await firebase.firestore().collection('admins').doc(userId).get();
+                if (adminDoc.exists) {
+                    const adminData = adminDoc.data();
+                    return adminData.permissions && adminData.permissions.includes('super');
+                }
+                return false;
+            } catch (error) {
+                console.error('Error verificando super-admin:', error);
+                return false;
+            }
+        }
+        
+        // Función para acceder al panel secreto de administración
+        async function accessSecretAdminPanel() {
+            try {
+                if (!adminCurrentUser) {
+                    alert('❌ Debes estar logueado para acceder al panel secreto.');
+                    return;
+                }
+                
+                const isSuper = await isSuperAdmin(adminCurrentUser);
+                if (!isSuper) {
+                    alert('❌ Acceso denegado. Solo super-administradores pueden acceder a esta función.');
+                    return;
+                }
+                
+                // Mostrar panel secreto
+                showSecretAdminPanel();
+                
+            } catch (error) {
+                console.error('Error accediendo al panel secreto:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Función para mostrar el panel secreto de administración
+        function showSecretAdminPanel() {
+            const secretPanel = `
+                <div id="secretAdminPanel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <h2 style="color: #e74c3c; margin-bottom: 20px;">🔐 Panel Secreto de Administración</h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h3>👥 Crear Nuevo Administrador</h3>
+                            <input type="email" id="newAdminEmail" placeholder="Email del nuevo admin" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="text" id="newAdminName" placeholder="Nombre del nuevo admin" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <select id="newAdminType" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="admin">Administrador Normal</option>
+                                <option value="super">Super Administrador</option>
+                            </select>
+                            <button onclick="createNewAdmin()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                                Crear Administrador
+                            </button>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h3>🔍 Verificar Usuario Existente</h3>
+                            <input type="email" id="checkUserEmail" placeholder="Email del usuario a verificar" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <button onclick="checkUserExists()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                                Verificar Usuario
+                            </button>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h3>🗑️ Eliminar Administrador</h3>
+                            <input type="email" id="removeAdminEmail" placeholder="Email del admin a eliminar" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                            <button onclick="removeAdmin()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                                Eliminar Administrador
+                            </button>
+                        </div>
+                        
+                        <button onclick="closeSecretPanel()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">
+                            Cerrar Panel Secreto
+                        </button>
+                    </div>
                 </div>
             `;
             
-            showModal('userDetailsModal');
+            document.body.insertAdjacentHTML('beforeend', secretPanel);
         }
-
-        function showModifyPointsModal(userId, userName, currentPoints) {
-            selectedUser = { id: userId, name: userName, points: currentPoints };
-            
-            document.getElementById('modifyUserName').value = userName;
-            document.getElementById('modifyCurrentPoints').value = currentPoints;
-            document.getElementById('modifyPointsAmount').value = '';
-            document.getElementById('modifyPointsReason').value = '';
-            
-            showModal('modifyPointsModal');
-        }
-
-        async function handleModifyPoints(e) {
-            e.preventDefault();
-            
-            if (!selectedUser) return;
-            
-            const points = parseInt(document.getElementById('modifyPointsAmount').value);
-            const reason = document.getElementById('modifyPointsReason').value;
-            
-            if (!points || !reason) {
-                alert('Por favor completa todos los campos');
-                return;
+        
+        // Función para cerrar el panel secreto
+        function closeSecretPanel() {
+            const panel = document.getElementById('secretAdminPanel');
+            if (panel) {
+                panel.remove();
             }
+        }
+        
+        // Configurar acceso secreto con combinación de teclas
+        function setupSecretAccess() {
+            console.log('🔐 Configurando acceso secreto...');
             
-            try {
-                const result = await LoyaltyAPI.modifyUserPoints(selectedUser.id, points, reason);
+            let keySequence = [];
+            const secretCode = ['Control', 'Shift', 'KeyA'];
+            
+            document.addEventListener('keydown', function(event) {
+                // Agregar la tecla presionada a la secuencia
+                keySequence.push(event.key);
                 
-                if (result.success) {
-                    alert(result.message);
-                    closeModal('modifyPointsModal');
-                    await loadUsers();
-                    await loadDashboard();
-                } else {
-                    alert(result.message);
+                // Mantener solo las últimas 3 teclas
+                if (keySequence.length > 3) {
+                    keySequence.shift();
                 }
-    } catch (error) {
-                alert('Error al modificar puntos: ' + error.message);
-            }
+                
+                // Verificar si la secuencia coincide con el código secreto
+                if (keySequence.length === 3) {
+                    const isSecretCode = keySequence.every((key, index) => {
+                        if (index === 0) return key === 'Control';
+                        if (index === 1) return key === 'Shift';
+                        if (index === 2) return key === 'A';
+                        return false;
+                    });
+                    
+                    if (isSecretCode) {
+                        console.log('🔐 Código secreto detectado!');
+                        showSecretAccessPanel();
+                        keySequence = []; // Resetear secuencia
+                    }
+                }
+            });
             
-            selectedUser = null;
+            console.log('✅ Acceso secreto configurado');
+        }
+        
+        // Mostrar panel de acceso secreto
+        function showSecretAccessPanel() {
+            const secretAccessPanel = `
+                <div id="secretAccessPanel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+                        <h2 style="color: #e74c3c; margin-bottom: 20px;">🔐 Acceso Secreto</h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h3>🔑 Verificar Super-Admin</h3>
+                            <p style="color: #666; font-size: 14px;">Solo super-administradores pueden acceder a funciones avanzadas.</p>
+                            <button onclick="verifySuperAdminAccess()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;">
+                                Verificar Acceso
+                            </button>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h3>👤 Crear Primer Super-Admin</h3>
+                            <p style="color: #666; font-size: 14px;">Solo usar si no hay super-administradores en el sistema.</p>
+                            <button onclick="createFirstSuperAdmin()" style="background: #e67e22; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;">
+                                Crear Primer Super-Admin
+                            </button>
+                        </div>
+                        
+                        <button onclick="closeSecretAccessPanel()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', secretAccessPanel);
+        }
+        
+        // Cerrar panel de acceso secreto
+        function closeSecretAccessPanel() {
+            const panel = document.getElementById('secretAccessPanel');
+            if (panel) {
+                panel.remove();
+            }
+        }
+        
+        // Verificar acceso de super-admin
+        async function verifySuperAdminAccess() {
+            try {
+                if (!adminCurrentUser) {
+                    alert('❌ Debes estar logueado para verificar acceso.');
+                    return;
+                }
+                
+                const isSuper = await isSuperAdmin(adminCurrentUser);
+                if (isSuper) {
+                    alert('✅ Tienes acceso de super-administrador.\n\nPuedes acceder al panel secreto desde el botón 🔐 en el header.');
+                    closeSecretAccessPanel();
+                } else {
+                    alert('❌ No tienes acceso de super-administrador.\n\nSolo super-administradores pueden acceder a funciones avanzadas.');
+                }
+                
+            } catch (error) {
+                console.error('Error verificando acceso:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Función temporal para restaurar acceso (SOLO PARA DESARROLLO)
+        async function restoreMyAccess() {
+            try {
+                console.log('🔧 Restaurando acceso...');
+                
+                // Verificar que Firebase esté disponible
+                if (!firebase || !firebase.auth || !firebase.firestore) {
+                    throw new Error('Firebase no está disponible');
+                }
+                
+                console.log('✅ Firebase disponible');
+                
+                // Hacer login con tu cuenta
+                const email = 'facucarcelero6@gmail.com';
+                const password = prompt('Ingresa tu contraseña:');
+                
+                if (!password) {
+                    alert('❌ Contraseña requerida.');
+                    return;
+                }
+                
+                console.log('🔐 Haciendo login...');
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                console.log('👤 Usuario autenticado:', user.email);
+                
+                // Verificar si ya es admin
+                const adminDoc = await firebase.firestore().collection('admins').doc(user.uid).get();
+                
+                if (adminDoc.exists) {
+                    // Actualizar a super-admin
+                    console.log('🔐 Actualizando a super-admin...');
+                    await firebase.firestore().collection('admins').doc(user.uid).set({
+                        addedAt: new Date(),
+                        permissions: ['all', 'super'],
+                        email: email,
+                        name: 'Facundo (Super Admin)',
+                        isSuperAdmin: true
+                    });
+                    
+                    console.log('✅ Acceso restaurado como super-admin');
+                    alert('✅ Acceso restaurado exitosamente!\n\nAhora eres super-administrador.\n\nPuedes:\n1. Hacer login normalmente\n2. Usar Ctrl+Shift+A para funciones avanzadas\n3. Usar el botón 🔐 en el header');
+                    
+                } else {
+                    // Crear como super-admin
+                    console.log('🔐 Creando como super-admin...');
+                    await firebase.firestore().collection('admins').doc(user.uid).set({
+                        addedAt: new Date(),
+                        permissions: ['all', 'super'],
+                        email: email,
+                        name: 'Facundo (Super Admin)',
+                        isSuperAdmin: true
+                    });
+                    
+                    console.log('✅ Acceso creado como super-admin');
+                    alert('✅ Acceso creado exitosamente!\n\nAhora eres super-administrador.\n\nPuedes:\n1. Hacer login normalmente\n2. Usar Ctrl+Shift+A para funciones avanzadas\n3. Usar el botón 🔐 en el header');
+                }
+                
+                // Cerrar sesión para que pueda hacer login nuevamente
+                await firebase.auth().signOut();
+                console.log('✅ Sesión cerrada');
+                
+            } catch (error) {
+                console.error('❌ Error restaurando acceso:', error);
+                alert('Error restaurando acceso: ' + error.message);
+            }
+        }
+        
+        // Crear primer super-admin (solo si no hay ninguno)
+        async function createFirstSuperAdmin() {
+            try {
+                console.log('🔧 Creando primer super-admin...');
+                
+                // Verificar si ya hay super-admins
+                const adminsSnapshot = await firebase.firestore().collection('admins').get();
+                let hasSuperAdmin = false;
+                
+                adminsSnapshot.forEach(doc => {
+                    const adminData = doc.data();
+                    if (adminData.permissions && adminData.permissions.includes('super')) {
+                        hasSuperAdmin = true;
+                    }
+                });
+                
+                if (hasSuperAdmin) {
+                    alert('❌ Ya existe un super-administrador en el sistema.\n\nNo puedes crear otro desde aquí.');
+                    return;
+                }
+                
+                // Pedir credenciales
+                const email = prompt('Ingresa el email del primer super-administrador:');
+                if (!email) return;
+                
+                const password = prompt('Ingresa la contraseña (mínimo 6 caracteres):');
+                if (!password || password.length < 6) {
+                    alert('❌ La contraseña debe tener al menos 6 caracteres.');
+                    return;
+                }
+                
+                const name = prompt('Ingresa el nombre del super-administrador:');
+                if (!name) return;
+                
+                // Crear usuario en Firebase Auth
+                console.log('🔥 Creando usuario en Firebase Auth...');
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Crear documento de usuario
+                console.log('👤 Creando documento de usuario...');
+                await firebase.firestore().collection('users').doc(user.uid).set({
+                    email: email,
+                    name: name,
+                    phone: '',
+                    points: 0,
+                    totalPointsEarned: 0,
+                    totalPointsRedeemed: 0,
+                    memberSince: new Date(),
+                    lastVisit: null,
+                    isEmailVerified: true,
+                    referralCode: 'SUPER001',
+                    referredBy: null,
+                    dailyVisitClaimed: false,
+                    lastDailyVisit: null
+                });
+                
+                // Crear super-admin
+                console.log('🔐 Creando super-admin...');
+                await firebase.firestore().collection('admins').doc(user.uid).set({
+                    addedAt: new Date(),
+                    permissions: ['all', 'super'],
+                    email: email,
+                    name: name,
+                    isSuperAdmin: true,
+                    isFirstSuperAdmin: true
+                });
+                
+                console.log('✅ Primer super-admin creado exitosamente');
+                alert(`✅ Primer super-administrador creado exitosamente!\n\nEmail: ${email}\nContraseña: ${password}\n\n⚠️ Guarda estas credenciales en un lugar seguro.\n\nAhora puedes hacer login con estas credenciales.`);
+                
+                closeSecretAccessPanel();
+                
+            } catch (error) {
+                console.error('❌ Error creando primer super-admin:', error);
+                alert('Error creando super-admin: ' + error.message);
+            }
+        }
+        
+        // Función para crear nuevo administrador
+        async function createNewAdmin() {
+            try {
+                const email = document.getElementById('newAdminEmail').value;
+                const name = document.getElementById('newAdminName').value;
+                const type = document.getElementById('newAdminType').value;
+                
+                if (!email || !name) {
+                    alert('Por favor completa todos los campos.');
+                    return;
+                }
+                
+                // Verificar si el usuario existe
+                const usersSnapshot = await firebase.firestore().collection('users')
+                    .where('email', '==', email)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('❌ No se encontró ningún usuario con ese email.\n\nEl usuario debe estar registrado primero.');
+                    return;
+                }
+                
+                const userDoc = usersSnapshot.docs[0];
+                const userId = userDoc.id;
+                
+                // Agregar permisos de admin
+                const permissions = type === 'super' ? ['all', 'super'] : ['all'];
+                
+                await firebase.firestore().collection('admins').doc(userId).set({
+                    addedAt: new Date(),
+                    permissions: permissions,
+                    email: email,
+                    name: name,
+                    addedBy: adminCurrentUser
+                });
+                
+                alert(`✅ Administrador creado exitosamente!\n\nUsuario: ${name}\nEmail: ${email}\nTipo: ${type === 'super' ? 'Super Administrador' : 'Administrador Normal'}`);
+                
+                // Limpiar campos
+                document.getElementById('newAdminEmail').value = '';
+                document.getElementById('newAdminName').value = '';
+                
+            } catch (error) {
+                console.error('Error creando admin:', error);
+                alert('Error creando administrador: ' + error.message);
+            }
+        }
+        
+        // Función para verificar si un usuario existe
+        async function checkUserExists() {
+            try {
+                const email = document.getElementById('checkUserEmail').value;
+                
+                if (!email) {
+                    alert('Por favor ingresa un email.');
+                    return;
+                }
+                
+                const usersSnapshot = await firebase.firestore().collection('users')
+                    .where('email', '==', email)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('❌ No se encontró ningún usuario con ese email.');
+                } else {
+                    const userDoc = usersSnapshot.docs[0];
+                    const userData = userDoc.data();
+                    
+                    // Verificar si es admin
+                    const adminDoc = await firebase.firestore().collection('admins').doc(userDoc.id).get();
+                    const isAdmin = adminDoc.exists;
+                    
+                    alert(`✅ Usuario encontrado!\n\nNombre: ${userData.name}\nEmail: ${userData.email}\nUID: ${userDoc.id}\nEs Admin: ${isAdmin ? 'Sí' : 'No'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error verificando usuario:', error);
+                alert('Error verificando usuario: ' + error.message);
+            }
+        }
+        
+        // Función para hacer super-admin
+        async function makeSuperAdmin() {
+            try {
+                console.log('🔧 Haciendo super-admin...');
+                
+                // Pedir el email al usuario
+                const email = prompt('Ingresa el email del usuario que quieres hacer super-administrador:');
+                
+                if (!email) {
+                    console.log('❌ No se ingresó email');
+                    return;
+                }
+                
+                console.log('📧 Email ingresado:', email);
+                
+                // Verificar que Firebase esté disponible
+                if (!firebase || !firebase.auth || !firebase.firestore) {
+                    throw new Error('Firebase no está disponible');
+                }
+                
+                console.log('✅ Firebase disponible');
+                
+                // Buscar el usuario por email en la colección users
+                console.log('🔍 Buscando usuario por email...');
+                const usersSnapshot = await firebase.firestore().collection('users')
+                    .where('email', '==', email)
+                    .limit(1)
+                    .get();
+                
+                if (usersSnapshot.empty) {
+                    alert('❌ No se encontró ningún usuario con ese email.');
+                    return;
+                }
+                
+                const userDoc = usersSnapshot.docs[0];
+                const userId = userDoc.id;
+                const userData = userDoc.data();
+                
+                console.log('👤 Usuario encontrado:', userData.name, 'UID:', userId);
+                
+                // Actualizar permisos para incluir super
+                console.log('🔐 Actualizando permisos a super-admin...');
+                await firebase.firestore().collection('admins').doc(userId).set({
+                    addedAt: new Date(),
+                    permissions: ['all', 'super'],
+                    email: email,
+                    name: userData.name,
+                    isSuperAdmin: true
+                });
+                
+                console.log('✅ Super-admin creado exitosamente');
+                alert(`✅ Super-administrador creado exitosamente!\n\nUsuario: ${userData.name}\nEmail: ${email}\nUID: ${userId}\n\nAhora puede acceder al panel secreto de administración.`);
+                
+            } catch (error) {
+                console.error('❌ Error creando super-admin:', error);
+                alert('Error creando super-admin: ' + error.message);
+            }
         }
 
         async function validateRedemption(redemptionId) {
@@ -5027,13 +5945,15 @@
             });
         }
 
-        // Real-time functions
+        // Real-time functions (ULTRA OPTIMIZADAS)
         function setupRealTimeListeners() {
             // Limpiar listeners anteriores
             realTimeListeners.forEach(unsubscribe => unsubscribe());
             realTimeListeners = [];
+            
+            console.log('Configurando listeners en tiempo real...');
 
-            // Listener para usuarios
+            // Listener para usuarios (OPTIMIZADO)
             const usersListener = firebase.firestore().collection('users')
                 .onSnapshot(async (snapshot) => {
                     const changes = snapshot.docChanges();
@@ -5046,14 +5966,18 @@
                     });
                     
                     if (shouldUpdate) {
-                        await loadUsers();
-                        await loadDashboard();
-                        await loadAnalytics();
+                        // Actualizar en paralelo para mayor velocidad
+                        await Promise.all([
+                            loadUsers(),
+                            loadDashboard(),
+                            loadAnalytics()
+                        ]);
+                        console.log('Datos actualizados en tiempo real');
                     }
                 });
             realTimeListeners.push(usersListener);
 
-            // Listener para transacciones
+            // Listener para transacciones (OPTIMIZADO)
             const transactionsListener = firebase.firestore().collection('pointTransactions')
                 .onSnapshot(async (snapshot) => {
                     const changes = snapshot.docChanges();
@@ -5067,11 +5991,12 @@
                     
                     if (shouldUpdate) {
                         await loadDashboard();
+                        console.log('Dashboard actualizado en tiempo real');
                     }
                 });
             realTimeListeners.push(transactionsListener);
 
-            // Listener para canjes
+            // Listener para canjes (OPTIMIZADO)
             const redemptionsListener = firebase.firestore().collection('redemptions')
                 .onSnapshot(async (snapshot) => {
                     const changes = snapshot.docChanges();
@@ -5084,8 +6009,12 @@
                     });
                     
                     if (shouldUpdate) {
-                        await loadRedemptions();
-                        await loadDashboard();
+                        // Actualizar en paralelo
+                        await Promise.all([
+                            loadRedemptions(),
+                            loadDashboard()
+                        ]);
+                        console.log('Canjes actualizados en tiempo real');
                     }
                 });
             realTimeListeners.push(redemptionsListener);
@@ -5151,41 +6080,44 @@
             realTimeListeners = [];
         }
 
-        // Actualizar la función de logout para limpiar listeners
-        const originalLogout = logout;
-        logout = function() {
-            cleanupRealTimeListeners();
-            originalLogout();
+        // Función de logout mejorada que limpia listeners
+        async function logout() {
+            console.log('🚪 Cerrando sesión...');
+            try {
+                // Limpiar listeners en tiempo real
+                cleanupRealTimeListeners();
+                
+                // Cerrar sesión
+                await LoyaltyAPI.logoutUser();
+                showLoginScreen();
+                console.log('✅ Sesión cerrada exitosamente');
+            } catch (error) {
+                console.error('❌ Error al cerrar sesión:', error);
+                showLoginScreen();
+            }
         }
 
         // Sistema de Reservas Integrado
-        // Configuración de Firebase para reservas
-        const reservationsFirebaseConfig = {
-            apiKey: "AIzaSyBqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXq",
-            authDomain: "losnogales-reservas.firebaseapp.com",
-            projectId: "losnogales-reservas",
-            storageBucket: "losnogales-reservas.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
-
-        // Inicializar Firebase para reservas si no está ya inicializado
-        let reservationsApp;
+        // Usar la configuración principal de Firebase
         let reservationsDb;
         try {
-            reservationsApp = firebase.app('reservations');
+            reservationsDb = firebase.firestore();
         } catch (e) {
-            reservationsApp = firebase.initializeApp(reservationsFirebaseConfig, 'reservations');
+            console.error('Error al obtener Firestore para reservas:', e);
         }
-        reservationsDb = firebase.firestore(reservationsApp);
 
         // Variables globales del sistema de reservas
         let allReservations = [];
         let currentFilter = 'all';
         let currentDate = new Date().toISOString().split('T')[0];
         let firestoreListener = null;
+        let reservationsCache = new Map(); // Cache para consultas rápidas
+        let reservationRealTimeListeners = new Map(); // Listeners en tiempo real para reservas
+        let searchTimeout = null; // Para búsqueda con debounce
+        let currentPeriodType = 'daily';
+        let currentDateString = new Date().toISOString().split('T')[0];
 
-        // Función principal para cargar reservas
+        // Función principal para cargar reservas (ULTRA RÁPIDA)
         async function loadReservations() {
             try {
                 showReservationsLoader();
@@ -5198,7 +6130,18 @@
                 const dateString = document.getElementById('dateFilter').value;
                 const periodType = document.getElementById('periodSelector').value;
                 
-                await fetchAdminReservations(dateString, periodType);
+                // Actualizar variables globales
+                currentDateString = dateString;
+                currentPeriodType = periodType;
+                
+                // Limpiar listener anterior si existe
+                if (reservationRealTimeListeners.has('reservations')) {
+                    reservationRealTimeListeners.get('reservations')();
+                    reservationRealTimeListeners.delete('reservations');
+                }
+                
+                // Configurar listener en tiempo real
+                setupReservationsRealTimeListener(dateString, periodType);
                 
             } catch (error) {
                 console.error('Error al cargar reservas:', error);
@@ -5206,52 +6149,17 @@
             }
         }
 
-        // Función para obtener reservas desde Firebase
-        async function fetchAdminReservations(dateString, periodType = 'daily') {
-            try {
-                let startDate, endDate;
-                
-                switch (periodType) {
-                    case 'daily':
-                        startDate = dateString;
-                        endDate = dateString;
-                        break;
-                    case 'weekly':
-                        const weekStart = new Date(dateString);
-                        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                        const weekEnd = new Date(weekStart);
-                        weekEnd.setDate(weekEnd.getDate() + 6);
-                        startDate = weekStart.toISOString().split('T')[0];
-                        endDate = weekEnd.toISOString().split('T')[0];
-                        break;
-                    case 'monthly':
-                        const monthStart = new Date(dateString.substring(0, 7) + '-01');
-                        const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
-                        startDate = monthStart.toISOString().split('T')[0];
-                        endDate = monthEnd.toISOString().split('T')[0];
-                        break;
-                    case 'yearly':
-                        const yearStart = new Date(dateString.substring(0, 4) + '-01-01');
-                        const yearEnd = new Date(dateString.substring(0, 4) + '-12-31');
-                        startDate = yearStart.toISOString().split('T')[0];
-                        endDate = yearEnd.toISOString().split('T')[0];
-                        break;
-                    case 'custom':
-                        startDate = document.getElementById('dateRangeStart').value;
-                        endDate = document.getElementById('dateRangeEnd').value;
-                        break;
-                    default:
-                        startDate = dateString;
-                        endDate = dateString;
-                }
+        // Configurar listener en tiempo real para reservas
+        function setupReservationsRealTimeListener(dateString, periodType) {
+            const { startDate, endDate } = calculateDateRange(dateString, periodType);
+            
+            const query = reservationsDb.collection('reservations')
+                .where('date', '>=', startDate)
+                .where('date', '<=', endDate)
+                .orderBy('date')
+                .orderBy('time');
 
-                const query = reservationsDb.collection('reservations')
-                    .where('date', '>=', startDate)
-                    .where('date', '<=', endDate)
-                    .orderBy('date')
-                    .orderBy('time');
-
-                const snapshot = await query.get();
+            const unsubscribe = query.onSnapshot((snapshot) => {
                 const reservations = [];
                 
                 snapshot.forEach(doc => {
@@ -5263,204 +6171,106 @@
                     });
                 });
 
+                // Actualizar cache
+                const cacheKey = `${startDate}_${endDate}_${periodType}`;
+                reservationsCache.set(cacheKey, reservations);
+                
+                // Actualizar datos globales
                 allReservations = reservations;
+                
+                // Actualizar UI inmediatamente
                 updateAdminUI(reservations, dateString, periodType);
                 
-            } catch (error) {
-                console.error('Error obteniendo reservas:', error);
-                showReservationMessage('Error al obtener las reservas', 'error');
-            }
-        }
-
-        // Función para actualizar la interfaz de usuario
-        function updateAdminUI(reservationsToDisplay, titleDate = '', periodInfo = '') {
-            // Actualizar estadísticas
-            updateReservationsStats(reservationsToDisplay);
-            
-            // Actualizar tarjetas
-            updateReservationsTable(reservationsToDisplay);
-            
-            // Actualizar títulos
-            updateTitles(titleDate, periodInfo);
-        }
-
-        // Función para actualizar estadísticas
-        function updateReservationsStats(reservations) {
-            const total = reservations.length;
-            const confirmed = reservations.filter(r => r.status === 'confirmed').length;
-            const pending = reservations.filter(r => r.status === 'pending').length;
-            const manual = reservations.filter(r => r.source === 'manual').length;
-            const totalDiners = reservations.reduce((sum, r) => sum + (parseInt(r.diners) || 0), 0);
-
-            document.getElementById('totalReservas').textContent = total;
-            document.getElementById('totalConfirmadas').textContent = confirmed;
-            document.getElementById('totalPendientes').textContent = pending;
-            document.getElementById('totalManuales').textContent = manual;
-            document.getElementById('totalComensales').textContent = totalDiners;
-        }
-
-        // Función para actualizar las tarjetas de reservas
-        function updateReservationsTable(reservations) {
-            const cardsGrid = document.getElementById('reservationsCardsGrid');
-            const loadingElement = document.getElementById('reservationsLoading');
-            const emptyElement = document.getElementById('reservationsEmpty');
-            
-            // Ocultar elementos de carga y vacío
-            loadingElement.style.display = 'none';
-            emptyElement.style.display = 'none';
-            
-            if (reservations.length === 0) {
-                emptyElement.style.display = 'block';
-                cardsGrid.innerHTML = '';
-                return;
-            }
-
-            const cards = reservations.map(reservation => `
-                <div class="reservation-card">
-                    <div class="card-header">
-                        <h3 class="card-title">${reservation.name}</h3>
-                        <span class="card-status status-${reservation.status}">${getStatusText(reservation.status)}</span>
-                    </div>
-                    <div class="card-details">
-                        <div class="detail-item">
-                            <i class="ph ph-phone"></i>
-                            <span>${reservation.phone}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="ph ph-calendar"></i>
-                            <span>${formatDate(reservation.date)} a las ${reservation.time}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="ph ph-users"></i>
-                            <span>${reservation.diners} personas</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="ph ph-clock"></i>
-                            <span>${getTurnText(reservation.time)}</span>
-                        </div>
-                        ${reservation.area ? `
-                            <div class="detail-item">
-                                <i class="ph ph-map-pin"></i>
-                                <span>${reservation.area}</span>
-                            </div>
-                        ` : ''}
-                        ${reservation.notes ? `
-                            <div class="detail-item">
-                                <i class="ph ph-note"></i>
-                                <span>${reservation.notes}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-edit" onclick="openEditModal('${reservation.id}')" title="Editar">
-                            <i class="ph ph-pencil-simple"></i>
-                            Editar
-                        </button>
-                        <button class="btn-delete" onclick="deleteReservation('${reservation.id}')" title="Eliminar">
-                            <i class="ph ph-trash"></i>
-                            Eliminar
-                        </button>
-                        ${reservation.status === 'pending' ? `
-                            <button class="btn-confirm" onclick="confirmReservation('${reservation.id}')" title="Confirmar">
-                                <i class="ph ph-check"></i>
-                                Confirmar
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            cardsGrid.innerHTML = cards;
-        }
-
-
-
-        // Funciones auxiliares
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('es-ES', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+                console.log(`Reservas actualizadas en tiempo real: ${reservations.length} reservas`);
+            }, (error) => {
+                console.error('Error en listener de reservas:', error);
             });
+
+            // Guardar el listener para poder cancelarlo después
+            reservationRealTimeListeners.set('reservations', unsubscribe);
         }
 
-        function getTurnText(time) {
-            const hour = parseInt(time.split(':')[0]);
-            if (hour >= 12 && hour < 16) return 'Almuerzo';
-            if (hour >= 20 || hour < 1) return 'Cena';
-            return 'Otro';
-        }
 
-        function getStatusText(status) {
-            const statusMap = {
-                'pending': 'Pendiente',
-                'confirmed': 'Confirmada',
-                'cancelled': 'Cancelada'
-            };
-            return statusMap[status] || status;
-        }
-
-        function showReservationsLoader() {
-            const cardsGrid = document.getElementById('reservationsCardsGrid');
-            const loadingElement = document.getElementById('reservationsLoading');
-            const emptyElement = document.getElementById('reservationsEmpty');
-            
-            cardsGrid.innerHTML = '';
-            loadingElement.style.display = 'block';
-            emptyElement.style.display = 'none';
-        }
-
-        function updateTitles(titleDate, periodInfo) {
-            document.getElementById('reservationsListTitleDate').textContent = titleDate ? ` - ${titleDate}` : '';
-            document.getElementById('selectedPeriodRangeDisplay').textContent = periodInfo || '';
-        }
-
-        // Funciones de acción
-        async function confirmReservation(reservationId) {
-            try {
-                await reservationsDb.collection('reservations').doc(reservationId).update({
-                    status: 'confirmed',
-                    confirmedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showReservationMessage('Reserva confirmada exitosamente', 'success');
-                await loadReservations();
-            } catch (error) {
-                console.error('Error confirmando reserva:', error);
-                showReservationMessage('Error al confirmar la reserva', 'error');
-            }
-        }
-
-        async function deleteReservation(reservationId) {
-            if (!confirm('¿Estás seguro de que quieres eliminar esta reserva?')) return;
-            
-            try {
-                await reservationsDb.collection('reservations').doc(reservationId).delete();
-                showReservationMessage('Reserva eliminada exitosamente', 'success');
-                await loadReservations();
-            } catch (error) {
-                console.error('Error eliminando reserva:', error);
-                showReservationMessage('Error al eliminar la reserva', 'error');
-            }
-        }
 
         // Configurar eventos cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar eventos de filtros
             document.getElementById('dateFilter').addEventListener('change', loadReservations);
-            document.getElementById('periodSelector').addEventListener('change', loadReservations);
-            document.getElementById('force-refresh-button').addEventListener('click', loadReservations);
             
-            // Configurar búsqueda
+            // Asegurar que los campos de rango personalizado estén ocultos al cargar
+            const customRangeDiv = document.getElementById('customDateRangeInputs');
+            if (customRangeDiv) {
+                customRangeDiv.style.display = 'none';
+                customRangeDiv.classList.add('hidden');
+            }
+            document.getElementById('periodSelector').addEventListener('change', function() {
+                const periodType = this.value;
+                const customRangeDiv = document.getElementById('customDateRangeInputs');
+                
+                // Mostrar/ocultar campos de rango personalizado
+                if (periodType === 'custom') {
+                    customRangeDiv.style.display = 'flex';
+                    customRangeDiv.classList.remove('hidden');
+                    // Establecer fechas por defecto si están vacías
+                    const startInput = document.getElementById('dateRangeStart');
+                    const endInput = document.getElementById('dateRangeEnd');
+                    if (!startInput.value) {
+                        startInput.value = new Date().toISOString().split('T')[0];
+                    }
+                    if (!endInput.value) {
+                        endInput.value = new Date().toISOString().split('T')[0];
+                    }
+                } else {
+                    customRangeDiv.style.display = 'none';
+                    customRangeDiv.classList.add('hidden');
+                }
+                
+                loadReservations();
+            });
+            document.getElementById('force-refresh-button').addEventListener('click', () => {
+                // Limpiar cache y recargar
+                reservationsCache.clear();
+                loadReservations();
+            });
+            
+            // Configurar campos de rango personalizado
+            document.getElementById('dateRangeStart').addEventListener('change', function() {
+                validateDateRange();
+                loadReservations();
+            });
+            document.getElementById('dateRangeEnd').addEventListener('change', function() {
+                validateDateRange();
+                loadReservations();
+            });
+            
+            // Configurar búsqueda ULTRA RÁPIDA con debounce
             document.getElementById('admin-search-input').addEventListener('input', function(e) {
                 const searchTerm = e.target.value.toLowerCase();
-                const filtered = allReservations.filter(reservation => 
-                    reservation.name.toLowerCase().includes(searchTerm) ||
-                    reservation.phone.includes(searchTerm) ||
-                    reservation.notes?.toLowerCase().includes(searchTerm)
-                );
-                updateAdminUI(filtered);
+                
+                // Limpiar timeout anterior
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // Si el término de búsqueda está vacío, mostrar todas las reservas
+                if (!searchTerm.trim()) {
+                    updateAdminUI(allReservations, currentDateString, currentPeriodType);
+                    return;
+                }
+                
+                // Debounce para búsqueda rápida
+                searchTimeout = setTimeout(() => {
+                    const filtered = allReservations.filter(reservation => 
+                        reservation.name.toLowerCase().includes(searchTerm) ||
+                        reservation.phone.includes(searchTerm) ||
+                        reservation.notes?.toLowerCase().includes(searchTerm) ||
+                        reservation.date.includes(searchTerm) ||
+                        reservation.time.includes(searchTerm) ||
+                        reservation.diners.toString().includes(searchTerm) ||
+                        reservation.area?.toLowerCase().includes(searchTerm)
+                    );
+                    updateAdminUI(filtered, currentDateString, currentPeriodType);
+                }, 150); // Solo 150ms de delay para búsqueda instantánea
             });
 
             // Configurar botones de gestión
@@ -5482,7 +6292,31 @@
                     applyFilter(filterType);
                 });
             });
+            
+            // Inicializar campos de fecha personalizada
+            initializeCustomDateRange();
         });
+        
+        // Función para inicializar campos de fecha personalizada
+        function initializeCustomDateRange() {
+            const startInput = document.getElementById('dateRangeStart');
+            const endInput = document.getElementById('dateRangeEnd');
+            const customRangeDiv = document.getElementById('customDateRangeInputs');
+            
+            // Asegurar que los campos estén ocultos por defecto
+            if (customRangeDiv) {
+                customRangeDiv.style.display = 'none';
+                customRangeDiv.classList.add('hidden');
+            }
+            
+            // Establecer fechas por defecto
+            if (startInput && !startInput.value) {
+                startInput.value = new Date().toISOString().split('T')[0];
+            }
+            if (endInput && !endInput.value) {
+                endInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
 
         // Funciones de exportación
         function exportToExcel() {
@@ -5573,15 +6407,19 @@
                     return;
                 }
 
-                // Actualizar en Firebase
+                // Optimistic update - actualizar UI inmediatamente
+                const reservation = allReservations.find(r => r.id === reservationId);
+                if (reservation) {
+                    Object.assign(reservation, formData);
+                    updateAdminUI(allReservations, currentDateString, currentPeriodType);
+                }
+
+                // Actualizar en Firebase (el listener en tiempo real se encargará de sincronizar)
                 await reservationsDb.collection('reservations').doc(reservationId).update(formData);
                 
                 // Cerrar modal y mostrar mensaje
                 document.getElementById('editModal').classList.add('hidden');
                 showReservationMessage('Reserva actualizada exitosamente', 'success');
-                
-                // Recargar reservas
-                loadReservations();
                 
             } catch (error) {
                 console.error('Error actualizando reserva:', error);
@@ -5622,8 +6460,17 @@
                     return;
                 }
 
-                // Agregar a Firebase
-                await reservationsDb.collection('reservations').add(formData);
+                // Optimistic update - agregar a la UI inmediatamente
+                const newReservation = {
+                    id: 'temp-' + Date.now(), // ID temporal
+                    ...formData,
+                    createdAt: new Date()
+                };
+                allReservations.push(newReservation);
+                updateAdminUI(allReservations, currentDateString, currentPeriodType);
+
+                // Agregar a Firebase (el listener en tiempo real se encargará de sincronizar)
+                const docRef = await reservationsDb.collection('reservations').add(formData);
                 
                 // Cerrar modal y mostrar mensaje
                 document.getElementById('add-reservation-modal').classList.add('hidden');
@@ -5631,9 +6478,6 @@
                 
                 // Limpiar formulario
                 document.getElementById('add-reservation-form').reset();
-                
-                // Recargar reservas
-                loadReservations();
                 
             } catch (error) {
                 console.error('Error agregando reserva:', error);
@@ -5691,46 +6535,6 @@
             }
 
             updateAdminUI(filteredReservations);
-        }
-
-        // Funciones de gestión de días especiales
-        async function loadSpecialDaysList() {
-            try {
-                const snapshot = await reservationsDb.collection('specialDays').get();
-                const specialDays = [];
-                
-                snapshot.forEach(doc => {
-                    specialDays.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-
-                const list = document.getElementById('special-days-list');
-                list.innerHTML = specialDays.map(day => `
-                    <li class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span>${day.date} - ${day.config}</span>
-                        <button onclick="deleteSpecialDay('${day.id}')" class="text-red-500 hover:text-red-700">
-                            <i class="ph ph-trash"></i>
-                        </button>
-                    </li>
-                `).join('');
-            } catch (error) {
-                console.error('Error cargando días especiales:', error);
-            }
-        }
-
-        async function deleteSpecialDay(dayId) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este día especial?')) return;
-            
-            try {
-                await reservationsDb.collection('specialDays').doc(dayId).delete();
-                showReservationMessage('Día especial eliminado exitosamente', 'success');
-                loadSpecialDaysList();
-            } catch (error) {
-                console.error('Error eliminando día especial:', error);
-                showReservationMessage('Error al eliminar el día especial', 'error');
-            }
         }
 
         // Funciones de historial de cancelaciones
@@ -5836,6 +6640,82 @@
             
             console.log('Modales de reservas ocultados al cargar la página');
         });
+        
+        // Funciones para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Función para mostrar secciones
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Actualizar navegación activa
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Encontrar y activar el item de navegación correspondiente
+            const activeNavItem = document.querySelector(`[onclick*="showSection('${sectionName}')"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+            }
+            
+            // Cerrar sidebar en móviles
+            closeSidebar();
+        }
+
+        // Función de prueba temporal
+        function testJavaScript() {
+            console.log('🧪 Función de prueba ejecutada');
+            alert('✅ JavaScript está funcionando correctamente');
+            
+            // Probar si Firebase está disponible
+            if (typeof firebase !== 'undefined') {
+                console.log('✅ Firebase está disponible');
+                alert('✅ Firebase está disponible');
+                
+                // Probar conectividad con Firebase
+                firebase.auth().onAuthStateChanged(function(user) {
+                    console.log('✅ Firebase Auth conectado');
+                    alert('✅ Firebase Auth conectado');
+                });
+            } else {
+                console.log('❌ Firebase NO está disponible');
+                alert('❌ Firebase NO está disponible');
+            }
+            
+            // Probar si LoyaltyAPI está disponible
+            if (typeof LoyaltyAPI !== 'undefined') {
+                console.log('✅ LoyaltyAPI está disponible');
+                alert('✅ LoyaltyAPI está disponible');
+            } else {
+                console.log('❌ LoyaltyAPI NO está disponible');
+                alert('❌ LoyaltyAPI NO está disponible');
+            }
+        }
+        
     </script>
 </body>
 </html>

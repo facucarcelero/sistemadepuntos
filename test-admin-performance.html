@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Performance Admin - Los Nogales</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #333;
+            border-radius: 12px;
+            border-left: 4px solid #10b981;
+        }
+        .test-button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 15px;
+            padding: 15px;
+            background: #444;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .loading {
+            color: #10b981;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .metric {
+            background: #444;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Test de Performance - Panel Admin</h1>
+        <p>Prueba las optimizaciones implementadas en el panel de administración</p>
+
+        <div class="test-section">
+            <h3>📊 Test de Carga de Dashboard</h3>
+            <button class="test-button" onclick="testDashboardLoad()">Probar Carga Dashboard</button>
+            <div id="dashboardResults" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👥 Test de Carga de Usuarios</h3>
+            <button class="test-button" onclick="testUsersLoad()">Probar Carga Usuarios</button>
+            <div id="usersResults" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎁 Test de Carga de Premios</h3>
+            <button class="test-button" onclick="testRewardsLoad()">Probar Carga Premios</button>
+            <div id="rewardsResults" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Métricas de Performance</h3>
+            <div class="performance-metrics">
+                <div class="metric">
+                    <div class="metric-value" id="avgDashboardTime">-</div>
+                    <div class="metric-label">Dashboard (ms)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="avgUsersTime">-</div>
+                    <div class="metric-label">Usuarios (ms)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="avgRewardsTime">-</div>
+                    <div class="metric-label">Premios (ms)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="totalTests">0</div>
+                    <div class="metric-label">Tests Ejecutados</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Test Completo</h3>
+            <button class="test-button" onclick="runCompleteTest()">Ejecutar Test Completo</button>
+            <div id="completeResults" class="results"></div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- Loyalty API -->
+    <script src="loyalty-api.js"></script>
+
+    <script>
+        // Variables para métricas
+        let dashboardTimes = [];
+        let usersTimes = [];
+        let rewardsTimes = [];
+        let totalTests = 0;
+
+        // Función para medir tiempo de ejecución
+        function measureTime(fn) {
+            return new Promise(async (resolve) => {
+                const start = performance.now();
+                try {
+                    const result = await fn();
+                    const end = performance.now();
+                    const time = end - start;
+                    resolve({ success: true, time, result });
+                } catch (error) {
+                    const end = performance.now();
+                    const time = end - start;
+                    resolve({ success: false, time, error: error.message });
+                }
+            });
+        }
+
+        // Función para actualizar métricas
+        function updateMetrics() {
+            const avgDashboard = dashboardTimes.length > 0 ? 
+                Math.round(dashboardTimes.reduce((a, b) => a + b, 0) / dashboardTimes.length) : '-';
+            const avgUsers = usersTimes.length > 0 ? 
+                Math.round(usersTimes.reduce((a, b) => a + b, 0) / usersTimes.length) : '-';
+            const avgRewards = rewardsTimes.length > 0 ? 
+                Math.round(rewardsTimes.reduce((a, b) => a + b, 0) / rewardsTimes.length) : '-';
+
+            document.getElementById('avgDashboardTime').textContent = avgDashboard;
+            document.getElementById('avgUsersTime').textContent = avgUsers;
+            document.getElementById('avgRewardsTime').textContent = avgRewards;
+            document.getElementById('totalTests').textContent = totalTests;
+        }
+
+        // Test de carga de dashboard
+        async function testDashboardLoad() {
+            const resultsDiv = document.getElementById('dashboardResults');
+            resultsDiv.innerHTML = '<span class="loading">⏳ Probando carga de dashboard...</span>';
+            
+            const result = await measureTime(async () => {
+                return await LoyaltyAPI.getProgramStats();
+            });
+
+            if (result.success) {
+                dashboardTimes.push(result.time);
+                totalTests++;
+                updateMetrics();
+                resultsDiv.innerHTML = `<span class="success">✅ Dashboard cargado en ${result.time.toFixed(2)}ms</span>\n\nDatos obtenidos:\n- Usuarios: ${result.result.totalUsers}\n- Puntos otorgados: ${result.result.totalPointsEarned}\n- Premios canjeados: ${result.result.totalRedemptions}`;
+            } else {
+                resultsDiv.innerHTML = `<span class="error">❌ Error: ${result.error}</span>\n\nTiempo: ${result.time.toFixed(2)}ms`;
+            }
+        }
+
+        // Test de carga de usuarios
+        async function testUsersLoad() {
+            const resultsDiv = document.getElementById('usersResults');
+            resultsDiv.innerHTML = '<span class="loading">⏳ Probando carga de usuarios...</span>';
+            
+            const result = await measureTime(async () => {
+                return await LoyaltyAPI.getAllUsers();
+            });
+
+            if (result.success) {
+                usersTimes.push(result.time);
+                totalTests++;
+                updateMetrics();
+                resultsDiv.innerHTML = `<span class="success">✅ Usuarios cargados en ${result.time.toFixed(2)}ms</span>\n\nTotal usuarios: ${result.result.length}`;
+            } else {
+                resultsDiv.innerHTML = `<span class="error">❌ Error: ${result.error}</span>\n\nTiempo: ${result.time.toFixed(2)}ms`;
+            }
+        }
+
+        // Test de carga de premios
+        async function testRewardsLoad() {
+            const resultsDiv = document.getElementById('rewardsResults');
+            resultsDiv.innerHTML = '<span class="loading">⏳ Probando carga de premios...</span>';
+            
+            const result = await measureTime(async () => {
+                return await LoyaltyAPI.getAvailableRewards();
+            });
+
+            if (result.success) {
+                rewardsTimes.push(result.time);
+                totalTests++;
+                updateMetrics();
+                resultsDiv.innerHTML = `<span class="success">✅ Premios cargados en ${result.time.toFixed(2)}ms</span>\n\nTotal premios: ${result.result.length}`;
+            } else {
+                resultsDiv.innerHTML = `<span class="error">❌ Error: ${result.error}</span>\n\nTiempo: ${result.time.toFixed(2)}ms`;
+            }
+        }
+
+        // Test completo
+        async function runCompleteTest() {
+            const resultsDiv = document.getElementById('completeResults');
+            resultsDiv.innerHTML = '<span class="loading">⏳ Ejecutando test completo...</span>';
+            
+            const startTime = performance.now();
+            
+            // Ejecutar todos los tests
+            await testDashboardLoad();
+            await testUsersLoad();
+            await testRewardsLoad();
+            
+            const totalTime = performance.now() - startTime;
+            
+            resultsDiv.innerHTML = `<span class="success">✅ Test completo completado en ${totalTime.toFixed(2)}ms</span>\n\nResumen:\n- Dashboard: ${dashboardTimes.length > 0 ? dashboardTimes[dashboardTimes.length - 1].toFixed(2) : '-'}ms\n- Usuarios: ${usersTimes.length > 0 ? usersTimes[usersTimes.length - 1].toFixed(2) : '-'}ms\n- Premios: ${rewardsTimes.length > 0 ? rewardsTimes[rewardsTimes.length - 1].toFixed(2) : '-'}ms\n\nPromedios:\n- Dashboard: ${dashboardTimes.length > 0 ? (dashboardTimes.reduce((a, b) => a + b, 0) / dashboardTimes.length).toFixed(2) : '-'}ms\n- Usuarios: ${usersTimes.length > 0 ? (usersTimes.reduce((a, b) => a + b, 0) / usersTimes.length).toFixed(2) : '-'}ms\n- Premios: ${rewardsTimes.length > 0 ? (rewardsTimes.reduce((a, b) => a + b, 0) / rewardsTimes.length).toFixed(2) : '-'}ms`;
+        }
+
+        // Inicializar métricas
+        updateMetrics();
+    </script>
+</body>
+</html> 
