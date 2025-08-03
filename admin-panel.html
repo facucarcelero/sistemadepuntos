@@ -6658,6 +6658,8 @@
 
         // Función para mostrar secciones
         function showSection(sectionName) {
+            console.log('🔄 Cambiando a sección:', sectionName);
+            
             // Ocultar todas las secciones
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => {
@@ -6684,6 +6686,62 @@
             
             // Cerrar sidebar en móviles
             closeSidebar();
+            
+            // Cargar datos específicos de la sección
+            loadSectionData(sectionName);
+        }
+        
+        // Función para cargar datos específicos de cada sección
+        async function loadSectionData(sectionName) {
+            try {
+                console.log('📊 Cargando datos para sección:', sectionName);
+                
+                switch(sectionName) {
+                    case 'dashboard':
+                        // El dashboard ya se carga automáticamente
+                        console.log('✅ Dashboard ya cargado');
+                        break;
+                        
+                    case 'users':
+                        console.log('👥 Cargando usuarios...');
+                        await loadUsers();
+                        break;
+                        
+                    case 'rewards':
+                        console.log('🎁 Cargando premios...');
+                        await loadRewards();
+                        break;
+                        
+                    case 'redemptions':
+                        console.log('🔄 Cargando canjes...');
+                        await loadRedemptions();
+                        break;
+                        
+                    case 'menu':
+                        console.log('🍽️ Cargando menú...');
+                        await loadMenu();
+                        break;
+                        
+                    case 'analytics':
+                        console.log('📈 Cargando análisis...');
+                        await loadAnalytics();
+                        break;
+                        
+                    case 'reservations':
+                        console.log('📅 Sección de reservas activada');
+                        // Las reservas se cargan automáticamente cuando la sección está activa
+                        break;
+                        
+                    default:
+                        console.log('⚠️ Sección no reconocida:', sectionName);
+                }
+                
+                console.log('✅ Datos cargados para sección:', sectionName);
+                
+            } catch (error) {
+                console.error('❌ Error cargando datos para sección:', sectionName, error);
+                showMessage(`Error cargando datos de ${sectionName}: ${error.message}`, 'error');
+            }
         }
 
         // Función de prueba temporal
