@@ -21,11 +21,27 @@ try {
 
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 // Configuración de Firestore simplificada (como en el repositorio original)
 db.settings({
     timestampsInSnapshots: true,
     merge: true // Agregar merge: true para evitar la advertencia
+});
+
+// Configuración de CORS para Firebase Storage
+const storageRef = storage.ref();
+storageRef.bucket.setCorsConfiguration([
+    {
+        origin: ['https://sistemadepuntos.netlify.app', 'http://localhost:8000', 'http://localhost:3000'],
+        method: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'],
+        maxAgeSeconds: 3600
+    }
+]).then(() => {
+    console.log('✅ Configuración CORS de Firebase Storage aplicada');
+}).catch((error) => {
+    console.warn('⚠️ No se pudo configurar CORS automáticamente:', error);
+    console.log('ℹ️ Esto es normal en el navegador, las reglas se configuran en Firebase Console');
 });
 
 console.log('✅ Firebase Auth y Firestore configurados');
