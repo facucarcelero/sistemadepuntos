@@ -2647,6 +2647,102 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
+        
+        /* Estilos para códigos Instagram */
+        .code-generation-form {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .codes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .code-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .code-item.active {
+            border-left: 4px solid #10b981;
+        }
+        
+        .code-item.expired {
+            border-left: 4px solid #ef4444;
+            opacity: 0.7;
+        }
+        
+        .code-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .code-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+            font-size: 1.1rem;
+        }
+        
+        .code-text {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #059669;
+        }
+        
+        .code-info p {
+            margin: 0.25rem 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .code-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .code-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .code-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2737,10 +2833,14 @@
                     <i class="ph-calendar"></i>
                     <span>Reservas</span>
                 </a>
-                <a href="#" class="nav-item" onclick="showSection('instagram-verifications')">
-                    <i class="ph-instagram-logo"></i>
-                    <span>Verificaciones Instagram</span>
-                </a>
+                        <a href="#" class="nav-item" onclick="showSection('instagram-verifications')">
+            <i class="ph-instagram-logo"></i>
+            <span>Verificaciones Instagram</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSection('instagram-codes')">
+            <i class="ph-key"></i>
+            <span>Códigos Instagram</span>
+        </a>
         </div>
         </nav>
 
@@ -3514,6 +3614,70 @@
 
                         <div class="verification-list" id="verificationList">
                             <!-- Las verificaciones se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instagram Codes Section -->
+            <div id="instagram-codes" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-key"></i>
+                        Códigos de Instagram
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-plus"></i>
+                            Generar Nuevo Código
+                        </h3>
+                        
+                        <div class="code-generation-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="codeDuration">Duración (días):</label>
+                                    <input type="number" id="codeDuration" min="1" max="30" value="1" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="codePoints">Puntos a otorgar:</label>
+                                    <input type="number" id="codePoints" min="1" max="100" value="15" class="form-control">
+                                </div>
+                            </div>
+                            <button onclick="generateInstagramCode()" class="action-button">
+                                <i class="ph-plus"></i>
+                                Generar Código
+                            </button>
+                        </div>
+
+                        <h3 class="section-subtitle">
+                            <i class="ph-list"></i>
+                            Códigos Activos
+                        </h3>
+                        
+                        <div class="codes-list" id="activeCodesList">
+                            <!-- Los códigos se cargarán dinámicamente -->
+                        </div>
+
+                        <h3 class="section-subtitle">
+                            <i class="ph-chart-bar"></i>
+                            Estadísticas
+                        </h3>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number" id="activeCodesCount">0</div>
+                                <div class="stat-label">Códigos Activos</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalCodesUsed">0</div>
+                                <div class="stat-label">Total Usados</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalPointsAwarded">0</div>
+                                <div class="stat-label">Puntos Otorgados</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7855,6 +8019,109 @@
         window.approveVerification = approveVerification;
         window.rejectVerification = rejectVerification;
         window.openImageModal = openImageModal;
+        
+        // ===== FUNCIONES DE CÓDIGOS INSTAGRAM =====
+        
+        // Cargar códigos activos
+        async function loadInstagramCodes() {
+            try {
+                const codes = await LoyaltyAPI.getInstagramCodes();
+                renderInstagramCodes(codes);
+                updateCodesStats(codes);
+            } catch (error) {
+                console.error('Error loading Instagram codes:', error);
+                showMessage('Error al cargar códigos', 'error');
+            }
+        }
+        
+        // Renderizar códigos
+        function renderInstagramCodes(codes) {
+            const container = document.getElementById('activeCodesList');
+            
+            if (!codes || codes.length === 0) {
+                container.innerHTML = '<p>No hay códigos activos</p>';
+                return;
+            }
+            
+            container.innerHTML = codes.map(code => `
+                <div class="code-item ${code.isActive ? 'active' : 'expired'}">
+                    <div class="code-info">
+                        <h4>Código: <span class="code-text">${code.code}</span></h4>
+                        <p>Puntos: ${code.points} | Usado: ${code.usedBy.length} veces</p>
+                        <p>Expira: ${new Date(code.expiresAt.toDate()).toLocaleString()}</p>
+                    </div>
+                    <div class="code-actions">
+                        <button onclick="deleteInstagramCode('${code.id}')" class="btn btn-danger btn-sm">
+                            <i class="ph-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Actualizar estadísticas
+        function updateCodesStats(codes) {
+            const activeCount = codes.filter(code => code.isActive).length;
+            const totalUsed = codes.reduce((sum, code) => sum + code.usedBy.length, 0);
+            const totalPoints = codes.reduce((sum, code) => sum + (code.points * code.usedBy.length), 0);
+            
+            document.getElementById('activeCodesCount').textContent = activeCount;
+            document.getElementById('totalCodesUsed').textContent = totalUsed;
+            document.getElementById('totalPointsAwarded').textContent = totalPoints;
+        }
+        
+        // Generar nuevo código
+        async function generateInstagramCode() {
+            const duration = parseInt(document.getElementById('codeDuration').value);
+            const points = parseInt(document.getElementById('codePoints').value);
+            
+            if (!duration || !points) {
+                showMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            try {
+                const result = await LoyaltyAPI.generateInstagramCode(duration, points);
+                
+                if (result.success) {
+                    showMessage(`✅ Código generado: ${result.code}`, 'success');
+                    await loadInstagramCodes();
+                    
+                    // Limpiar formulario
+                    document.getElementById('codeDuration').value = '1';
+                    document.getElementById('codePoints').value = '15';
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error generating code:', error);
+                showMessage('Error al generar código', 'error');
+            }
+        }
+        
+        // Eliminar código
+        async function deleteInstagramCode(codeId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este código?')) return;
+            
+            try {
+                const result = await LoyaltyAPI.deleteInstagramCode(codeId);
+                
+                if (result.success) {
+                    showMessage('✅ Código eliminado', 'success');
+                    await loadInstagramCodes();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting code:', error);
+                showMessage('Error al eliminar código', 'error');
+            }
+        }
+        
+        // Registrar funciones globalmente
+        window.loadInstagramCodes = loadInstagramCodes;
+        window.generateInstagramCode = generateInstagramCode;
+        window.deleteInstagramCode = deleteInstagramCode;
         
     </script>
 </body>

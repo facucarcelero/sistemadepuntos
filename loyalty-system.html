@@ -512,6 +512,45 @@
                 font-size: 14px;
             }
         }
+        
+        /* Estilos para pestañas de Instagram */
+        .instagram-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tab-btn:hover {
+            color: #e91e63;
+        }
+        
+        .tab-btn.active {
+            color: #e91e63;
+            border-bottom-color: #e91e63;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -915,64 +954,123 @@
         </div>
     </div>
 
-    <!-- Modal de Instagram Simplificado -->
+    <!-- Modal de Instagram con Códigos -->
     <div class="modal" id="instagramModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">📸 Comparte en Instagram</h3>
+                <h3 class="modal-title">📸 Gana puntos por Instagram</h3>
                 <button class="modal-close" onclick="closeModal('instagramModal')">&times;</button>
             </div>
             
             <div class="modal-body">
-                <div class="text-center mb-20">
-                    <div class="instagram-steps">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <p>📱 Toma una foto en Los Nogales</p>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <p>📤 Súbela a Instagram con @parrillalosnogales</p>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <p>📋 Completa este formulario</p>
-                        </div>
-                    </div>
-                    
-                    <a href="https://instagram.com/parrillalosnogales" target="_blank" class="action-button instagram-btn">
-                        <i class="ph-instagram-logo"></i>
-                        Ver Instagram de Los Nogales
-                    </a>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-group">
-                        <label for="instagramUsername">
-                            <i class="ph-user"></i>
-                            Tu usuario de Instagram
-                        </label>
-                        <input type="text" id="instagramUsername" placeholder="Ej: @tuusuario" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="instagramScreenshot">
-                            <i class="ph-image"></i>
-                            Captura de tu post
-                        </label>
-                        <input type="file" id="instagramScreenshot" accept="image/*" required>
-                        <small class="text-gray-500">Sube una foto de tu post en Instagram</small>
-                    </div>
-                </div>
-
-                <div class="text-center mt-20">
-                    <button class="action-button" onclick="submitInstagramSimple()">
-                        <i class="ph-check-circle"></i>
-                        Enviar y Ganar 15 Puntos
+                <!-- Pestañas -->
+                <div class="instagram-tabs">
+                    <button class="tab-btn active" onclick="switchInstagramTab('code')">
+                        <i class="ph-key"></i> Código
                     </button>
-                    <p class="text-sm text-gray-500 mt-10">
-                        ⏱️ Los puntos se acreditarán en 24 horas
-                    </p>
+                    <button class="tab-btn" onclick="switchInstagramTab('screenshot')">
+                        <i class="ph-image"></i> Captura
+                    </button>
+                </div>
+                
+                <!-- Tab de Código -->
+                <div id="codeTab" class="tab-content active">
+                    <div class="text-center mb-20">
+                        <div class="instagram-steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <p>📱 Sigue @parrillalosnogales</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <p>🔍 Busca el código en destacadas</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <p>✨ Ingresa el código y gana puntos</p>
+                            </div>
+                        </div>
+                        
+                        <a href="https://instagram.com/parrillalosnogales" target="_blank" class="action-button instagram-btn">
+                            <i class="ph-instagram-logo"></i>
+                            Ver Instagram de Los Nogales
+                        </a>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="instagramCode">
+                                <i class="ph-key"></i>
+                                Código de Instagram
+                            </label>
+                            <input type="text" id="instagramCode" placeholder="Ej: ABC123" required maxlength="6" style="text-transform: uppercase;">
+                            <small class="text-gray-500">Ingresa el código que aparece en nuestras destacadas</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-20">
+                        <button class="action-button" onclick="verifyInstagramCode()">
+                            <i class="ph-check-circle"></i>
+                            Verificar Código
+                        </button>
+                        <p class="text-sm text-gray-500 mt-10">
+                            ⚡ Puntos instantáneos al verificar
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Tab de Captura -->
+                <div id="screenshotTab" class="tab-content">
+                    <div class="text-center mb-20">
+                        <div class="instagram-steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <p>📱 Toma una foto en Los Nogales</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <p>📤 Súbela a Instagram con @parrillalosnogales</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <p>📋 Completa este formulario</p>
+                            </div>
+                        </div>
+                        
+                        <a href="https://instagram.com/parrillalosnogales" target="_blank" class="action-button instagram-btn">
+                            <i class="ph-instagram-logo"></i>
+                            Ver Instagram de Los Nogales
+                        </a>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="instagramUsername">
+                                <i class="ph-user"></i>
+                                Tu usuario de Instagram
+                            </label>
+                            <input type="text" id="instagramUsername" placeholder="Ej: @tuusuario" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instagramScreenshot">
+                                <i class="ph-image"></i>
+                                Captura de tu post
+                            </label>
+                            <input type="file" id="instagramScreenshot" accept="image/*" required>
+                            <small class="text-gray-500">Sube una foto de tu post en Instagram</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-20">
+                        <button class="action-button" onclick="submitInstagramSimple()">
+                            <i class="ph-check-circle"></i>
+                            Enviar y Ganar 15 Puntos
+                        </button>
+                        <p class="text-sm text-gray-500 mt-10">
+                            ⏱️ Los puntos se acreditarán en 24 horas
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1906,6 +2004,63 @@
             document.getElementById('instagramUsername').value = '';
             document.getElementById('instagramScreenshot').value = '';
             clearErrors();
+        }
+        
+        // Función para cambiar entre pestañas de Instagram
+        function switchInstagramTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar pestaña seleccionada
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activar botón seleccionado
+            event.target.classList.add('active');
+        }
+        
+        // Función para verificar código de Instagram
+        async function verifyInstagramCode() {
+            const code = document.getElementById('instagramCode').value.trim().toUpperCase();
+            
+            if (!code) {
+                showMessage('Por favor ingresa un código', 'error');
+                return;
+            }
+            
+            try {
+                // Mostrar loading
+                const submitButton = document.querySelector('#codeTab .action-button');
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="ph-spinner"></i> Verificando...';
+                submitButton.disabled = true;
+                
+                const result = await LoyaltyAPI.verifyInstagramCode(code);
+                
+                if (result.success) {
+                    showMessage(`✅ ${result.message}`, 'success');
+                    document.getElementById('instagramCode').value = '';
+                    closeModal('instagramModal');
+                    await loadUserData(); // Recargar datos del usuario
+                } else {
+                    showMessage(result.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error verifying Instagram code:', error);
+                showMessage('Error al verificar el código. Intenta nuevamente.', 'error');
+            } finally {
+                // Restaurar botón
+                const submitButton = document.querySelector('#codeTab .action-button');
+                submitButton.innerHTML = '<i class="ph-check-circle"></i> Verificar Código';
+                submitButton.disabled = false;
+            }
         }
 
         // Funciones de premios

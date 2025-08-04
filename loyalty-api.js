@@ -560,6 +560,153 @@ async function rejectInstagramVerification(verificationId, reason = '') {
     }
 }
 
+// ===== FUNCIONES DE CÓDIGOS INSTAGRAM =====
+
+// Generar código temporal de Instagram (solo admin)
+async function generateInstagramCode(duration, points) {
+    if (!currentUser || !(await isAdmin())) {
+        return { success: false, message: 'No tienes permisos de administrador.' };
+    }
+    
+    try {
+        const code = generateRandomCode();
+        const expiresAt = new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
+        
+        await db.collection('instagramCodes').add({
+            code: code,
+            points: points,
+            expiresAt: expiresAt,
+            isActive: true,
+            createdAt: new Date(),
+            createdBy: currentUser,
+            usedBy: []
+        });
+        
+        return { success: true, code: code, message: 'Código generado exitosamente.' };
+    } catch (error) {
+        console.error('Error generating Instagram code:', error);
+        return { success: false, message: 'Error al generar código.' };
+    }
+}
+
+// Obtener códigos de Instagram (solo admin)
+async function getInstagramCodes() {
+    if (!currentUser || !(await isAdmin())) {
+        return [];
+    }
+    
+    try {
+        const snapshot = await db.collection('instagramCodes')
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error getting Instagram codes:', error);
+        return [];
+    }
+}
+
+// Eliminar código de Instagram (solo admin)
+async function deleteInstagramCode(codeId) {
+    if (!currentUser || !(await isAdmin())) {
+        return { success: false, message: 'No tienes permisos de administrador.' };
+    }
+    
+    try {
+        await db.collection('instagramCodes').doc(codeId).delete();
+        return { success: true, message: 'Código eliminado exitosamente.' };
+    } catch (error) {
+        console.error('Error deleting Instagram code:', error);
+        return { success: false, message: 'Error al eliminar código.' };
+    }
+}
+
+// Verificar código de Instagram (para usuarios)
+async function verifyInstagramCode(code) {
+    if (!currentUser) {
+        return { success: false, message: 'Debes iniciar sesión.' };
+    }
+    
+    try {
+        // Buscar código válido
+        const codeQuery = await db.collection('instagramCodes')
+            .where('code', '==', code)
+            .where('isActive', '==', true)
+            .where('expiresAt', '>', new Date())
+            .get();
+        
+        if (codeQuery.empty) {
+            return { success: false, message: 'Código inválido o expirado.' };
+        }
+        
+        const codeDoc = codeQuery.docs[0];
+        const codeData = codeDoc.data();
+        
+        // Verificar si el usuario ya usó este código
+        if (codeData.usedBy && codeData.usedBy.includes(currentUser)) {
+            return { success: false, message: 'Ya has usado este código.' };
+        }
+        
+        // Agregar puntos al usuario
+        const userRef = db.collection('users').doc(currentUser);
+        const userDoc = await userRef.get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            const newPoints = (userData.points || 0) + codeData.points;
+            
+            await userRef.update({
+                points: newPoints,
+                totalPointsEarned: (userData.totalPointsEarned || 0) + codeData.points
+            });
+            
+            // Marcar código como usado por este usuario
+            await db.collection('instagramCodes').doc(codeDoc.id).update({
+                usedBy: firebase.firestore.FieldValue.arrayUnion(currentUser)
+            });
+            
+            // Registrar transacción
+            await addPointTransaction(
+                `Código Instagram: ${code}`,
+                codeData.points,
+                'instagram'
+            );
+            
+            // Actualizar variables locales
+            userPoints = newPoints;
+            if (userData) {
+                userData.points = newPoints;
+                userData.totalPointsEarned = (userData.totalPointsEarned || 0) + codeData.points;
+            }
+            
+            return { 
+                success: true, 
+                points: codeData.points,
+                message: `¡+${codeData.points} puntos por seguirnos en Instagram!` 
+            };
+        }
+        
+        return { success: false, message: 'Error al actualizar puntos.' };
+    } catch (error) {
+        console.error('Error verifying Instagram code:', error);
+        return { success: false, message: 'Error al verificar código.' };
+    }
+}
+
+// Generar código aleatorio
+function generateRandomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 // Agregar puntos por completar encuesta (equivalente a reseña)
 async function addSurveyPoints() {
     if (!currentUser) {
@@ -1092,6 +1239,11 @@ window.LoyaltyAPI = {
     validateRedemption,
     getProgramStats,
     canClaimDailyVisit,
+    // Funciones de códigos Instagram
+    generateInstagramCode,
+    getInstagramCodes,
+    deleteInstagramCode,
+    verifyInstagramCode,
     getCurrentUser: () => {
         return currentUser;
     },
