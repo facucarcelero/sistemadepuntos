@@ -2975,6 +2975,16 @@
                             </button>
                         </div>
                         
+                        <!-- Botones de diagnóstico -->
+                        <div class="flex flex-col sm:flex-row items-center gap-4 w-full mt-4">
+                            <button onclick="diagnoseReservationsDatabase()" class="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 flex items-center gap-2 transition-colors">
+                                <i class="ph-bug text-lg"></i> Diagnosticar BD
+                            </button>
+                            <button onclick="loadAllReservations()" class="bg-purple-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-600 flex items-center gap-2 transition-colors">
+                                <i class="ph-database text-lg"></i> Cargar Todas
+                            </button>
+                        </div>
+                        
                         <!-- Estadísticas -->
                         <div class="grid grid-cols-1 gap-12 mt-12 text-center w-full">
                             <!-- Total Comensales -->
@@ -6173,43 +6183,73 @@
 
         // Configurar listener en tiempo real para reservas
         function setupReservationsRealTimeListener(dateString, periodType) {
-            const { startDate, endDate } = calculateDateRange(dateString, periodType);
-            
-            const query = reservationsDb.collection('reservations')
-                .where('date', '>=', startDate)
-                .where('date', '<=', endDate)
-                .orderBy('date')
-                .orderBy('time');
-
-            const unsubscribe = query.onSnapshot((snapshot) => {
-                const reservations = [];
+            try {
+                console.log('🔍 Configurando listener de reservas...');
+                console.log('📅 Fecha:', dateString);
+                console.log('📊 Período:', periodType);
                 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    reservations.push({
-                        id: doc.id,
-                        ...data,
-                        createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date()
+                const { startDate, endDate } = calculateDateRange(dateString, periodType);
+                console.log('📅 Rango de fechas:', startDate, 'a', endDate);
+                
+                // Verificar que Firestore esté disponible
+                if (!reservationsDb) {
+                    console.error('❌ Firestore no está disponible');
+                    return;
+                }
+                
+                console.log('🔥 Firestore disponible, creando query...');
+                
+                const query = reservationsDb.collection('reservations')
+                    .where('date', '>=', startDate)
+                    .where('date', '<=', endDate)
+                    .orderBy('date')
+                    .orderBy('time');
+
+                console.log('📋 Query creada, configurando listener...');
+
+                const unsubscribe = query.onSnapshot((snapshot) => {
+                    console.log('📊 Snapshot recibido:', snapshot.size, 'documentos');
+                    
+                    const reservations = [];
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        console.log('📄 Documento:', doc.id, data);
+                        
+                        reservations.push({
+                            id: doc.id,
+                            ...data,
+                            createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date()
+                        });
                     });
+
+                    console.log('✅ Reservas procesadas:', reservations.length);
+                    console.log('📋 Datos de reservas:', reservations);
+
+                    // Actualizar cache
+                    const cacheKey = `${startDate}_${endDate}_${periodType}`;
+                    reservationsCache.set(cacheKey, reservations);
+                    
+                    // Actualizar datos globales
+                    allReservations = reservations;
+                    
+                    // Actualizar UI inmediatamente
+                    updateAdminUI(reservations, dateString, periodType);
+                    
+                    console.log(`✅ Reservas actualizadas en tiempo real: ${reservations.length} reservas`);
+                }, (error) => {
+                    console.error('❌ Error en listener de reservas:', error);
+                    console.error('🔍 Detalles del error:', error.code, error.message);
                 });
 
-                // Actualizar cache
-                const cacheKey = `${startDate}_${endDate}_${periodType}`;
-                reservationsCache.set(cacheKey, reservations);
+                // Guardar el listener para poder cancelarlo después
+                reservationRealTimeListeners.set('reservations', unsubscribe);
                 
-                // Actualizar datos globales
-                allReservations = reservations;
+                console.log('✅ Listener configurado correctamente');
                 
-                // Actualizar UI inmediatamente
-                updateAdminUI(reservations, dateString, periodType);
-                
-                console.log(`Reservas actualizadas en tiempo real: ${reservations.length} reservas`);
-            }, (error) => {
-                console.error('Error en listener de reservas:', error);
-            });
-
-            // Guardar el listener para poder cancelarlo después
-            reservationRealTimeListeners.set('reservations', unsubscribe);
+            } catch (error) {
+                console.error('❌ Error configurando listener:', error);
+            }
         }
 
 
@@ -7200,6 +7240,99 @@
             return container;
         }
 
+        // Función para diagnosticar la base de datos de reservas
+        async function diagnoseReservationsDatabase() {
+            try {
+                console.log('🔍 === DIAGNÓSTICO DE BASE DE DATOS DE RESERVAS ===');
+                
+                if (!reservationsDb) {
+                    console.error('❌ Firestore no está disponible');
+                    return;
+                }
+                
+                console.log('✅ Firestore disponible');
+                
+                // Probar diferentes colecciones
+                const collections = ['reservations', 'reservas', 'bookings', 'appointments'];
+                
+                for (const collectionName of collections) {
+                    try {
+                        console.log(`🔍 Probando colección: ${collectionName}`);
+                        const snapshot = await reservationsDb.collection(collectionName).limit(5).get();
+                        console.log(`📊 ${collectionName}: ${snapshot.size} documentos encontrados`);
+                        
+                        if (snapshot.size > 0) {
+                            snapshot.forEach(doc => {
+                                console.log(`📄 ${collectionName} - ${doc.id}:`, doc.data());
+                            });
+                        }
+                    } catch (error) {
+                        console.log(`❌ Error en colección ${collectionName}:`, error.message);
+                    }
+                }
+                
+                // Probar consulta sin filtros de fecha
+                console.log('🔍 Probando consulta sin filtros...');
+                try {
+                    const allReservationsSnapshot = await reservationsDb.collection('reservations').limit(10).get();
+                    console.log(`📊 Total reservas sin filtros: ${allReservationsSnapshot.size}`);
+                    
+                    if (allReservationsSnapshot.size > 0) {
+                        allReservationsSnapshot.forEach(doc => {
+                            const data = doc.data();
+                            console.log(`📄 Reserva ${doc.id}:`, {
+                                id: doc.id,
+                                customerName: data.customerName || data.name || 'Sin nombre',
+                                date: data.date || 'Sin fecha',
+                                time: data.time || 'Sin hora',
+                                guests: data.guests || data.numGuests || 0,
+                                status: data.status || 'Sin estado'
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error('❌ Error en consulta sin filtros:', error);
+                }
+                
+                console.log('🏁 === FIN DEL DIAGNÓSTICO ===');
+                
+            } catch (error) {
+                console.error('❌ Error en diagnóstico:', error);
+            }
+        }
+
+        // Función para cargar todas las reservas sin filtros
+        async function loadAllReservations() {
+            try {
+                console.log('🔍 Cargando todas las reservas sin filtros...');
+                
+                if (!reservationsDb) {
+                    console.error('❌ Firestore no está disponible');
+                    return;
+                }
+                
+                const snapshot = await reservationsDb.collection('reservations').get();
+                console.log(`📊 Total reservas encontradas: ${snapshot.size}`);
+                
+                const allReservations = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allReservations.push({
+                        id: doc.id,
+                        ...data
+                    });
+                });
+                
+                console.log('📋 Todas las reservas:', allReservations);
+                
+                // Actualizar UI con todas las reservas
+                updateAdminUI(allReservations, 'all', 'all');
+                
+            } catch (error) {
+                console.error('❌ Error cargando todas las reservas:', error);
+            }
+        }
+
         // Asegurar que todas las funciones estén disponibles globalmente
         window.showReservationsLoader = showReservationsLoader;
         window.loadSpecialDaysList = loadSpecialDaysList;
@@ -7215,6 +7348,8 @@
         window.formatDate = formatDate;
         window.calculateDateRange = calculateDateRange;
         window.ensureReservationsContainer = ensureReservationsContainer;
+        window.diagnoseReservationsDatabase = diagnoseReservationsDatabase;
+        window.loadAllReservations = loadAllReservations;
         
         console.log('✅ Todas las funciones de reservas registradas globalmente');
         
