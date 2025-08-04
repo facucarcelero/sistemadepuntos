@@ -804,16 +804,74 @@
                 <button class="modal-close" onclick="closeModal('instagramModal')">&times;</button>
             </div>
             
-            <div class="text-center mb-20">
-                <p>Comparte una foto de tu experiencia en Los Nogales en Instagram y gana 15 puntos. Etiqueta @losnogales y usa #LosNogales.</p>
-                <a href="https://instagram.com" target="_blank" class="action-button">
-                    <i class="ph-instagram-logo"></i>
-                    Ir a Instagram
-                </a>
-                <button class="action-button secondary mt-20" onclick="claimInstagramPoints()">
-                    <i class="ph-check-circle"></i>
-                    Reclamar Puntos por Post
-                </button>
+            <div class="modal-body">
+                <div class="text-center mb-20">
+                    <p><strong>📸 Comparte tu experiencia en Los Nogales</strong></p>
+                    <p>Para ganar 15 puntos, debes:</p>
+                    <ul class="text-left mb-20" style="max-width: 400px; margin: 0 auto;">
+                        <li>📱 Tomar una foto en Los Nogales</li>
+                        <li>📤 Subirla a Instagram</li>
+                        <li>🏷️ Etiquetar @losnogales</li>
+                        <li>📝 Usar #LosNogales</li>
+                        <li>📋 Completar el formulario de verificación</li>
+                    </ul>
+                    
+                    <a href="https://instagram.com" target="_blank" class="action-button">
+                        <i class="ph-instagram-logo"></i>
+                        Ir a Instagram
+                    </a>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="mb-15">📋 Formulario de Verificación</h4>
+                    
+                    <div class="form-group">
+                        <label for="instagramUsername">
+                            <i class="ph-user"></i>
+                            Tu Usuario de Instagram
+                        </label>
+                        <input type="text" id="instagramUsername" placeholder="Ej: @tuusuario" required>
+                        <div id="instagramUsername-error" class="error-message">Por favor ingresa tu usuario de Instagram.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instagramPostUrl">
+                            <i class="ph-link"></i>
+                            Enlace del Post (opcional)
+                        </label>
+                        <input type="url" id="instagramPostUrl" placeholder="https://www.instagram.com/p/...">
+                        <div id="instagramPostUrl-error" class="error-message">Por favor ingresa un enlace válido de Instagram.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instagramScreenshot">
+                            <i class="ph-image"></i>
+                            Captura de Pantalla del Post
+                        </label>
+                        <input type="file" id="instagramScreenshot" accept="image/*" required>
+                        <div id="instagramScreenshot-error" class="error-message">Por favor sube una captura de pantalla del post.</div>
+                        <small class="text-gray-500">Sube una imagen que muestre tu post con la etiqueta @losnogales y #LosNogales</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instagramDescription">
+                            <i class="ph-text-t"></i>
+                            Descripción del Post
+                        </label>
+                        <textarea id="instagramDescription" placeholder="Describe brevemente tu experiencia en Los Nogales..." rows="3" required></textarea>
+                        <div id="instagramDescription-error" class="error-message">Por favor describe tu experiencia.</div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-20">
+                    <button class="action-button" onclick="submitInstagramVerification()">
+                        <i class="ph-check-circle"></i>
+                        Enviar para Verificación
+                    </button>
+                    <p class="text-sm text-gray-500 mt-10">
+                        ⏱️ Los puntos se acreditarán después de la verificación (máximo 24 horas)
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -1620,16 +1678,123 @@
             }
         }
 
-        async function claimInstagramPoints() {
-            const result = await LoyaltyAPI.addInstagramPostPoints();
+        async function submitInstagramVerification() {
+            // Validar campos requeridos
+            const username = document.getElementById('instagramUsername').value.trim();
+            const postUrl = document.getElementById('instagramPostUrl').value.trim();
+            const screenshot = document.getElementById('instagramScreenshot').files[0];
+            const description = document.getElementById('instagramDescription').value.trim();
             
-            if (result.success) {
-                showMessage(result.message, 'success');
-                closeModal('instagramModal');
-                await loadUserData();
-            } else {
-                showMessage(result.message, 'error');
+            // Limpiar errores previos
+            clearErrors();
+            
+            // Validaciones
+            let hasErrors = false;
+            
+            if (!username) {
+                showError('instagramUsername', 'Por favor ingresa tu usuario de Instagram');
+                hasErrors = true;
             }
+            
+            if (!screenshot) {
+                showError('instagramScreenshot', 'Por favor sube una captura de pantalla');
+                hasErrors = true;
+            }
+            
+            if (!description) {
+                showError('instagramDescription', 'Por favor describe tu experiencia');
+                hasErrors = true;
+            }
+            
+            if (hasErrors) return;
+            
+            try {
+                // Mostrar loading
+                const submitButton = document.querySelector('#instagramModal .action-button');
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="ph-spinner"></i> Enviando...';
+                submitButton.disabled = true;
+                
+                // Subir imagen a Firebase Storage
+                const imageUrl = await uploadInstagramScreenshot(screenshot);
+                
+                // Crear solicitud de verificación
+                const verificationData = {
+                    userId: LoyaltyAPI.getCurrentUser(),
+                    username: username,
+                    postUrl: postUrl || null,
+                    screenshotUrl: imageUrl,
+                    description: description,
+                    status: 'pending',
+                    submittedAt: new Date(),
+                    points: 15
+                };
+                
+                const result = await LoyaltyAPI.submitInstagramVerification(verificationData);
+                
+                if (result.success) {
+                    showMessage('✅ Solicitud enviada correctamente. Los puntos se acreditarán después de la verificación.', 'success');
+                    closeModal('instagramModal');
+                    resetInstagramForm();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error submitting Instagram verification:', error);
+                showMessage('Error al enviar la verificación. Intenta nuevamente.', 'error');
+            } finally {
+                // Restaurar botón
+                const submitButton = document.querySelector('#instagramModal .action-button');
+                submitButton.innerHTML = '<i class="ph-check-circle"></i> Enviar para Verificación';
+                submitButton.disabled = false;
+            }
+        }
+        
+        async function uploadInstagramScreenshot(file) {
+            return new Promise((resolve, reject) => {
+                const storageRef = firebase.storage().ref();
+                const fileRef = storageRef.child(`instagram-verifications/${Date.now()}_${file.name}`);
+                
+                const uploadTask = fileRef.put(file);
+                
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Progress
+                    },
+                    (error) => {
+                        reject(error);
+                    },
+                    () => {
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            resolve(downloadURL);
+                        });
+                    }
+                );
+            });
+        }
+        
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
+            });
+        }
+        
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId + '-error');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+        
+        function resetInstagramForm() {
+            document.getElementById('instagramUsername').value = '';
+            document.getElementById('instagramPostUrl').value = '';
+            document.getElementById('instagramScreenshot').value = '';
+            document.getElementById('instagramDescription').value = '';
+            clearErrors();
         }
 
         // Funciones de premios

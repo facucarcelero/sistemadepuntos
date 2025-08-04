@@ -404,28 +404,139 @@ async function addGoogleReviewPoints() {
     }
 }
 
-// Agregar puntos por post en Instagram
-async function addInstagramPostPoints() {
+// Enviar verificación de post en Instagram
+async function submitInstagramVerification(verificationData) {
     if (!currentUser) return { success: false, message: 'Debes iniciar sesión.' };
     
     try {
-        const pointsToAdd = 15;
-        const newPoints = userPoints + pointsToAdd;
+        // Verificar si ya tiene una solicitud pendiente
+        const existingVerification = await db.collection('instagramVerifications')
+            .where('userId', '==', currentUser)
+            .where('status', '==', 'pending')
+            .get();
         
-        await db.collection('users').doc(currentUser).update({
-            points: newPoints,
-            totalPointsEarned: (userData.totalPointsEarned || 0) + pointsToAdd
+        if (!existingVerification.empty) {
+            return { success: false, message: 'Ya tienes una solicitud pendiente de verificación.' };
+        }
+        
+        // Crear la solicitud de verificación
+        await db.collection('instagramVerifications').add({
+            ...verificationData,
+            createdAt: new Date()
         });
         
-        await addPointTransaction('Post en Instagram', pointsToAdd, 'earned');
-        
-        userPoints = newPoints;
-        userData.points = newPoints;
-        userData.totalPointsEarned = (userData.totalPointsEarned || 0) + pointsToAdd;
-        
-        return { success: true, message: `¡+${pointsToAdd} puntos por tu post!`, points: newPoints };
+        return { success: true, message: 'Solicitud enviada correctamente. Los puntos se acreditarán después de la verificación.' };
     } catch (error) {
-        return { success: false, message: 'Error al agregar puntos.' };
+        console.error('Error submitting Instagram verification:', error);
+        return { success: false, message: 'Error al enviar la verificación.' };
+    }
+}
+
+// Obtener verificaciones de Instagram del usuario
+async function getInstagramVerifications() {
+    if (!currentUser) return [];
+    
+    try {
+        const snapshot = await db.collection('instagramVerifications')
+            .where('userId', '==', currentUser)
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error getting Instagram verifications:', error);
+        return [];
+    }
+}
+
+// Función para administradores: obtener todas las verificaciones pendientes
+async function getPendingInstagramVerifications() {
+    if (!currentUser || !(await isAdmin())) return [];
+    
+    try {
+        const snapshot = await db.collection('instagramVerifications')
+            .where('status', '==', 'pending')
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error getting pending Instagram verifications:', error);
+        return [];
+    }
+}
+
+// Función para administradores: aprobar verificación de Instagram
+async function approveInstagramVerification(verificationId) {
+    if (!currentUser || !(await isAdmin())) {
+        return { success: false, message: 'No tienes permisos de administrador.' };
+    }
+    
+    try {
+        const verificationRef = db.collection('instagramVerifications').doc(verificationId);
+        const verificationDoc = await verificationRef.get();
+        
+        if (!verificationDoc.exists) {
+            return { success: false, message: 'Verificación no encontrada.' };
+        }
+        
+        const verificationData = verificationDoc.data();
+        
+        // Actualizar estado de la verificación
+        await verificationRef.update({
+            status: 'approved',
+            approvedAt: new Date(),
+            approvedBy: currentUser
+        });
+        
+        // Agregar puntos al usuario
+        const userRef = db.collection('users').doc(verificationData.userId);
+        const userDoc = await userRef.get();
+        
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            const newPoints = (userData.points || 0) + verificationData.points;
+            
+            await userRef.update({
+                points: newPoints,
+                totalPointsEarned: (userData.totalPointsEarned || 0) + verificationData.points
+            });
+            
+            // Registrar transacción
+            await addPointTransaction('Post en Instagram (Verificado)', verificationData.points, 'earned', verificationData.userId);
+        }
+        
+        return { success: true, message: 'Verificación aprobada y puntos agregados.' };
+    } catch (error) {
+        console.error('Error approving Instagram verification:', error);
+        return { success: false, message: 'Error al aprobar la verificación.' };
+    }
+}
+
+// Función para administradores: rechazar verificación de Instagram
+async function rejectInstagramVerification(verificationId, reason = '') {
+    if (!currentUser || !(await isAdmin())) {
+        return { success: false, message: 'No tienes permisos de administrador.' };
+    }
+    
+    try {
+        await db.collection('instagramVerifications').doc(verificationId).update({
+            status: 'rejected',
+            rejectedAt: new Date(),
+            rejectedBy: currentUser,
+            rejectionReason: reason
+        });
+        
+        return { success: true, message: 'Verificación rechazada.' };
+    } catch (error) {
+        console.error('Error rejecting Instagram verification:', error);
+        return { success: false, message: 'Error al rechazar la verificación.' };
     }
 }
 
@@ -943,7 +1054,11 @@ window.LoyaltyAPI = {
     addReservationPoints,
     addReferralPoints,
     addGoogleReviewPoints,
-    addInstagramPostPoints,
+    submitInstagramVerification,
+    getInstagramVerifications,
+    getPendingInstagramVerifications,
+    approveInstagramVerification,
+    rejectInstagramVerification,
     addSurveyPoints,
     getAvailableRewards,
     initializeRewards,

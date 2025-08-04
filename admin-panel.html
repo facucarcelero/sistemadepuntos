@@ -2482,6 +2482,68 @@
         :root {
             --menu-transition: 0.3s ease;
         }
+        
+        /* Estilos para verificaciones de Instagram */
+        .btn-approve {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-approve:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .btn-reject {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-reject:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+        
+        .verification-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .verification-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .verification-card {
+            transition: all 0.3s ease;
+        }
+        
+        .verification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -2571,6 +2633,10 @@
                 <a href="#" class="nav-item" onclick="showSection('reservations')">
                     <i class="ph-calendar"></i>
                     <span>Reservas</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('instagram-verifications')">
+                    <i class="ph-instagram-logo"></i>
+                    <span>Verificaciones Instagram</span>
                 </a>
         </div>
         </nav>
@@ -3298,8 +3364,58 @@
                         </div>
                     </div>
                 </div>
+                        </div>
+
+            <!-- Instagram Verifications Section -->
+            <div id="instagram-verifications" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-instagram-logo"></i>
+                        Verificaciones de Instagram
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-warning"></i>
+                            Solicitudes Pendientes de Verificación
+                        </h3>
+                        
+                        <div class="verification-stats">
+                            <div class="stat-card">
+                                <div class="stat-number" id="pendingVerifications">0</div>
+                                <div class="stat-label">Pendientes</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="approvedVerifications">0</div>
+                                <div class="stat-label">Aprobadas</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="rejectedVerifications">0</div>
+                                <div class="stat-label">Rechazadas</div>
+                            </div>
+                        </div>
+
+                        <div class="verification-filters">
+                            <select class="filter-input" id="verificationStatusFilter">
+                                <option value="all">Todas las solicitudes</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="approved">Aprobadas</option>
+                                <option value="rejected">Rechazadas</option>
+                            </select>
+                            <button class="action-button" onclick="loadInstagramVerifications()">
+                                <i class="ph-arrow-clockwise"></i>
+                                Actualizar
+                            </button>
+                        </div>
+
+                        <div class="verification-list" id="verificationList">
+                            <!-- Las verificaciones se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
             </div>
-                </main>
+        </main>
     </div>
 
     <!-- Modal para búsqueda avanzada -->
@@ -7450,6 +7566,213 @@
         window.loadLastMonthReservations = loadLastMonthReservations;
         
         console.log('✅ Todas las funciones de reservas registradas globalmente');
+
+        // ===== FUNCIONES DE VERIFICACIÓN DE INSTAGRAM =====
+        
+        // Cargar verificaciones de Instagram
+        async function loadInstagramVerifications() {
+            try {
+                console.log('📸 Cargando verificaciones de Instagram...');
+                
+                const statusFilter = document.getElementById('verificationStatusFilter').value;
+                let verifications = [];
+                
+                if (statusFilter === 'all') {
+                    verifications = await LoyaltyAPI.getPendingInstagramVerifications();
+                } else {
+                    // Para filtros específicos, necesitaríamos una función adicional
+                    verifications = await LoyaltyAPI.getPendingInstagramVerifications();
+                    verifications = verifications.filter(v => v.status === statusFilter);
+                }
+                
+                updateVerificationStats(verifications);
+                renderVerificationList(verifications);
+                
+                console.log('✅ Verificaciones cargadas:', verifications.length);
+                
+            } catch (error) {
+                console.error('❌ Error cargando verificaciones:', error);
+                showMessage('Error al cargar las verificaciones', 'error');
+            }
+        }
+        
+        // Actualizar estadísticas de verificaciones
+        function updateVerificationStats(verifications) {
+            const pending = verifications.filter(v => v.status === 'pending').length;
+            const approved = verifications.filter(v => v.status === 'approved').length;
+            const rejected = verifications.filter(v => v.status === 'rejected').length;
+            
+            document.getElementById('pendingVerifications').textContent = pending;
+            document.getElementById('approvedVerifications').textContent = approved;
+            document.getElementById('rejectedVerifications').textContent = rejected;
+        }
+        
+        // Renderizar lista de verificaciones
+        function renderVerificationList(verifications) {
+            const container = document.getElementById('verificationList');
+            
+            if (verifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-8 text-gray-500">
+                        <i class="ph-instagram-logo text-4xl mb-4"></i>
+                        <p>No hay verificaciones de Instagram para mostrar</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = verifications.map(verification => `
+                <div class="verification-card bg-white rounded-lg shadow-md p-6 mb-4 border-l-4 ${getVerificationStatusColor(verification.status)}">
+                    <div class="flex flex-col lg:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="font-semibold text-lg">@${verification.username}</h3>
+                                <span class="status-badge ${getVerificationStatusClass(verification.status)}">
+                                    ${getVerificationStatusText(verification.status)}
+                                </span>
+                            </div>
+                            
+                            <p class="text-gray-600 mb-2">
+                                <strong>Usuario:</strong> ${verification.userId}
+                            </p>
+                            
+                            ${verification.postUrl ? `
+                                <p class="text-gray-600 mb-2">
+                                    <strong>Enlace:</strong> 
+                                    <a href="${verification.postUrl}" target="_blank" class="text-blue-600 hover:underline">
+                                        Ver post en Instagram
+                                    </a>
+                                </p>
+                            ` : ''}
+                            
+                            <p class="text-gray-600 mb-2">
+                                <strong>Descripción:</strong> ${verification.description}
+                            </p>
+                            
+                            <p class="text-gray-600 mb-2">
+                                <strong>Puntos:</strong> ${verification.points}
+                            </p>
+                            
+                            <p class="text-gray-600 mb-2">
+                                <strong>Fecha:</strong> ${formatDate(verification.createdAt?.toDate?.() || verification.createdAt)}
+                            </p>
+                            
+                            ${verification.screenshotUrl ? `
+                                <div class="mt-4">
+                                    <p class="text-gray-600 mb-2"><strong>Captura de pantalla:</strong></p>
+                                    <img src="${verification.screenshotUrl}" alt="Screenshot del post" 
+                                         class="max-w-xs rounded-lg shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                         onclick="openImageModal('${verification.screenshotUrl}')">
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${verification.status === 'pending' ? `
+                            <div class="flex flex-col gap-2 lg:w-48">
+                                <button onclick="approveVerification('${verification.id}')" 
+                                        class="btn-approve">
+                                    <i class="ph-check"></i>
+                                    Aprobar
+                                </button>
+                                <button onclick="rejectVerification('${verification.id}')" 
+                                        class="btn-reject">
+                                    <i class="ph-x"></i>
+                                    Rechazar
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Funciones de estado de verificación
+        function getVerificationStatusColor(status) {
+            switch (status) {
+                case 'pending': return 'border-yellow-500';
+                case 'approved': return 'border-green-500';
+                case 'rejected': return 'border-red-500';
+                default: return 'border-gray-500';
+            }
+        }
+        
+        function getVerificationStatusClass(status) {
+            switch (status) {
+                case 'pending': return 'bg-yellow-100 text-yellow-800';
+                case 'approved': return 'bg-green-100 text-green-800';
+                case 'rejected': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function getVerificationStatusText(status) {
+            switch (status) {
+                case 'pending': return 'Pendiente';
+                case 'approved': return 'Aprobada';
+                case 'rejected': return 'Rechazada';
+                default: return 'Desconocido';
+            }
+        }
+        
+        // Aprobar verificación
+        async function approveVerification(verificationId) {
+            if (!confirm('¿Estás seguro de que quieres aprobar esta verificación?')) return;
+            
+            try {
+                const result = await LoyaltyAPI.approveInstagramVerification(verificationId);
+                
+                if (result.success) {
+                    showMessage('✅ Verificación aprobada y puntos agregados', 'success');
+                    await loadInstagramVerifications();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error approving verification:', error);
+                showMessage('Error al aprobar la verificación', 'error');
+            }
+        }
+        
+        // Rechazar verificación
+        async function rejectVerification(verificationId) {
+            const reason = prompt('Motivo del rechazo (opcional):');
+            
+            try {
+                const result = await LoyaltyAPI.rejectInstagramVerification(verificationId, reason);
+                
+                if (result.success) {
+                    showMessage('❌ Verificación rechazada', 'success');
+                    await loadInstagramVerifications();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting verification:', error);
+                showMessage('Error al rechazar la verificación', 'error');
+            }
+        }
+        
+        // Abrir modal de imagen
+        function openImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="max-w-4xl max-h-full p-4">
+                    <img src="${imageUrl}" alt="Screenshot" class="max-w-full max-h-full object-contain">
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">
+                        &times;
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Registrar funciones globalmente
+        window.loadInstagramVerifications = loadInstagramVerifications;
+        window.approveVerification = approveVerification;
+        window.rejectVerification = rejectVerification;
+        window.openImageModal = openImageModal;
         
     </script>
 </body>
