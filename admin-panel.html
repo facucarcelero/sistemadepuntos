@@ -299,6 +299,109 @@
     <link rel="stylesheet" href="loyalty-styles.css">
     
     <style>
+        /* Estilos para verificaciones de Instagram */
+        .verification-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .verification-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .verification-card {
+            transition: all 0.3s ease;
+        }
+        
+        .verification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .verification-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .verification-details p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .btn-approve {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .btn-approve:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .btn-reject:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .verification-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .verification-filters {
+                flex-direction: column;
+            }
+            
+            .verification-card {
+                padding: 15px;
+            }
+            
+            .btn-approve, .btn-reject {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+        
         .admin-header {
             background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%);
             padding: 20px;
@@ -7607,7 +7710,7 @@
             document.getElementById('rejectedVerifications').textContent = rejected;
         }
         
-        // Renderizar lista de verificaciones
+                // Renderizar lista de verificaciones
         function renderVerificationList(verifications) {
             const container = document.getElementById('verificationList');
             
@@ -7615,7 +7718,7 @@
                 container.innerHTML = `
                     <div class="text-center p-8 text-gray-500">
                         <i class="ph-instagram-logo text-4xl mb-4"></i>
-                        <p>No hay verificaciones de Instagram para mostrar</p>
+                        <p>No hay verificaciones para mostrar</p>
                     </div>
                 `;
                 return;
@@ -7625,41 +7728,22 @@
                 <div class="verification-card bg-white rounded-lg shadow-md p-6 mb-4 border-l-4 ${getVerificationStatusColor(verification.status)}">
                     <div class="flex flex-col lg:flex-row gap-4">
                         <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
+                            <div class="flex items-center gap-2 mb-3">
                                 <h3 class="font-semibold text-lg">@${verification.username}</h3>
                                 <span class="status-badge ${getVerificationStatusClass(verification.status)}">
                                     ${getVerificationStatusText(verification.status)}
                                 </span>
                             </div>
                             
-                            <p class="text-gray-600 mb-2">
-                                <strong>Usuario:</strong> ${verification.userId}
-                            </p>
-                            
-                            ${verification.postUrl ? `
-                                <p class="text-gray-600 mb-2">
-                                    <strong>Enlace:</strong> 
-                                    <a href="${verification.postUrl}" target="_blank" class="text-blue-600 hover:underline">
-                                        Ver post en Instagram
-                                    </a>
-                                </p>
-                            ` : ''}
-                            
-                            <p class="text-gray-600 mb-2">
-                                <strong>Descripción:</strong> ${verification.description}
-                            </p>
-                            
-                            <p class="text-gray-600 mb-2">
-                                <strong>Puntos:</strong> ${verification.points}
-                            </p>
-                            
-                            <p class="text-gray-600 mb-2">
-                                <strong>Fecha:</strong> ${formatDate(verification.createdAt?.toDate?.() || verification.createdAt)}
-                            </p>
+                            <div class="verification-details">
+                                <p><strong>Usuario:</strong> ${verification.userId}</p>
+                                <p><strong>Puntos:</strong> ${verification.points}</p>
+                                <p><strong>Fecha:</strong> ${formatDate(verification.createdAt?.toDate?.() || verification.createdAt)}</p>
+                            </div>
                             
                             ${verification.screenshotUrl ? `
                                 <div class="mt-4">
-                                    <p class="text-gray-600 mb-2"><strong>Captura de pantalla:</strong></p>
+                                    <p class="text-gray-600 mb-2"><strong>Captura del post:</strong></p>
                                     <img src="${verification.screenshotUrl}" alt="Screenshot del post" 
                                          class="max-w-xs rounded-lg shadow-md cursor-pointer hover:scale-105 transition-transform"
                                          onclick="openImageModal('${verification.screenshotUrl}')">
@@ -7669,13 +7753,11 @@
                         
                         ${verification.status === 'pending' ? `
                             <div class="flex flex-col gap-2 lg:w-48">
-                                <button onclick="approveVerification('${verification.id}')" 
-                                        class="btn-approve">
+                                <button class="btn-approve" onclick="approveVerification('${verification.id}')">
                                     <i class="ph-check"></i>
                                     Aprobar
                                 </button>
-                                <button onclick="rejectVerification('${verification.id}')" 
-                                        class="btn-reject">
+                                <button class="btn-reject" onclick="rejectVerification('${verification.id}')">
                                     <i class="ph-x"></i>
                                     Rechazar
                                 </button>

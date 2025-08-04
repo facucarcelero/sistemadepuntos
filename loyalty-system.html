@@ -393,6 +393,124 @@
                 font-size: 0.8em;
             }
         }
+
+        /* Estilos para Instagram simplificado */
+        .instagram-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #e91e63;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #e91e63;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .step p {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .instagram-btn {
+            background: linear-gradient(45deg, #e91e63, #9c27b0);
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+        }
+        
+        .instagram-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            border-color: #e91e63;
+            outline: none;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .instagram-steps {
+                gap: 10px;
+            }
+            
+            .step {
+                padding: 12px;
+            }
+            
+            .step p {
+                font-size: 14px;
+            }
+            
+            .instagram-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -796,80 +914,63 @@
         </div>
     </div>
 
-    <!-- Modal de Instagram -->
+    <!-- Modal de Instagram Simplificado -->
     <div class="modal" id="instagramModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Post en Instagram</h3>
+                <h3 class="modal-title">📸 Comparte en Instagram</h3>
                 <button class="modal-close" onclick="closeModal('instagramModal')">&times;</button>
             </div>
             
             <div class="modal-body">
                 <div class="text-center mb-20">
-                    <p><strong>📸 Comparte tu experiencia en Los Nogales</strong></p>
-                    <p>Para ganar 15 puntos, debes:</p>
-                    <ul class="text-left mb-20" style="max-width: 400px; margin: 0 auto;">
-                        <li>📱 Tomar una foto en Los Nogales</li>
-                        <li>📤 Subirla a Instagram</li>
-                        <li>🏷️ Etiquetar @losnogales</li>
-                        <li>📝 Usar #LosNogales</li>
-                        <li>📋 Completar el formulario de verificación</li>
-                    </ul>
+                    <div class="instagram-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <p>📱 Toma una foto en Los Nogales</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <p>📤 Súbela a Instagram con @parrillalosnogales</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <p>📋 Completa este formulario</p>
+                        </div>
+                    </div>
                     
-                    <a href="https://instagram.com" target="_blank" class="action-button">
+                    <a href="https://instagram.com/parrillalosnogales" target="_blank" class="action-button instagram-btn">
                         <i class="ph-instagram-logo"></i>
-                        Ir a Instagram
+                        Ver Instagram de Los Nogales
                     </a>
                 </div>
 
                 <div class="form-section">
-                    <h4 class="mb-15">📋 Formulario de Verificación</h4>
-                    
                     <div class="form-group">
                         <label for="instagramUsername">
                             <i class="ph-user"></i>
-                            Tu Usuario de Instagram
+                            Tu usuario de Instagram
                         </label>
                         <input type="text" id="instagramUsername" placeholder="Ej: @tuusuario" required>
-                        <div id="instagramUsername-error" class="error-message">Por favor ingresa tu usuario de Instagram.</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="instagramPostUrl">
-                            <i class="ph-link"></i>
-                            Enlace del Post (opcional)
-                        </label>
-                        <input type="url" id="instagramPostUrl" placeholder="https://www.instagram.com/p/...">
-                        <div id="instagramPostUrl-error" class="error-message">Por favor ingresa un enlace válido de Instagram.</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="instagramScreenshot">
                             <i class="ph-image"></i>
-                            Captura de Pantalla del Post
+                            Captura de tu post
                         </label>
                         <input type="file" id="instagramScreenshot" accept="image/*" required>
-                        <div id="instagramScreenshot-error" class="error-message">Por favor sube una captura de pantalla del post.</div>
-                        <small class="text-gray-500">Sube una imagen que muestre tu post con la etiqueta @losnogales y #LosNogales</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="instagramDescription">
-                            <i class="ph-text-t"></i>
-                            Descripción del Post
-                        </label>
-                        <textarea id="instagramDescription" placeholder="Describe brevemente tu experiencia en Los Nogales..." rows="3" required></textarea>
-                        <div id="instagramDescription-error" class="error-message">Por favor describe tu experiencia.</div>
+                        <small class="text-gray-500">Sube una foto de tu post en Instagram</small>
                     </div>
                 </div>
 
                 <div class="text-center mt-20">
-                    <button class="action-button" onclick="submitInstagramVerification()">
+                    <button class="action-button" onclick="submitInstagramSimple()">
                         <i class="ph-check-circle"></i>
-                        Enviar para Verificación
+                        Enviar y Ganar 15 Puntos
                     </button>
                     <p class="text-sm text-gray-500 mt-10">
-                        ⏱️ Los puntos se acreditarán después de la verificación (máximo 24 horas)
+                        ⏱️ Los puntos se acreditarán en 24 horas
                     </p>
                 </div>
             </div>
@@ -1678,12 +1779,10 @@
             }
         }
 
-        async function submitInstagramVerification() {
+        async function submitInstagramSimple() {
             // Validar campos requeridos
             const username = document.getElementById('instagramUsername').value.trim();
-            const postUrl = document.getElementById('instagramPostUrl').value.trim();
             const screenshot = document.getElementById('instagramScreenshot').files[0];
-            const description = document.getElementById('instagramDescription').value.trim();
             
             // Limpiar errores previos
             clearErrors();
@@ -1698,11 +1797,6 @@
             
             if (!screenshot) {
                 showError('instagramScreenshot', 'Por favor sube una captura de pantalla');
-                hasErrors = true;
-            }
-            
-            if (!description) {
-                showError('instagramDescription', 'Por favor describe tu experiencia');
                 hasErrors = true;
             }
             
@@ -1722,9 +1816,7 @@
                 const verificationData = {
                     userId: LoyaltyAPI.getCurrentUser(),
                     username: username,
-                    postUrl: postUrl || null,
                     screenshotUrl: imageUrl,
-                    description: description,
                     status: 'pending',
                     submittedAt: new Date(),
                     points: 15
@@ -1746,7 +1838,7 @@
             } finally {
                 // Restaurar botón
                 const submitButton = document.querySelector('#instagramModal .action-button');
-                submitButton.innerHTML = '<i class="ph-check-circle"></i> Enviar para Verificación';
+                submitButton.innerHTML = '<i class="ph-check-circle"></i> Enviar y Ganar 15 Puntos';
                 submitButton.disabled = false;
             }
         }
@@ -1791,9 +1883,7 @@
         
         function resetInstagramForm() {
             document.getElementById('instagramUsername').value = '';
-            document.getElementById('instagramPostUrl').value = '';
             document.getElementById('instagramScreenshot').value = '';
-            document.getElementById('instagramDescription').value = '';
             clearErrors();
         }
 

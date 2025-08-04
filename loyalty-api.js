@@ -404,7 +404,7 @@ async function addGoogleReviewPoints() {
     }
 }
 
-// Enviar verificación de post en Instagram
+// Enviar verificación de post en Instagram (SIMPLIFICADO)
 async function submitInstagramVerification(verificationData) {
     if (!currentUser) return { success: false, message: 'Debes iniciar sesión.' };
     
@@ -416,19 +416,23 @@ async function submitInstagramVerification(verificationData) {
             .get();
         
         if (!existingVerification.empty) {
-            return { success: false, message: 'Ya tienes una solicitud pendiente de verificación.' };
+            return { success: false, message: 'Ya tienes una solicitud pendiente. Espera a que la revisemos.' };
         }
         
-        // Crear la solicitud de verificación
+        // Crear la solicitud de verificación (simplificada)
         await db.collection('instagramVerifications').add({
-            ...verificationData,
+            userId: currentUser,
+            username: verificationData.username,
+            screenshotUrl: verificationData.screenshotUrl,
+            status: 'pending',
+            points: 15,
             createdAt: new Date()
         });
         
-        return { success: true, message: 'Solicitud enviada correctamente. Los puntos se acreditarán después de la verificación.' };
+        return { success: true, message: '¡Perfecto! Tu solicitud fue enviada. Los puntos se acreditarán en 24 horas.' };
     } catch (error) {
         console.error('Error submitting Instagram verification:', error);
-        return { success: false, message: 'Error al enviar la verificación.' };
+        return { success: false, message: 'Error al enviar. Intenta nuevamente.' };
     }
 }
 
@@ -472,7 +476,7 @@ async function getPendingInstagramVerifications() {
     }
 }
 
-// Función para administradores: aprobar verificación de Instagram
+// Función para administradores: aprobar verificación de Instagram (SIMPLIFICADO)
 async function approveInstagramVerification(verificationId) {
     if (!currentUser || !(await isAdmin())) {
         return { success: false, message: 'No tienes permisos de administrador.' };
@@ -504,39 +508,51 @@ async function approveInstagramVerification(verificationId) {
             const newPoints = (userData.points || 0) + verificationData.points;
             
             await userRef.update({
-                points: newPoints,
-                totalPointsEarned: (userData.totalPointsEarned || 0) + verificationData.points
+                points: newPoints
             });
             
-            // Registrar transacción
-            await addPointTransaction('Post en Instagram (Verificado)', verificationData.points, 'earned', verificationData.userId);
+            // Registrar la transacción
+            await addPointTransaction(
+                `Post en Instagram aprobado (@${verificationData.username})`,
+                verificationData.points,
+                'instagram',
+                verificationData.userId
+            );
         }
         
-        return { success: true, message: 'Verificación aprobada y puntos agregados.' };
+        return { success: true, message: '¡Verificación aprobada! Se otorgaron 15 puntos al usuario.' };
     } catch (error) {
         console.error('Error approving Instagram verification:', error);
-        return { success: false, message: 'Error al aprobar la verificación.' };
+        return { success: false, message: 'Error al aprobar. Intenta nuevamente.' };
     }
 }
 
-// Función para administradores: rechazar verificación de Instagram
+// Función para administradores: rechazar verificación de Instagram (SIMPLIFICADO)
 async function rejectInstagramVerification(verificationId, reason = '') {
     if (!currentUser || !(await isAdmin())) {
         return { success: false, message: 'No tienes permisos de administrador.' };
     }
     
     try {
-        await db.collection('instagramVerifications').doc(verificationId).update({
+        const verificationRef = db.collection('instagramVerifications').doc(verificationId);
+        const verificationDoc = await verificationRef.get();
+        
+        if (!verificationDoc.exists) {
+            return { success: false, message: 'Verificación no encontrada.' };
+        }
+        
+        // Actualizar estado de la verificación
+        await verificationRef.update({
             status: 'rejected',
             rejectedAt: new Date(),
             rejectedBy: currentUser,
-            rejectionReason: reason
+            rejectionReason: reason || 'No cumple con los requisitos'
         });
         
         return { success: true, message: 'Verificación rechazada.' };
     } catch (error) {
         console.error('Error rejecting Instagram verification:', error);
-        return { success: false, message: 'Error al rechazar la verificación.' };
+        return { success: false, message: 'Error al rechazar. Intenta nuevamente.' };
     }
 }
 
