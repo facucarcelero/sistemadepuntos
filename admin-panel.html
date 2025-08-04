@@ -3694,7 +3694,7 @@
             
             if (isLoggedIn && user) {
                 console.log('👤 Usuario actual:', user.email);
-                adminCurrentUser = user;
+                    adminCurrentUser = user;
                 
                 // Verificación ULTRA RÁPIDA de admin (sin delays, sin verificaciones complejas)
                 try {
@@ -3707,13 +3707,13 @@
                         showAdminPanel();
                         // Cargar dashboard ULTRA RÁPIDO (sin loading, sin delays)
                         loadDashboardOptimized();
-                    } else {
+                                } else {
                         console.log('❌ Usuario no es admin');
                         showMessage('No tienes permisos de administrador', 'error');
                         await LoyaltyAPI.logoutUser();
                         showLoginScreen();
-                    }
-                } catch (error) {
+                            }
+                        } catch (error) {
                     console.error('❌ Error verificando admin:', error);
                     showMessage('Error verificando permisos', 'error');
                     await LoyaltyAPI.logoutUser();
@@ -3721,8 +3721,8 @@
                 }
             } else {
                 console.log('👤 No hay usuario autenticado');
-                showLoginScreen();
-            }
+                    showLoginScreen();
+                }
         }
 
         // Mostrar loading en dashboard (ELIMINADO - no necesario como en el repositorio de GitHub)
@@ -6085,7 +6085,7 @@
             console.log('🚪 Cerrando sesión...');
             try {
                 // Limpiar listeners en tiempo real
-                cleanupRealTimeListeners();
+            cleanupRealTimeListeners();
                 
                 // Cerrar sesión
                 await LoyaltyAPI.logoutUser();
@@ -6116,6 +6116,19 @@
         let searchTimeout = null; // Para búsqueda con debounce
         let currentPeriodType = 'daily';
         let currentDateString = new Date().toISOString().split('T')[0];
+
+        // Función para mostrar loader de reservas
+        function showReservationsLoader() {
+            const container = document.getElementById('reservations-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex justify-center items-center p-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span class="ml-2 text-gray-600">Cargando reservas...</span>
+                    </div>
+                `;
+            }
+        }
 
         // Función principal para cargar reservas (ULTRA RÁPIDA)
         async function loadReservations() {
@@ -6534,7 +6547,7 @@
                 });
             }
 
-            updateAdminUI(filteredReservations);
+            updateAdminUI(filteredReservations, currentDateString, currentPeriodType);
         }
 
         // Funciones de historial de cancelaciones
@@ -6544,10 +6557,21 @@
                 const cancellations = [];
                 
                 snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Manejar diferentes formatos de fecha
+                    let cancelledAt;
+                    if (data.cancelledAt && typeof data.cancelledAt.toDate === 'function') {
+                        cancelledAt = data.cancelledAt.toDate();
+                    } else if (data.cancelledAt) {
+                        cancelledAt = new Date(data.cancelledAt);
+                    } else {
+                        cancelledAt = new Date();
+                    }
+                    
                     cancellations.push({
                         id: doc.id,
-                        ...doc.data(),
-                        cancelledAt: doc.data().cancelledAt.toDate()
+                        ...data,
+                        cancelledAt: cancelledAt
                     });
                 });
 
@@ -6583,6 +6607,202 @@
             `).join('');
         }
 
+        // Función para actualizar la UI del admin con las reservas
+        function updateAdminUI(reservations, dateString, periodType) {
+            try {
+                console.log('🔄 Actualizando UI del admin con', reservations.length, 'reservas');
+                
+                const container = document.getElementById('reservations-container');
+                if (!container) {
+                    console.error('❌ Contenedor de reservas no encontrado');
+                    return;
+                }
+
+                // Actualizar estadísticas
+                updateReservationsStats(reservations);
+                
+                // Renderizar lista de reservas
+                renderReservationsList(reservations, container);
+                
+                // Actualizar filtros activos
+                updateActiveFilters(dateString, periodType);
+                
+                console.log('✅ UI del admin actualizada correctamente');
+                
+            } catch (error) {
+                console.error('❌ Error actualizando UI del admin:', error);
+            }
+        }
+
+        // Función para actualizar estadísticas de reservas
+        function updateReservationsStats(reservations) {
+            const totalReservations = reservations.length;
+            const confirmedReservations = reservations.filter(r => r.status === 'confirmed').length;
+            const pendingReservations = reservations.filter(r => r.status === 'pending').length;
+            const cancelledReservations = reservations.filter(r => r.status === 'cancelled').length;
+            const totalGuests = reservations.reduce((sum, r) => sum + (r.guests || 0), 0);
+
+            // Actualizar elementos de estadísticas si existen
+            const statsElements = {
+                'total-reservations': totalReservations,
+                'confirmed-reservations': confirmedReservations,
+                'pending-reservations': pendingReservations,
+                'cancelled-reservations': cancelledReservations,
+                'total-guests': totalGuests
+            };
+
+            Object.entries(statsElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                }
+            });
+        }
+
+        // Función para renderizar lista de reservas
+        function renderReservationsList(reservations, container) {
+            if (reservations.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-8 text-gray-500">
+                        <i class="ph-calendar-blank text-4xl mb-4"></i>
+                        <p>No hay reservas para el período seleccionado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar reservas por fecha y hora
+            const sortedReservations = reservations.sort((a, b) => {
+                const dateA = new Date(a.date + ' ' + a.time);
+                const dateB = new Date(b.date + ' ' + b.time);
+                return dateA - dateB;
+            });
+
+            container.innerHTML = sortedReservations.map(reservation => `
+                <div class="reservation-card bg-white rounded-lg shadow-md p-4 mb-4 border-l-4 ${getStatusColor(reservation.status)}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg">${reservation.customerName}</h3>
+                            <p class="text-gray-600">📱 ${reservation.phone}</p>
+                            <p class="text-gray-600">📅 ${formatDate(reservation.date)} a las ${reservation.time}</p>
+                            <p class="text-gray-600">👥 ${reservation.guests} comensales</p>
+                            ${reservation.notes ? `<p class="text-gray-600">📝 ${reservation.notes}</p>` : ''}
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="status-badge ${getStatusClass(reservation.status)}">
+                                ${getStatusText(reservation.status)}
+                            </span>
+                            <div class="flex gap-2">
+                                <button onclick="editReservation('${reservation.id}')" class="btn-edit">
+                                    <i class="ph-pencil"></i>
+                                </button>
+                                <button onclick="cancelReservation('${reservation.id}')" class="btn-cancel">
+                                    <i class="ph-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Función para cargar lista de días especiales
+        async function loadSpecialDaysList() {
+            try {
+                console.log('📅 Cargando días especiales...');
+                
+                const snapshot = await reservationsDb.collection('specialDays').orderBy('date').get();
+                const specialDays = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    specialDays.push({
+                        id: doc.id,
+                        ...data,
+                        date: data.date ? new Date(data.date) : new Date()
+                    });
+                });
+
+                renderSpecialDaysList(specialDays);
+                console.log('✅ Días especiales cargados:', specialDays.length);
+                
+            } catch (error) {
+                console.error('❌ Error cargando días especiales:', error);
+                showReservationMessage('Error cargando días especiales', 'error');
+            }
+        }
+
+        // Función para renderizar lista de días especiales
+        function renderSpecialDaysList(specialDays) {
+            const container = document.getElementById('special-days-list');
+            if (!container) return;
+
+            if (specialDays.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-4 text-gray-500">
+                        No hay días especiales configurados
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = specialDays.map(day => `
+                <div class="special-day-item border-b border-gray-200 p-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold">${day.name}</h4>
+                            <p class="text-sm text-gray-600">${formatDate(day.date)}</p>
+                            <p class="text-sm text-gray-600">${day.description || 'Sin descripción'}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editSpecialDay('${day.id}')" class="text-blue-500 hover:text-blue-700">
+                                <i class="ph-pencil"></i>
+                            </button>
+                            <button onclick="deleteSpecialDay('${day.id}')" class="text-red-500 hover:text-red-700">
+                                <i class="ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Funciones auxiliares para el manejo de reservas
+        function getStatusColor(status) {
+            const colors = {
+                'confirmed': 'border-green-500',
+                'pending': 'border-yellow-500',
+                'cancelled': 'border-red-500'
+            };
+            return colors[status] || 'border-gray-500';
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'confirmed': 'bg-green-100 text-green-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'confirmed': 'Confirmada',
+                'pending': 'Pendiente',
+                'cancelled': 'Cancelada'
+            };
+            return texts[status] || 'Desconocido';
+        }
+
+        function updateActiveFilters(dateString, periodType) {
+            // Actualizar indicadores de filtros activos si existen
+            const activeFiltersElement = document.getElementById('active-filters');
+            if (activeFiltersElement) {
+                activeFiltersElement.textContent = `${periodType} - ${formatDate(dateString)}`;
+            }
+        }
+
         // Configurar cierre de modales
         document.addEventListener('click', function(e) {
             if (e.target.id === 'closeAddReservationModal') {
@@ -6602,6 +6822,60 @@
                 e.target.classList.add('hidden');
             }
         });
+
+        // Funciones para manejo de reservas
+        function editReservation(reservationId) {
+            console.log('✏️ Editando reserva:', reservationId);
+            // Implementar lógica de edición
+            showReservationMessage('Función de edición en desarrollo', 'info');
+        }
+
+        function cancelReservation(reservationId) {
+            if (confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
+                console.log('❌ Cancelando reserva:', reservationId);
+                // Implementar lógica de cancelación
+                showReservationMessage('Función de cancelación en desarrollo', 'info');
+            }
+        }
+
+        function editSpecialDay(dayId) {
+            console.log('✏️ Editando día especial:', dayId);
+            // Implementar lógica de edición
+            showReservationMessage('Función de edición en desarrollo', 'info');
+        }
+
+        function deleteSpecialDay(dayId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este día especial?')) {
+                console.log('🗑️ Eliminando día especial:', dayId);
+                // Implementar lógica de eliminación
+                showReservationMessage('Función de eliminación en desarrollo', 'info');
+            }
+        }
+
+        function deleteCancellation(cancellationId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este registro de cancelación?')) {
+                console.log('🗑️ Eliminando cancelación:', cancellationId);
+                // Implementar lógica de eliminación
+                showReservationMessage('Función de eliminación en desarrollo', 'info');
+            }
+        }
+
+        // Función para mostrar mensajes de reservas
+        function showReservationMessage(message, type = 'info') {
+            const messageContainer = document.getElementById('reservation-message');
+            if (messageContainer) {
+                messageContainer.textContent = message;
+                messageContainer.className = `alert alert-${type}`;
+                messageContainer.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageContainer.style.display = 'none';
+                }, 5000);
+            } else {
+                // Fallback: usar alert si no hay contenedor
+                alert(message);
+            }
+        }
 
         // Configurar cierre con Escape
         document.addEventListener('keydown', function(e) {
@@ -6743,7 +7017,7 @@
                 showMessage(`Error cargando datos de ${sectionName}: ${error.message}`, 'error');
             }
         }
-
+        
         // Función de prueba temporal
         function testJavaScript() {
             console.log('🧪 Función de prueba ejecutada');
