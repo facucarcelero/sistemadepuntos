@@ -6119,7 +6119,7 @@
 
         // Función para mostrar loader de reservas
         function showReservationsLoader() {
-            const container = document.getElementById('reservations-container');
+            const container = ensureReservationsContainer();
             if (container) {
                 container.innerHTML = `
                     <div class="flex justify-center items-center p-8">
@@ -6667,9 +6667,10 @@
             try {
                 console.log('🔄 Actualizando UI del admin con', reservations.length, 'reservas');
                 
-                const container = document.getElementById('reservations-container');
+                // Asegurar que el contenedor existe
+                const container = ensureReservationsContainer();
                 if (!container) {
-                    console.error('❌ Contenedor de reservas no encontrado');
+                    console.error('❌ No se pudo crear el contenedor de reservas');
                     return;
                 }
 
@@ -7103,6 +7104,102 @@
             }
         }
 
+        // Funciones auxiliares faltantes
+        function formatDate(dateString) {
+            try {
+                if (!dateString) return 'Fecha no disponible';
+                
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Fecha inválida';
+                
+                return date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                console.error('Error formateando fecha:', error);
+                return 'Error de fecha';
+            }
+        }
+
+        function calculateDateRange(dateString, periodType) {
+            try {
+                const baseDate = new Date(dateString);
+                let startDate, endDate;
+
+                switch (periodType) {
+                    case 'daily':
+                        startDate = new Date(baseDate);
+                        endDate = new Date(baseDate);
+                        break;
+                    case 'weekly':
+                        const dayOfWeek = baseDate.getDay();
+                        const diff = baseDate.getDate() - dayOfWeek;
+                        startDate = new Date(baseDate.setDate(diff));
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 6);
+                        break;
+                    case 'monthly':
+                        startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+                        endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+                        break;
+                    case 'custom':
+                        // Para rango personalizado, usar las fechas del formulario
+                        const startInput = document.getElementById('dateRangeStart');
+                        const endInput = document.getElementById('dateRangeEnd');
+                        if (startInput && endInput && startInput.value && endInput.value) {
+                            startDate = new Date(startInput.value);
+                            endDate = new Date(endInput.value);
+                        } else {
+                            startDate = new Date(baseDate);
+                            endDate = new Date(baseDate);
+                        }
+                        break;
+                    default:
+                        startDate = new Date(baseDate);
+                        endDate = new Date(baseDate);
+                }
+
+                // Asegurar que las fechas estén en el formato correcto para Firestore
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+
+                return { startDate, endDate };
+            } catch (error) {
+                console.error('Error calculando rango de fechas:', error);
+                const today = new Date();
+                return { startDate: today, endDate: today };
+            }
+        }
+
+        // Función para crear el contenedor de reservas si no existe
+        function ensureReservationsContainer() {
+            let container = document.getElementById('reservations-container');
+            
+            if (!container) {
+                console.log('🔧 Creando contenedor de reservas...');
+                
+                // Buscar la sección de reservas
+                const reservationsSection = document.getElementById('reservations');
+                if (reservationsSection) {
+                    // Crear el contenedor
+                    container = document.createElement('div');
+                    container.id = 'reservations-container';
+                    container.className = 'reservations-list mt-4';
+                    
+                    // Agregar al final de la sección
+                    reservationsSection.appendChild(container);
+                    
+                    console.log('✅ Contenedor de reservas creado');
+                } else {
+                    console.error('❌ Sección de reservas no encontrada');
+                }
+            }
+            
+            return container;
+        }
+
         // Asegurar que todas las funciones estén disponibles globalmente
         window.showReservationsLoader = showReservationsLoader;
         window.loadSpecialDaysList = loadSpecialDaysList;
@@ -7115,6 +7212,9 @@
         window.deleteCancellation = deleteCancellation;
         window.applyFilter = applyFilter;
         window.fetchCancellations = fetchCancellations;
+        window.formatDate = formatDate;
+        window.calculateDateRange = calculateDateRange;
+        window.ensureReservationsContainer = ensureReservationsContainer;
         
         console.log('✅ Todas las funciones de reservas registradas globalmente');
         
