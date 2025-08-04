@@ -6736,18 +6736,40 @@
         // Función para actualizar estadísticas de reservas
         function updateReservationsStats(reservations) {
             const totalReservations = reservations.length;
-            const confirmedReservations = reservations.filter(r => r.status === 'confirmed').length;
-            const pendingReservations = reservations.filter(r => r.status === 'pending').length;
-            const cancelledReservations = reservations.filter(r => r.status === 'cancelled').length;
-            const totalGuests = reservations.reduce((sum, r) => sum + (r.guests || 0), 0);
+            
+            // Contar por estado usando múltiples campos posibles
+            const confirmedReservations = reservations.filter(r => 
+                (r.status === 'confirmed' || r.estado === 'confirmada' || r.status === 'manual')
+            ).length;
+            
+            const pendingReservations = reservations.filter(r => 
+                (r.status === 'pending' || r.estado === 'pendiente' || !r.status)
+            ).length;
+            
+            const cancelledReservations = reservations.filter(r => 
+                (r.status === 'cancelled' || r.estado === 'cancelada')
+            ).length;
+            
+            // Sumar comensales usando múltiples campos posibles
+            const totalGuests = reservations.reduce((sum, r) => 
+                sum + (r.guests || r.diners || r.personas || 0), 0
+            );
+
+            console.log('📊 Estadísticas calculadas:', {
+                total: totalReservations,
+                confirmed: confirmedReservations,
+                pending: pendingReservations,
+                cancelled: cancelledReservations,
+                guests: totalGuests
+            });
 
             // Actualizar elementos de estadísticas si existen
             const statsElements = {
-                'total-reservations': totalReservations,
-                'confirmed-reservations': confirmedReservations,
-                'pending-reservations': pendingReservations,
-                'cancelled-reservations': cancelledReservations,
-                'total-guests': totalGuests
+                'totalReservas': totalReservations,
+                'totalConfirmadas': confirmedReservations,
+                'totalPendientes': pendingReservations,
+                'totalManuales': cancelledReservations,
+                'totalComensales': totalGuests
             };
 
             Object.entries(statsElements).forEach(([id, value]) => {
@@ -6772,37 +6794,51 @@
 
             // Ordenar reservas por fecha y hora
             const sortedReservations = reservations.sort((a, b) => {
-                const dateA = new Date(a.date + ' ' + a.time);
-                const dateB = new Date(b.date + ' ' + b.time);
+                const dateA = new Date(a.date + ' ' + (a.time || a.hora || '00:00'));
+                const dateB = new Date(b.date + ' ' + (b.time || b.hora || '00:00'));
                 return dateA - dateB;
             });
 
-            container.innerHTML = sortedReservations.map(reservation => `
-                <div class="reservation-card bg-white rounded-lg shadow-md p-4 mb-4 border-l-4 ${getStatusColor(reservation.status)}">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg">${reservation.customerName}</h3>
-                            <p class="text-gray-600">📱 ${reservation.phone}</p>
-                            <p class="text-gray-600">📅 ${formatDate(reservation.date)} a las ${reservation.time}</p>
-                            <p class="text-gray-600">👥 ${reservation.guests} comensales</p>
-                            ${reservation.notes ? `<p class="text-gray-600">📝 ${reservation.notes}</p>` : ''}
-                        </div>
-                        <div class="flex flex-col items-end gap-2">
-                            <span class="status-badge ${getStatusClass(reservation.status)}">
-                                ${getStatusText(reservation.status)}
-                            </span>
-                            <div class="flex gap-2">
-                                <button onclick="editReservation('${reservation.id}')" class="btn-edit">
-                                    <i class="ph-pencil"></i>
-                                </button>
-                                <button onclick="cancelReservation('${reservation.id}')" class="btn-cancel">
-                                    <i class="ph-x"></i>
-                                </button>
+            container.innerHTML = sortedReservations.map(reservation => {
+                // Extraer datos con múltiples campos posibles
+                const customerName = reservation.customerName || reservation.name || reservation.nombre || 'Sin nombre';
+                const phone = reservation.phone || reservation.telefono || 'Sin teléfono';
+                const date = reservation.date || reservation.fecha || 'Sin fecha';
+                const time = reservation.time || reservation.hora || 'Sin hora';
+                const guests = reservation.guests || reservation.diners || reservation.personas || 0;
+                const notes = reservation.notes || reservation.notas || '';
+                const status = reservation.status || reservation.estado || 'pending';
+                const area = reservation.area || reservation.seccion || 'Sin área';
+                const turn = reservation.turn || 'Sin turno';
+
+                return `
+                    <div class="reservation-card bg-white rounded-lg shadow-md p-4 mb-4 border-l-4 ${getStatusColor(status)}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-lg">${customerName}</h3>
+                                <p class="text-gray-600">📱 ${phone}</p>
+                                <p class="text-gray-600">📅 ${formatDate(date)} a las ${time}</p>
+                                <p class="text-gray-600">👥 ${guests} comensales</p>
+                                <p class="text-gray-600">🏢 ${area} - ${turn}</p>
+                                ${notes ? `<p class="text-gray-600">📝 ${notes}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="status-badge ${getStatusClass(status)}">
+                                    ${getStatusText(status)}
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="editReservation('${reservation.id}')" class="btn-edit">
+                                        <i class="ph-pencil"></i>
+                                    </button>
+                                    <button onclick="cancelReservation('${reservation.id}')" class="btn-cancel">
+                                        <i class="ph-x"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Función para cargar lista de días especiales
