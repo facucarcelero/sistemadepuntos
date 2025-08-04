@@ -2983,6 +2983,9 @@
                             <button onclick="loadAllReservations()" class="bg-purple-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-600 flex items-center gap-2 transition-colors">
                                 <i class="ph-database text-lg"></i> Cargar Todas
                             </button>
+                            <button onclick="loadLastMonthReservations()" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 flex items-center gap-2 transition-colors">
+                                <i class="ph-calendar text-lg"></i> Último Mes
+                            </button>
                         </div>
                         
                         <!-- Estadísticas -->
@@ -7328,8 +7331,65 @@
                 // Actualizar UI con todas las reservas
                 updateAdminUI(allReservations, 'all', 'all');
                 
+                // Actualizar estadísticas
+                updateReservationsStats(allReservations);
+                
             } catch (error) {
                 console.error('❌ Error cargando todas las reservas:', error);
+            }
+        }
+
+        // Función para cargar reservas por rango de fechas más amplio
+        async function loadReservationsByDateRange(startDate, endDate) {
+            try {
+                console.log('🔍 Cargando reservas por rango:', startDate, 'a', endDate);
+                
+                if (!reservationsDb) {
+                    console.error('❌ Firestore no está disponible');
+                    return;
+                }
+                
+                const snapshot = await reservationsDb.collection('reservations')
+                    .where('date', '>=', startDate)
+                    .where('date', '<=', endDate)
+                    .orderBy('date')
+                    .orderBy('time')
+                    .get();
+                
+                console.log(`📊 Reservas en rango: ${snapshot.size}`);
+                
+                const reservations = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    reservations.push({
+                        id: doc.id,
+                        ...data
+                    });
+                });
+                
+                console.log('📋 Reservas en rango:', reservations);
+                
+                // Actualizar UI
+                updateAdminUI(reservations, startDate, 'custom');
+                
+            } catch (error) {
+                console.error('❌ Error cargando reservas por rango:', error);
+            }
+        }
+
+        // Función para cargar reservas del último mes
+        async function loadLastMonthReservations() {
+            try {
+                const today = new Date();
+                const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                const startDate = lastMonth.toISOString().split('T')[0];
+                const endDate = today.toISOString().split('T')[0];
+                
+                console.log('📅 Cargando reservas del último mes:', startDate, 'a', endDate);
+                await loadReservationsByDateRange(startDate, endDate);
+                
+            } catch (error) {
+                console.error('❌ Error cargando reservas del último mes:', error);
             }
         }
 
@@ -7350,6 +7410,8 @@
         window.ensureReservationsContainer = ensureReservationsContainer;
         window.diagnoseReservationsDatabase = diagnoseReservationsDatabase;
         window.loadAllReservations = loadAllReservations;
+        window.loadReservationsByDateRange = loadReservationsByDateRange;
+        window.loadLastMonthReservations = loadLastMonthReservations;
         
         console.log('✅ Todas las funciones de reservas registradas globalmente');
         
