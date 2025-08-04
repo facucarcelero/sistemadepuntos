@@ -20,6 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
     
     <!-- Estilos -->
     <link rel="stylesheet" href="loyalty-styles.css">
@@ -1173,6 +1174,28 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Configuración de Firebase para el Sistema de Fidelización Los Nogales
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS_eGNLqUH8SshfrnBaUvRTcjJKy5tFiI",
+            authDomain: "losnogales-reservas.firebaseapp.com",
+            projectId: "losnogales-reservas",
+            storageBucket: "losnogales-reservas.firebasestorage.app",
+            messagingSenderId: "707614707617",
+            appId: "1:707614707617:web:57ef12cf519d99ff8585e0",
+            measurementId: "G-MBGF0QWF7K"
+        };
+
+        // Inicializar Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('✅ Firebase inicializado correctamente en loyalty-system.html');
+        } catch (error) {
+            if (error.code !== 'app/duplicate-app') {
+                console.error('Error inicializando Firebase:', error);
+            }
+        }
+    </script>
     <script src="loyalty-api.js"></script>
     <script>
         // Variables globales
