@@ -6133,7 +6133,12 @@
         // Función principal para cargar reservas (ULTRA RÁPIDA)
         async function loadReservations() {
             try {
-                showReservationsLoader();
+                // Verificar que la función esté disponible
+                if (typeof showReservationsLoader === 'function') {
+                    showReservationsLoader();
+                } else {
+                    console.warn('⚠️ showReservationsLoader no está disponible');
+                }
                 
                 // Configurar fecha por defecto si no está establecida
                 if (!document.getElementById('dateFilter').value) {
@@ -6158,7 +6163,11 @@
                 
             } catch (error) {
                 console.error('Error al cargar reservas:', error);
-                showReservationMessage('Error al cargar las reservas', 'error');
+                if (typeof showReservationMessage === 'function') {
+                    showReservationMessage('Error al cargar las reservas', 'error');
+                } else {
+                    alert('Error al cargar las reservas');
+                }
             }
         }
 
@@ -6547,37 +6556,83 @@
                 });
             }
 
-            updateAdminUI(filteredReservations, currentDateString, currentPeriodType);
+            if (typeof updateAdminUI === 'function') {
+                updateAdminUI(filteredReservations, currentDateString, currentPeriodType);
+            } else {
+                console.error('❌ updateAdminUI no está disponible');
+            }
         }
 
         // Funciones de historial de cancelaciones
         async function fetchCancellations() {
             try {
+                console.log('📋 Cargando historial de cancelaciones...');
                 const snapshot = await reservationsDb.collection('cancellations').orderBy('cancelledAt', 'desc').get();
                 const cancellations = [];
                 
                 snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Manejar diferentes formatos de fecha
-                    let cancelledAt;
-                    if (data.cancelledAt && typeof data.cancelledAt.toDate === 'function') {
-                        cancelledAt = data.cancelledAt.toDate();
-                    } else if (data.cancelledAt) {
-                        cancelledAt = new Date(data.cancelledAt);
-                    } else {
-                        cancelledAt = new Date();
+                    try {
+                        const data = doc.data();
+                        console.log('📅 Datos de cancelación:', data);
+                        
+                        // Manejar diferentes formatos de fecha de manera más robusta
+                        let cancelledAt;
+                        
+                        if (data.cancelledAt) {
+                            if (typeof data.cancelledAt.toDate === 'function') {
+                                // Es un Timestamp de Firestore
+                                cancelledAt = data.cancelledAt.toDate();
+                                console.log('✅ Fecha convertida desde Timestamp:', cancelledAt);
+                            } else if (data.cancelledAt instanceof Date) {
+                                // Ya es un objeto Date
+                                cancelledAt = data.cancelledAt;
+                                console.log('✅ Fecha ya es Date:', cancelledAt);
+                            } else if (typeof data.cancelledAt === 'string') {
+                                // Es un string de fecha
+                                cancelledAt = new Date(data.cancelledAt);
+                                console.log('✅ Fecha convertida desde string:', cancelledAt);
+                            } else if (typeof data.cancelledAt === 'number') {
+                                // Es un timestamp numérico
+                                cancelledAt = new Date(data.cancelledAt);
+                                console.log('✅ Fecha convertida desde timestamp:', cancelledAt);
+                            } else {
+                                // Formato desconocido, usar fecha actual
+                                console.warn('⚠️ Formato de fecha desconocido:', typeof data.cancelledAt, data.cancelledAt);
+                                cancelledAt = new Date();
+                            }
+                        } else {
+                            // No hay fecha, usar fecha actual
+                            console.warn('⚠️ No hay fecha de cancelación, usando fecha actual');
+                            cancelledAt = new Date();
+                        }
+                        
+                        cancellations.push({
+                            id: doc.id,
+                            ...data,
+                            cancelledAt: cancelledAt
+                        });
+                        
+                    } catch (docError) {
+                        console.error('❌ Error procesando documento de cancelación:', docError);
+                        // Continuar con el siguiente documento
                     }
-                    
-                    cancellations.push({
-                        id: doc.id,
-                        ...data,
-                        cancelledAt: cancelledAt
-                    });
                 });
 
+                console.log('✅ Cancelaciones procesadas:', cancellations.length);
                 renderCancellationsList(cancellations, document.getElementById('cancellations-history-list'));
+                
             } catch (error) {
-                console.error('Error obteniendo cancelaciones:', error);
+                console.error('❌ Error obteniendo cancelaciones:', error);
+                // Mostrar mensaje de error al usuario
+                const container = document.getElementById('cancellations-history-list');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center p-4 text-red-500">
+                            <i class="ph-warning text-2xl mb-2"></i>
+                            <p>Error cargando cancelaciones: ${error.message}</p>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -7047,6 +7102,21 @@
                 alert('❌ LoyaltyAPI NO está disponible');
             }
         }
+
+        // Asegurar que todas las funciones estén disponibles globalmente
+        window.showReservationsLoader = showReservationsLoader;
+        window.loadSpecialDaysList = loadSpecialDaysList;
+        window.updateAdminUI = updateAdminUI;
+        window.showReservationMessage = showReservationMessage;
+        window.editReservation = editReservation;
+        window.cancelReservation = cancelReservation;
+        window.editSpecialDay = editSpecialDay;
+        window.deleteSpecialDay = deleteSpecialDay;
+        window.deleteCancellation = deleteCancellation;
+        window.applyFilter = applyFilter;
+        window.fetchCancellations = fetchCancellations;
+        
+        console.log('✅ Todas las funciones de reservas registradas globalmente');
         
     </script>
 </body>
