@@ -18,11 +18,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
     
     <!-- Preload crítico para localhost -->
     <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js" as="script">
     <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js" as="script">
     <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js" as="script">
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js" as="script">
     
     <!-- Optimizaciones específicas para localhost -->
     <script src="localhost-optimization.js"></script>
@@ -778,6 +780,14 @@
         
         .action-button.secondary {
             background: var(--danger-color) !important;
+        }
+        
+        .btn-secondary {
+            background: #6c757d !important;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268 !important;
         }
         
         .redemption-status {
@@ -1847,6 +1857,31 @@
             border-radius: 6px;
             cursor: pointer;
         }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .manage-admins-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .manage-admins-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
 
         /* ===== MENÚ LATERAL ===== */
         .sidebar {
@@ -2635,9 +2670,62 @@
         .verification-filters {
             display: flex;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             align-items: center;
         }
+        
+        /* Estilos para pestañas de Instagram */
+        .instagram-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary-green);
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-green);
+            border-bottom-color: var(--primary-green);
+            background: var(--card-bg);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 0 0 12px 12px;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            color: var(--text-primary);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+
         
         .verification-card {
             transition: all 0.3s ease;
@@ -2650,11 +2738,11 @@
         
         /* Estilos para códigos Instagram */
         .code-generation-form {
-            background: #f8f9fa;
+            background: var(--bg-secondary);
             padding: 1.5rem;
             border-radius: 12px;
             margin-bottom: 2rem;
-            border: 1px solid #e9ecef;
+            border: 1px solid var(--border-color);
         }
         
         .form-row {
@@ -2672,18 +2760,40 @@
         }
         
         .code-item {
-            background: white;
-            border: 1px solid #e9ecef;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s ease;
+            color: var(--text-primary);
         }
         
         .code-item.active {
-            border-left: 4px solid #10b981;
+            border-left: 4px solid var(--primary-green);
+        }
+        
+        /* Estilos específicos para formularios en pestañas */
+        .tab-content .form-control {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .tab-content .form-control:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+        }
+        
+        .tab-content .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .tab-content label {
+            color: var(--text-primary);
         }
         
         .code-item.expired {
@@ -2727,6 +2837,26 @@
             font-size: 0.875rem;
         }
         
+        /* Estilos específicos para botones en pestañas */
+        .tab-content .action-button {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab-content .action-button:hover {
+            background: var(--primary-green-dark);
+            transform: translateY(-1px);
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -2741,6 +2871,120 @@
             .code-actions {
                 width: 100%;
                 justify-content: flex-end;
+            }
+            
+            .verification-stats {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .verification-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .verification-filters select,
+            .verification-filters button {
+                width: 100%;
+            }
+            
+            .instagram-tabs {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            
+            .tab-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.5rem 1rem;
+                font-size: 14px;
+            }
+            
+            .code-generation-form {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .header-actions {
+                gap: 5px;
+            }
+            
+            .manage-admins-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            
+            .manage-admins-btn .btn-text {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .verification-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .code-item {
+                padding: 1rem;
+            }
+            
+            .verification-card {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                padding: 0px 15px;
+            }
+            
+            .header-title {
+                font-size: 1.2em;
+            }
+            
+            .manage-admins-btn {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+            
+            .instagram-tabs {
+                padding: 0.5rem;
+            }
+            
+            .tab-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 12px;
+            }
+            
+            .tab-btn span {
+                display: none;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+
+            
+            .verification-filters {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .verification-filters button {
+                width: 100%;
             }
         }
     </style>
@@ -2786,9 +3030,9 @@
                     </button>
                     <h1 class="header-title">Parrilla Los Nogales</h1>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn btn-primary" onclick="window.location.href='admin-management.html'" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 12px;">
-                        <i class="ph-users"></i> Gestionar Admins
+                <div class="header-actions">
+                    <button class="btn btn-primary manage-admins-btn" onclick="window.location.href='admin-management.html'">
+                        <i class="ph-users"></i> <span class="btn-text">Gestionar Admins</span>
                     </button>
                     <button class="logout-btn" onclick="logout()">
                         <i class="ph-sign-out"></i>
@@ -2836,10 +3080,6 @@
                         <a href="#" class="nav-item" onclick="showSection('instagram-verifications')">
             <i class="ph-instagram-logo"></i>
             <span>Verificaciones Instagram</span>
-        </a>
-        <a href="#" class="nav-item" onclick="showSection('instagram-codes')">
-            <i class="ph-key"></i>
-            <span>Códigos Instagram</span>
         </a>
         </div>
         </nav>
@@ -3611,77 +3851,101 @@
                                 Actualizar
                             </button>
                         </div>
-
-                        <div class="verification-list" id="verificationList">
-                            <!-- Las verificaciones se cargarán dinámicamente -->
+                        
+                        <!-- Pestañas de Instagram -->
+                        <div class="instagram-tabs">
+                            <button class="tab-btn active" onclick="switchInstagramTab('verifications')">
+                                <i class="ph-instagram-logo"></i>
+                                <span>Verificaciones</span>
+                            </button>
+                            <button class="tab-btn" onclick="switchInstagramTab('codes')">
+                                <i class="ph-key"></i>
+                                <span>Códigos</span>
+                            </button>
                         </div>
+                        
+                        <!-- Contenido de Verificaciones -->
+                        <div id="verifications-content" class="tab-content active">
+                            <div class="verification-filters">
+                                <select class="filter-input" id="verificationStatusFilter">
+                                    <option value="all">Todas las solicitudes</option>
+                                    <option value="pending">Pendientes</option>
+                                    <option value="approved">Aprobadas</option>
+                                    <option value="rejected">Rechazadas</option>
+                                </select>
+                                <button class="action-button" onclick="loadInstagramVerifications()">
+                                    <i class="ph-arrow-clockwise"></i>
+                                    Actualizar
+                                </button>
+                            </div>
+
+                            <div class="verification-list" id="verificationList">
+                                <!-- Las verificaciones se cargarán dinámicamente -->
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido de Códigos -->
+                        <div id="codes-content" class="tab-content">
+                            <div class="admin-section">
+                                <h3 class="section-subtitle">
+                                    <i class="ph-plus"></i>
+                                    Generar Nuevo Código
+                                </h3>
+                                
+                                <div class="code-generation-form">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="codeDuration">Duración (días):</label>
+                                            <input type="number" id="codeDuration" min="1" max="30" value="1" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="codePoints">Puntos a otorgar:</label>
+                                            <input type="number" id="codePoints" min="1" max="100" value="15" class="form-control">
+                                        </div>
+                                    </div>
+                                    <button onclick="generateInstagramCode()" class="action-button">
+                                        <i class="ph-plus"></i>
+                                        Generar Código
+                                    </button>
+                                </div>
+
+                                <h3 class="section-subtitle">
+                                    <i class="ph-list"></i>
+                                    Códigos Activos
+                                </h3>
+                                
+                                <div class="codes-list" id="activeCodesList">
+                                    <!-- Los códigos se cargarán dinámicamente -->
+                                </div>
+
+                                <h3 class="section-subtitle">
+                                    <i class="ph-chart-bar"></i>
+                                    Estadísticas
+                                </h3>
+                                
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="activeCodesCount">0</div>
+                                        <div class="stat-label">Códigos Activos</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalCodesUsed">0</div>
+                                        <div class="stat-label">Total Usados</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalPointsAwarded">0</div>
+                                        <div class="stat-label">Puntos Otorgados</div>
+                                    </div>
+                                </div>
+                            </div>
+                                                </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Instagram Codes Section -->
-            <div id="instagram-codes" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="ph-key"></i>
-                        Códigos de Instagram
-                    </h2>
-                </div>
-                <div class="section-content">
-                    <div class="admin-section">
-                        <h3 class="section-subtitle">
-                            <i class="ph-plus"></i>
-                            Generar Nuevo Código
-                        </h3>
-                        
-                        <div class="code-generation-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="codeDuration">Duración (días):</label>
-                                    <input type="number" id="codeDuration" min="1" max="30" value="1" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="codePoints">Puntos a otorgar:</label>
-                                    <input type="number" id="codePoints" min="1" max="100" value="15" class="form-control">
-                                </div>
-                            </div>
-                            <button onclick="generateInstagramCode()" class="action-button">
-                                <i class="ph-plus"></i>
-                                Generar Código
-                            </button>
-                        </div>
 
-                        <h3 class="section-subtitle">
-                            <i class="ph-list"></i>
-                            Códigos Activos
-                        </h3>
-                        
-                        <div class="codes-list" id="activeCodesList">
-                            <!-- Los códigos se cargarán dinámicamente -->
-                        </div>
+            
 
-                        <h3 class="section-subtitle">
-                            <i class="ph-chart-bar"></i>
-                            Estadísticas
-                        </h3>
-                        
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-number" id="activeCodesCount">0</div>
-                                <div class="stat-label">Códigos Activos</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="totalCodesUsed">0</div>
-                                <div class="stat-label">Total Usados</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="totalPointsAwarded">0</div>
-                                <div class="stat-label">Puntos Otorgados</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -7524,6 +7788,11 @@
                         // Las reservas se cargan automáticamente cuando la sección está activa
                         break;
                         
+                    case 'instagram-verifications':
+                        console.log('📸 Cargando verificaciones de Instagram...');
+                        await loadInstagramVerifications();
+                        break;
+                        
                     default:
                         console.log('⚠️ Sección no reconocida:', sectionName);
                 }
@@ -8118,10 +8387,73 @@
             }
         }
         
+        // ===== FUNCIONES DE PESTAÑAS DE INSTAGRAM =====
+        
+        // Cambiar entre pestañas de Instagram
+        function switchInstagramTab(tabName) {
+            console.log('🔄 Cambiando a pestaña:', tabName);
+            
+            // Ocultar todos los contenidos de pestañas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todos los botones de pestañas
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar contenido de la pestaña seleccionada
+            const targetContent = document.getElementById(tabName + '-content');
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            
+            // Activar botón de la pestaña seleccionada
+            const activeBtn = document.querySelector(`[onclick="switchInstagramTab('${tabName}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Cargar datos específicos de la pestaña
+            loadTabData(tabName);
+        }
+        
+        // Cargar datos específicos de cada pestaña
+        async function loadTabData(tabName) {
+            try {
+                console.log('📊 Cargando datos para pestaña:', tabName);
+                
+                switch(tabName) {
+                    case 'verifications':
+                        console.log('📸 Cargando verificaciones de Instagram...');
+                        await loadInstagramVerifications();
+                        break;
+                        
+                    case 'codes':
+                        console.log('🔑 Cargando códigos de Instagram...');
+                        await loadInstagramCodes();
+                        break;
+                        
+                    default:
+                        console.log('⚠️ Pestaña no reconocida:', tabName);
+                }
+                
+                console.log('✅ Datos cargados para pestaña:', tabName);
+                
+            } catch (error) {
+                console.error('❌ Error cargando datos para pestaña:', tabName, error);
+                showMessage(`Error cargando datos de ${tabName}: ${error.message}`, 'error');
+            }
+        }
+        
+
+        
         // Registrar funciones globalmente
         window.loadInstagramCodes = loadInstagramCodes;
         window.generateInstagramCode = generateInstagramCode;
         window.deleteInstagramCode = deleteInstagramCode;
+        window.switchInstagramTab = switchInstagramTab;
         
     </script>
 </body>
