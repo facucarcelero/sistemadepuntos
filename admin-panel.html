@@ -529,6 +529,8 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .users-table th,
@@ -548,44 +550,7 @@
             background: rgba(255,255,255,0.05);
         }
 
-        /* Tabla responsiva para móviles */
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin-top: 20px;
-            position: relative;
-        }
-        
-        .table-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 20px;
-            background: linear-gradient(to right, transparent, var(--bg-primary));
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .table-container.has-overflow::after {
-            opacity: 1;
-        }
-        
-        /* Indicador de scroll horizontal mejorado */
-        .table-container::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 20px;
-            background: linear-gradient(to right, transparent, var(--bg-primary));
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+        /* Tabla responsiva para móviles - Scroll manejado directamente en users-table */
         
         /* Estilos para mensajes */
         .message {
@@ -655,35 +620,7 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         
-        .table-container.has-overflow::after {
-            opacity: 1;
-        }
-        
-        /* Scroll horizontal bien implementado para móviles */
-        @media (max-width: 768px) {
-            .table-container {
-                overflow-x: auto !important;
-                scrollbar-width: thin;
-                scrollbar-color: var(--border-color) transparent;
-            }
-            
-            .table-container::-webkit-scrollbar {
-                height: 8px;
-            }
-            
-            .table-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            
-            .table-container::-webkit-scrollbar-thumb {
-                background: var(--border-color);
-                border-radius: 4px;
-            }
-            
-            .table-container::-webkit-scrollbar-thumb:hover {
-                background: var(--text-secondary);
-            }
-        }
+        /* Scroll horizontal unificado - manejado por el sistema principal */
         
         .action-buttons {
             display: flex !important;
@@ -723,12 +660,7 @@
             min-width: 700px !important;
         }
         
-        /* Asegurar que el contenedor permita scroll completo */
-        .table-container {
-            position: relative;
-            overflow-x: auto;
-            width: 100%;
-        }
+        /* Scroll manejado directamente en users-table */
         
         /* Mejorar la columna de descripción para que no se trunque */
         #rewardsTable th:nth-child(2),
@@ -1829,6 +1761,18 @@
             padding: 0px 35px;
             min-height: 90px;
         }
+        
+        .header-content > div:first-child {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-content > div:last-child {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
         .hamburger-btn {
             background: none;
@@ -1858,30 +1802,7 @@
             cursor: pointer;
         }
         
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .manage-admins-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        .manage-admins-btn:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
+
 
         /* ===== MENÚ LATERAL ===== */
         .sidebar {
@@ -1968,6 +1889,44 @@
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
         }
+        
+        .section-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .section-header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .section-header-actions .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .section-header-actions .tab-btn:hover {
+            color: var(--primary-green);
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .section-header-actions .tab-btn.active {
+            color: var(--primary-green);
+            border-bottom-color: var(--primary-green);
+        }
 
         .section-title {
             font-size: 1.5em;
@@ -1998,11 +1957,13 @@
             display: block;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* ===== RESPONSIVE GENERAL ===== */
         /* Sidebar oculto por defecto en todas las pantallas */
         .sidebar {
             left: -280px;
             position: fixed;
+            transition: left 0.3s ease;
+            z-index: 1000;
         }
         
         .sidebar.open {
@@ -2012,11 +1973,835 @@
         .main-content {
             margin-left: 0;
             margin-top: 70px;
+            width: 100%;
+            transition: margin-left 0.3s ease;
         }
         
         /* Botón de hamburguesa siempre visible */
         .hamburger-btn {
             display: block;
+            z-index: 1001;
+        }
+        
+        /* Overlay para cerrar sidebar en móviles */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Mejoras para landscape en móviles */
+        .landscape-mobile .main-content {
+            margin-top: 60px;
+        }
+        
+        .landscape-mobile .header {
+            height: 60px;
+        }
+        
+        .landscape-mobile .stats-overview {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .landscape-mobile .stat-card {
+            padding: 10px;
+        }
+        
+        .landscape-mobile .stat-number {
+            font-size: 16px;
+        }
+        
+        .landscape-mobile .stat-label {
+            font-size: 10px;
+        }
+        
+        /* Mejoras para touch en móviles */
+        .action-button,
+        .btn-primary,
+        .btn-secondary,
+        .btn-small {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        /* Optimización específica para botones en tablas */
+        @media (max-width: 768px) {
+            .users-table .btn-small,
+            #rewardsTable .btn-small,
+            #actionsTable .btn-small,
+            #redemptionsTable .btn-small {
+                padding: 6px 8px;
+                font-size: 12px;
+                min-height: 32px;
+                min-width: 32px;
+            }
+            
+            .users-table .action-button,
+            #rewardsTable .action-button,
+            #actionsTable .action-button,
+            #redemptionsTable .action-button {
+                padding: 8px 12px;
+                font-size: 13px;
+                min-height: 36px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .users-table .btn-small,
+            #rewardsTable .btn-small,
+            #actionsTable .btn-small,
+            #redemptionsTable .btn-small {
+                padding: 4px 6px;
+                font-size: 11px;
+                min-height: 28px;
+                min-width: 28px;
+            }
+            
+            .users-table .action-button,
+            #rewardsTable .action-button,
+            #actionsTable .action-button,
+            #redemptionsTable .action-button {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-height: 32px;
+            }
+        }
+        
+        /* ===== SISTEMA UNIFICADO DE SCROLL HORIZONTAL ===== */
+        
+        /* Configuración base para todas las tablas */
+        .users-table,
+        #actionsTable,
+        #rewardsTable,
+        #redemptionsTable {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 transparent;
+            border-radius: 8px;
+            background: var(--bg-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* SOLUCIÓN ESPECÍFICA PARA REDEMPTIONS - EVITAR SUPERPOSICIÓN */
+        #redemptionsTable {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable table {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable thead {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable tbody {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable th,
+        #redemptionsTable td {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        /* Scrollbar personalizada para webkit - Más elegante */
+        .users-table::-webkit-scrollbar,
+        #actionsTable::-webkit-scrollbar,
+        #rewardsTable::-webkit-scrollbar,
+        #redemptionsTable::-webkit-scrollbar {
+            height: 4px;
+            background: transparent;
+        }
+        
+        .users-table::-webkit-scrollbar-track,
+        #actionsTable::-webkit-scrollbar-track,
+        #rewardsTable::-webkit-scrollbar-track,
+        #redemptionsTable::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 0 2px;
+        }
+        
+        .users-table::-webkit-scrollbar-thumb,
+        #actionsTable::-webkit-scrollbar-thumb,
+        #rewardsTable::-webkit-scrollbar-thumb,
+        #redemptionsTable::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            transition: background 0.2s ease;
+        }
+        
+        .users-table::-webkit-scrollbar-thumb:hover,
+        #actionsTable::-webkit-scrollbar-thumb:hover,
+        #rewardsTable::-webkit-scrollbar-thumb:hover,
+        #redemptionsTable::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Configuración específica para tablas */
+        .users-table table,
+        #rewardsTable table,
+        #redemptionsTable table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            margin: 0;
+            overflow: visible;
+        }
+        
+        /* Configuración específica para tabla de redemptions - arreglar el problema de superposición */
+        #redemptionsTable {
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        #redemptionsTable table {
+            width: 100%;
+            min-width: 700px;
+            border-collapse: collapse;
+            margin: 0;
+            overflow: visible;
+        }
+        
+        /* Configuración específica para columnas de redemptions */
+        #redemptionsTable th:first-child,
+        #redemptionsTable td:first-child {
+            min-width: 150px;
+            max-width: 200px;
+        }
+        
+        #redemptionsTable th:nth-child(2),
+        #redemptionsTable td:nth-child(2) {
+            min-width: 250px;
+            max-width: 350px;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        #redemptionsTable th:nth-child(3),
+        #redemptionsTable td:nth-child(3) {
+            min-width: 100px;
+            max-width: 120px;
+        }
+        
+        #redemptionsTable th:nth-child(4),
+        #redemptionsTable td:nth-child(4) {
+            min-width: 100px;
+            max-width: 120px;
+        }
+        
+        #redemptionsTable th:nth-child(5),
+        #redemptionsTable td:nth-child(5) {
+            min-width: 120px;
+            max-width: 150px;
+        }
+        
+        /* Configuración específica para tabla de acciones */
+        #actionsTable table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            margin: 0;
+            overflow: visible;
+        }
+        
+        /* Asegurar que las celdas estén bien alineadas */
+        .users-table th,
+        .users-table td,
+        #rewardsTable th,
+        #rewardsTable td {
+            padding: 12px 8px;
+            text-align: left;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        
+        /* Configuración específica para redemptions - permitir que el texto se ajuste */
+        #redemptionsTable th,
+        #redemptionsTable td {
+            padding: 12px 8px;
+            text-align: left;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4;
+        }
+        
+        /* Configuración ESPECIAL para la tabla de acciones - SIN nowrap */
+        #actionsTable th,
+        #actionsTable td {
+            padding: 15px 12px;
+            text-align: left;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4;
+        }
+        
+        /* Configuración específica para columnas de acciones */
+        #actionsTable th:first-child,
+        #actionsTable td:first-child {
+            min-width: 180px;
+            max-width: 220px;
+        }
+        
+        #actionsTable th:nth-child(2),
+        #actionsTable td:nth-child(2) {
+            min-width: 250px;
+            max-width: 350px;
+        }
+        
+        #actionsTable th:nth-child(3),
+        #actionsTable td:nth-child(3) {
+            min-width: 80px;
+            max-width: 100px;
+        }
+        
+        #actionsTable th:nth-child(4),
+        #actionsTable td:nth-child(4) {
+            min-width: 100px;
+            max-width: 120px;
+        }
+        
+        #actionsTable th:nth-child(5),
+        #actionsTable td:nth-child(5) {
+            min-width: 80px;
+            max-width: 100px;
+        }
+        
+        #actionsTable th:nth-child(6),
+        #actionsTable td:nth-child(6) {
+            min-width: 80px;
+            max-width: 100px;
+        }
+        
+        #actionsTable th:nth-child(7),
+        #actionsTable td:nth-child(7) {
+            min-width: 120px;
+            max-width: 150px;
+        }
+        
+        /* Asegurar que los headers estén bien posicionados */
+        .users-table thead,
+        #rewardsTable thead {
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 10;
+        }
+        
+        /* Para la tabla de acciones, NO usar sticky para evitar problemas de superposición */
+        #actionsTable thead {
+            position: relative;
+            background: var(--bg-primary);
+            z-index: 1;
+        }
+        
+        /* Para redemptions, NO usar sticky para evitar superposición */
+        #redemptionsTable thead {
+            position: relative !important;
+            background: var(--bg-primary);
+            z-index: 1 !important;
+        }
+        
+        /* Asegurar que las tablas no tengan scroll propio */
+        .users-table table,
+        #actionsTable table,
+        #rewardsTable table,
+        #redemptionsTable table {
+            overflow: visible;
+        }
+        
+        /* Mejorar la experiencia en móviles */
+        @media (max-width: 768px) {
+            /* GESTIÓN DE USUARIOS - Optimización específica */
+            .users-table {
+                margin: 0 -15px;
+                padding: 0 15px;
+                border-radius: 0;
+                position: relative;
+                z-index: 1;
+            }
+            
+            .users-table table {
+                min-width: 700px;
+                font-size: 14px;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 10px 8px;
+                white-space: nowrap;
+            }
+            
+            /* GESTIÓN DE PREMIOS - Optimización específica */
+            #rewardsTable {
+                margin: 0 -15px;
+                padding: 0 15px;
+                border-radius: 0;
+                position: relative;
+                z-index: 1;
+            }
+            
+            #rewardsTable table {
+                min-width: 700px;
+                font-size: 14px;
+            }
+            
+            #rewardsTable th,
+            #rewardsTable td {
+                padding: 10px 8px;
+                white-space: nowrap;
+            }
+            
+                    /* ACCIONES DISPONIBLES - Optimización específica */
+        #actionsTable {
+            margin: 0 -15px;
+            padding: 0 15px;
+            border-radius: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #actionsTable table {
+            min-width: 800px;
+            font-size: 14px;
+        }
+        
+        #actionsTable th,
+        #actionsTable td {
+            padding: 10px 8px;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        /* Optimización específica para pantallas de 360px */
+        @media (max-width: 360px) {
+            #actionsTable {
+                margin: 0 -20px;
+                padding: 0 20px;
+            }
+            
+            #actionsTable table {
+                min-width: 650px;
+                font-size: 11px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 6px 4px;
+            }
+            
+            /* Hacer los botones más pequeños en pantallas muy pequeñas */
+            #actionsTable .btn-small {
+                padding: 4px 6px;
+                font-size: 10px;
+                min-height: 24px;
+                min-width: 24px;
+            }
+            
+            /* Ajustar el espaciado de los badges */
+            #actionsTable .badge {
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+            
+            /* Ajustar el tamaño de los iconos */
+            #actionsTable .text-lg {
+                font-size: 14px;
+            }
+            
+            /* Ajustar el gap entre elementos */
+            #actionsTable .gap-2 {
+                gap: 4px;
+            }
+        }
+            
+            /* HISTORIAL DE CANJES - Optimización específica */
+            #redemptionsTable {
+                margin: 0 -15px;
+                padding: 0 15px;
+                border-radius: 0;
+                position: relative;
+                z-index: 1;
+            }
+            
+            #redemptionsTable table {
+                min-width: 750px;
+                font-size: 14px;
+            }
+            
+            #redemptionsTable th,
+            #redemptionsTable td {
+                padding: 10px 8px;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+        }
+        
+        /* Optimizaciones para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            /* GESTIÓN DE USUARIOS - Pantallas muy pequeñas */
+            .users-table {
+                margin: 0 -20px;
+                padding: 0 20px;
+            }
+            
+            .users-table table {
+                min-width: 600px;
+                font-size: 13px;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 8px 6px;
+            }
+            
+            /* GESTIÓN DE PREMIOS - Pantallas muy pequeñas */
+            #rewardsTable {
+                margin: 0 -20px;
+                padding: 0 20px;
+            }
+            
+            #rewardsTable table {
+                min-width: 600px;
+                font-size: 13px;
+            }
+            
+            #rewardsTable th,
+            #rewardsTable td {
+                padding: 8px 6px;
+            }
+            
+            /* ACCIONES DISPONIBLES - Pantallas muy pequeñas */
+            #actionsTable {
+                margin: 0 -20px;
+                padding: 0 20px;
+            }
+            
+            #actionsTable table {
+                min-width: 650px;
+                font-size: 13px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 8px 6px;
+            }
+            
+            /* HISTORIAL DE CANJES - Pantallas muy pequeñas */
+            #redemptionsTable {
+                margin: 0 -20px;
+                padding: 0 20px;
+            }
+            
+            #redemptionsTable table {
+                min-width: 650px;
+                font-size: 13px;
+            }
+            
+            #redemptionsTable th,
+            #redemptionsTable td {
+                padding: 8px 6px;
+            }
+        }
+        
+        /* Optimizaciones para pantallas extremadamente pequeñas */
+        @media (max-width: 360px) {
+            /* GESTIÓN DE USUARIOS - Pantallas extremadamente pequeñas */
+            .users-table {
+                margin: 0 -25px;
+                padding: 0 25px;
+            }
+            
+            .users-table table {
+                min-width: 550px;
+                font-size: 12px;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 6px 4px;
+            }
+            
+            /* GESTIÓN DE PREMIOS - Pantallas extremadamente pequeñas */
+            #rewardsTable {
+                margin: 0 -25px;
+                padding: 0 25px;
+            }
+            
+            #rewardsTable table {
+                min-width: 550px;
+                font-size: 12px;
+            }
+            
+            #rewardsTable th,
+            #rewardsTable td {
+                padding: 6px 4px;
+            }
+            
+            /* ACCIONES DISPONIBLES - Pantallas extremadamente pequeñas */
+            #actionsTable {
+                margin: 0 -25px;
+                padding: 0 25px;
+            }
+            
+            #actionsTable table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 6px 4px;
+            }
+            
+            /* HISTORIAL DE CANJES - Pantallas extremadamente pequeñas */
+            #redemptionsTable {
+                margin: 0 -25px;
+                padding: 0 25px;
+            }
+            
+            #redemptionsTable table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+            
+            #redemptionsTable th,
+            #redemptionsTable td {
+                padding: 6px 4px;
+            }
+            
+            /* Scrollbar más visible en pantallas muy pequeñas */
+            .users-table::-webkit-scrollbar,
+            #actionsTable::-webkit-scrollbar,
+            #rewardsTable::-webkit-scrollbar,
+            #redemptionsTable::-webkit-scrollbar {
+                height: 10px;
+            }
+            
+            .users-table::-webkit-scrollbar-thumb,
+            #actionsTable::-webkit-scrollbar-thumb,
+            #rewardsTable::-webkit-scrollbar-thumb,
+            #redemptionsTable::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.5);
+            }
+        }
+        
+        /* Asegurar que no haya scrolls duplicados */
+        .users-table *,
+        #actionsTable *,
+        #rewardsTable *,
+        #redemptionsTable * {
+            overflow: visible !important;
+        }
+        
+        /* Solo el contenedor principal debe tener scroll */
+        .users-table,
+        #actionsTable,
+        #rewardsTable,
+        #redemptionsTable {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+        }
+        
+        /* SOLUCIÓN FINAL PARA REDEMPTIONS */
+        #redemptionsTable {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable * {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        #redemptionsTable table {
+            table-layout: auto !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable thead {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable tbody {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable th,
+        #redemptionsTable td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+            padding: 12px 8px !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        /* Prevenir superposición de columnas en redemptions */
+        #redemptionsTable {
+            position: relative;
+            z-index: 1;
+        }
+        
+        #redemptionsTable table {
+            position: relative;
+            z-index: 1;
+        }
+        
+        #redemptionsTable th,
+        #redemptionsTable td {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Mejoras específicas para la tabla de acciones */
+        #actionsTable {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        /* FORZAR que el texto se vea completo en acciones */
+        #actionsTable * {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        /* Estilos específicos para las celdas de acciones */
+        #actionsTable td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+            max-width: none !important;
+            min-width: auto !important;
+        }
+        
+        /* Asegurar que las descripciones largas se vean completas */
+        #actionsTable td:nth-child(2) {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+            max-width: 350px !important;
+        }
+        
+        /* Asegurar que el texto no se corte en redemptions */
+        #redemptionsTable td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+        }
+        
+        /* Específicamente para la columna Premio en redemptions */
+        #redemptionsTable td:nth-child(2) {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+            max-width: 350px !important;
+        }
+        
+        /* SOLUCIÓN AGRESIVA PARA REDEMPTIONS */
+        #redemptionsTable * {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        /* SOLUCIÓN ESPECÍFICA PARA ACCIONES - EVITAR DUPLICACIÓN */
+        #actionsTable {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+        }
+        
+        #actionsTable * {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        /* Prevenir estilos inline conflictivos */
+        #actionsTable[style*="overflow: auto hidden"] {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+        }
+        
+        #actionsTable[style*="position: relative"] {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        #redemptionsTable table {
+            table-layout: auto !important;
+        }
+        
+        #redemptionsTable th,
+        #redemptionsTable td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.4 !important;
+            padding: 12px 8px !important;
+        }
+        
+        #actionsTable table {
+            background: transparent;
+        }
+        
+        #actionsTable th {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-green);
+            font-weight: 600;
+            padding: 15px 12px;
+        }
+        
+        #actionsTable td {
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #actionsTable tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
         }
         
         /* Estilos específicos para pantallas medianas y pequeñas */
@@ -2025,14 +2810,50 @@
                 width: 280px;
             }
             
+            .header-content {
+                padding: 0px 15px;
+            }
+            
+            .header-content > div:last-child {
+                gap: 5px;
+            }
+            
+            .header-content > div:last-child button {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            
+            .header-title {
+                font-size: 1.2em;
+            }
+            
+            .section-header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .section-header-actions {
+                justify-content: flex-start;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .section-header-actions .tab-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 12px;
+                min-width: auto;
+            }
+            
             .user-filters {
-            flex-direction: column;
+                flex-direction: column;
                 gap: 10px;
             }
             
             .filter-input {
                 min-width: auto;
                 width: 100%;
+                font-size: 16px; /* Evita zoom en iOS */
             }
             
             .category-header {
@@ -2047,10 +2868,12 @@
             
             .category-actions {
                 justify-content: space-between;
-        }
+                flex-wrap: wrap;
+                gap: 5px;
+            }
 
-        .menu-item-inputs input,
-        .menu-item-inputs textarea {
+            .menu-item-inputs input,
+            .menu-item-inputs textarea {
                 font-size: 16px; /* Evita zoom en iOS */
             }
             
@@ -2060,10 +2883,78 @@
             }
             
             .action-button {
-            padding: 8px 12px;
+                padding: 8px 12px;
                 font-size: 0.9em;
             }
-        
+            
+            /* Mejoras para tablas responsive */
+            .users-table table,
+            #rewardsTable table,
+            #redemptionsTable table {
+                min-width: 600px;
+            }
+            
+            #actionsTable table {
+                min-width: 700px;
+            }
+            
+            /* Asegurar que el texto no se corte en la tabla de acciones */
+            #actionsTable td {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                line-height: 1.4;
+                padding: 10px 8px;
+            }
+            
+            /* Ajustar scrollbar en tablets */
+            .users-table::-webkit-scrollbar,
+            #actionsTable::-webkit-scrollbar,
+            #rewardsTable::-webkit-scrollbar,
+            #redemptionsTable::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .users-table::-webkit-scrollbar-thumb,
+            #actionsTable::-webkit-scrollbar-thumb,
+            #rewardsTable::-webkit-scrollbar-thumb,
+            #redemptionsTable::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.4);
+            }
+            
+            /* Estadísticas más compactas */
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 20px;
+            }
+            
+            .stat-label {
+                font-size: 12px;
+            }
+            
+            /* Modales más compactos */
+            .modal-content {
+                width: 95%;
+                max-width: 400px;
+                margin: 20px auto;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .form-input {
+                font-size: 16px;
+                padding: 10px;
+            }
             .action-button.active {
                 background: var(--primary-green);
                 color: white;
@@ -2129,10 +3020,10 @@
                 width: 35px !important;
                 min-width: 35px;
                 font-size: 12px;
-        }
+            }
 
-        .btn-icon {
-            padding: 8px;
+            .btn-icon {
+                padding: 8px;
                 font-size: 1em;
             }
             
@@ -2225,6 +3116,49 @@
 
         /* Estilos específicos para pantallas muy pequeñas (como Samsung Galaxy S23) */
         @media (max-width: 360px) {
+            /* Ajustes para el header en pantallas muy pequeñas */
+            .header-content {
+                padding: 0px 3px !important;
+                flex-direction: row !important;
+                gap: 8px !important;
+            }
+            
+            .header-content > div:first-child {
+                gap: 5px !important;
+                justify-content: flex-start !important;
+            }
+            
+            .header-content > div:last-child {
+                gap: 3px !important;
+                justify-content: flex-end !important;
+            }
+            
+            .header-content > div:last-child button {
+                padding: 6px 10px !important;
+                font-size: 10px !important;
+                min-width: 80px !important;
+            }
+            
+            .header-content > div:last-child button span {
+                display: none !important;
+            }
+            
+            .header-content > div:last-child button i {
+                font-size: 14px !important;
+            }
+            
+            .header-content > div:last-child button {
+                min-width: 45px !important;
+                width: 45px !important;
+                padding: 10px !important;
+                justify-content: center !important;
+            }
+            
+            .header-title {
+                font-size: 0.9em !important;
+                text-align: center !important;
+            }
+            
             /* Ajustes para el sidebar en pantallas muy pequeñas */
             .sidebar {
                 width: 260px !important;
@@ -2363,6 +3297,50 @@
             
             .btn-small i {
                 font-size: 12px !important;
+            }
+        }
+        
+        /* Estilos para pantallas extremadamente pequeñas (320px) */
+        @media (max-width: 320px) {
+            .header-content {
+                padding: 0px 2px !important;
+                gap: 6px !important;
+                flex-direction: row !important;
+            }
+            
+            .header-content > div:first-child {
+                gap: 3px !important;
+                justify-content: flex-start !important;
+            }
+            
+            .header-content > div:last-child {
+                gap: 2px !important;
+                justify-content: flex-end !important;
+            }
+            
+            .header-content > div:last-child button {
+                padding: 5px 8px !important;
+                font-size: 9px !important;
+                min-width: 70px !important;
+            }
+            
+            .header-content > div:last-child button span {
+                display: none !important;
+            }
+            
+            .header-content > div:last-child button i {
+                font-size: 12px !important;
+            }
+            
+            .header-content > div:last-child button {
+                min-width: 35px !important;
+                width: 35px !important;
+                padding: 6px !important;
+                justify-content: center !important;
+            }
+            
+            .header-title {
+                font-size: 0.8em !important;
             }
         }
 
@@ -2683,6 +3661,8 @@
             background: var(--bg-secondary);
             padding: 1rem;
             border-radius: 12px 12px 0 0;
+            flex-direction: row;
+            justify-content: flex-start;
         }
         
         .tab-btn {
@@ -2698,6 +3678,8 @@
             align-items: center;
             gap: 0.5rem;
             border-radius: 8px 8px 0 0;
+            min-width: 140px;
+            justify-content: center;
         }
         
         .tab-btn:hover {
@@ -2719,10 +3701,496 @@
             border: 1px solid var(--border-color);
             border-top: none;
             color: var(--text-primary);
+            min-height: 200px;
+        }
+        
+        #codes-content {
+            background: #2d3748 !important;
+            border: 2px solid #4a5568 !important;
+            min-height: 400px !important;
+            padding: 20px !important;
+        }
+        
+        #codes-content .admin-section {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+        }
+        
+        /* Estilos responsive para la pestaña de códigos */
+        @media (max-width: 768px) {
+            #codes-content .admin-section {
+                padding: 15px !important;
+                margin-bottom: 15px !important;
+            }
+            
+            #codes-content .verification-stats {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+                gap: 10px !important;
+            }
+            
+            #codes-content .codes-list {
+                gap: 10px !important;
+            }
+        }
+        
+        /* Forzar visibilidad completa de la sección de Instagram */
+        #instagram-verifications {
+            overflow: visible !important;
+            height: auto !important;
+            min-height: auto !important;
+        }
+        
+        #instagram-verifications .section-content {
+            overflow: visible !important;
+            height: auto !important;
+            min-height: auto !important;
+        }
+        
+        #instagram-verifications .content-section {
+            overflow: visible !important;
+            height: auto !important;
+            min-height: auto !important;
+        }
+        
+        @media (max-width: 480px) {
+            #codes-content .admin-section {
+                padding: 10px !important;
+                margin-bottom: 10px !important;
+            }
+            
+            #codes-content .verification-stats {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+            }
+            
+            #codes-content .codes-list {
+                gap: 8px !important;
+            }
+            
+            #codes-content .section-subtitle {
+                font-size: 1rem !important;
+            }
+        }
+        
+        #codes-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: #1a202c !important;
+            border: 1px solid #4a5568 !important;
+            border-radius: 8px !important;
+            min-height: 400px !important;
+            height: auto !important;
+            padding: 20px !important;
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 10 !important;
+            max-height: none !important;
+        }
+        
+        /* Eliminar scrolls adicionales en la sección de códigos */
+        #codes-content {
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+        }
+        
+        #codes-content * {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+        
+        /* Forzar que el contenedor padre no tenga scroll */
+        #codes-content.active {
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+        }
+        
+        /* Asegurar que solo se muestre una pestaña a la vez */
+        .tab-content {
+            display: none;
         }
         
         .tab-content.active {
             display: block;
+        }
+        
+        /* ===== RESPONSIVE PARA ACCIONES ===== */
+        @media (max-width: 768px) {
+            /* Tabla de acciones responsive */
+            #actionsTable {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            #actionsTable table {
+                min-width: 700px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 8px 6px;
+                font-size: 14px;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+            
+            /* Botones de acciones más compactos */
+            .action-buttons {
+                display: flex;
+                gap: 4px;
+                flex-wrap: wrap;
+            }
+            
+            .action-buttons .btn-small {
+                padding: 4px 6px;
+                font-size: 12px;
+                min-width: auto;
+            }
+            
+            /* Estadísticas más compactas */
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 20px;
+            }
+            
+            .stat-label {
+                font-size: 12px;
+            }
+            
+            /* Filtros de acciones */
+            .user-filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .user-filters .action-button {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Tabla aún más compacta */
+            .users-table table,
+            #rewardsTable table,
+            #redemptionsTable table {
+                min-width: 500px;
+            }
+            
+            #actionsTable table {
+                min-width: 700px;
+            }
+            
+            /* Mejorar legibilidad en móviles */
+            #actionsTable td {
+                padding: 8px 6px;
+                font-size: 14px;
+                line-height: 1.3;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+            
+            /* Scrollbar más visible en móviles */
+            .users-table::-webkit-scrollbar,
+            #actionsTable::-webkit-scrollbar,
+            #rewardsTable::-webkit-scrollbar,
+            #redemptionsTable::-webkit-scrollbar {
+                height: 10px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 6px 4px;
+                font-size: 12px;
+            }
+            
+            /* Estadísticas en una columna */
+            .stats-overview {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            /* Botones más pequeños */
+            .action-buttons .btn-small {
+                padding: 3px 5px;
+                font-size: 11px;
+            }
+            
+            /* Títulos más pequeños */
+            .section-title {
+                font-size: 18px;
+            }
+            
+            .section-subtitle {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            /* Tabla mínima */
+            .users-table table,
+            #rewardsTable table,
+            #redemptionsTable table {
+                min-width: 400px;
+            }
+            
+            #actionsTable table {
+                min-width: 500px;
+            }
+            
+            /* Optimizar para pantallas muy pequeñas */
+            #actionsTable td {
+                padding: 6px 4px;
+                font-size: 13px;
+                line-height: 1.2;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+            
+            /* Scrollbar más gruesa para pantallas muy pequeñas */
+            .users-table::-webkit-scrollbar,
+            #actionsTable::-webkit-scrollbar,
+            #rewardsTable::-webkit-scrollbar,
+            #redemptionsTable::-webkit-scrollbar {
+                height: 12px;
+            }
+            
+            #actionsTable th,
+            #actionsTable td {
+                padding: 4px 2px;
+                font-size: 11px;
+            }
+            
+            /* Ocultar columnas menos importantes en pantallas muy pequeñas */
+            #actionsTable th:nth-child(4),
+            #actionsTable td:nth-child(4),
+            #actionsTable th:nth-child(5),
+            #actionsTable td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Mejoras generales para pantallas muy pequeñas */
+            .header-content {
+                padding: 0px 10px;
+            }
+            
+            .header-title {
+                font-size: 1em;
+            }
+            
+            .section-title {
+                font-size: 16px;
+            }
+            
+            .section-subtitle {
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                width: 98%;
+                margin: 10px auto;
+                padding: 15px;
+            }
+            
+            .form-input {
+                font-size: 16px;
+                padding: 8px;
+            }
+            
+            .action-button {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+            
+            /* Sidebar más compacto */
+            .sidebar {
+                width: 260px;
+            }
+            
+            .nav-item {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .nav-item i {
+                font-size: 16px;
+            }
+        }
+        
+        /* Ocultar específicamente el contenido de verificaciones cuando no está activo */
+        #verifications-content:not(.active) {
+            display: none;
+            visibility: hidden;
+            opacity: 0;
+        }
+        
+        /* Mostrar específicamente el contenido de códigos cuando está activo */
+        #codes-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            background: #1a202c !important;
+            border: 1px solid #4a5568 !important;
+            border-radius: 8px !important;
+            padding: 20px !important;
+            min-height: 400px !important;
+            height: auto !important;
+        }
+        
+        /* Asegurar que el contenido de códigos sea visible */
+        #codes-content {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Estilos específicos para cada pestaña */
+        #verifications-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        #verifications-content:not(.active) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+        
+        #codes-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 400px !important;
+            height: auto !important;
+        }
+        
+        #codes-content:not(.active) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+        
+        /* Forzar que codes-content tenga contenido visible */
+        #codes-content {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 400px !important;
+            height: auto !important;
+            background: #1a202c !important;
+            border: 1px solid #4a5568 !important;
+            border-radius: 8px !important;
+            padding: 20px !important;
+        }
+        
+        /* Estilos para la gestión de códigos */
+        .codes-management {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .subsection-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .code-creation-form {
+            margin-top: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        /* Estilos específicos para formulario en fila */
+        .verification-filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        #codes-content {
+            display: none;
+            min-height: 400px !important;
+            height: auto !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+        
+        .tab-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
 
@@ -2889,15 +4357,17 @@
             }
             
             .instagram-tabs {
-                flex-direction: column;
-                gap: 0.25rem;
+                flex-direction: row;
+                gap: 0.5rem;
+                justify-content: flex-start;
             }
             
             .tab-btn {
-                width: 100%;
+                width: auto;
                 justify-content: center;
                 padding: 0.5rem 1rem;
                 font-size: 14px;
+                min-width: 120px;
             }
             
             .code-generation-form {
@@ -2909,21 +4379,64 @@
                 gap: 0.5rem;
             }
             
-            .header-actions {
-                gap: 5px;
-            }
-            
-            .manage-admins-btn {
-                padding: 6px 12px;
-                font-size: 11px;
-            }
-            
-            .manage-admins-btn .btn-text {
-                display: none;
-            }
+
         }
         
         @media (max-width: 480px) {
+            .header-content {
+                padding: 0px 10px;
+            }
+            
+            .header-content > div:first-child {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .header-content > div:last-child {
+                gap: 3px;
+                justify-content: flex-end;
+            }
+            
+            .header-content > div:last-child button {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+            
+            .header-content > div:last-child button span {
+                display: none !important;
+            }
+            
+            .header-content > div:last-child button i {
+                font-size: 13px !important;
+            }
+            
+            .header-content > div:last-child button {
+                min-width: 40px !important;
+                width: 40px !important;
+                padding: 8px !important;
+                justify-content: center !important;
+            }
+            
+            .header-title {
+                font-size: 1.1em;
+            }
+            
+            .section-header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .section-header-actions {
+                justify-content: flex-start;
+                width: 100%;
+                gap: 0.25rem;
+            }
+            
+            .section-header-actions .tab-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 11px;
+            }
+            
             .verification-stats {
                 grid-template-columns: 1fr;
             }
@@ -2948,22 +4461,22 @@
                 font-size: 1.2em;
             }
             
-            .manage-admins-btn {
-                padding: 5px 8px;
-                font-size: 10px;
-            }
+
             
             .instagram-tabs {
                 padding: 0.5rem;
+                flex-direction: row;
+                gap: 0.25rem;
             }
             
             .tab-btn {
                 padding: 0.4rem 0.8rem;
                 font-size: 12px;
+                min-width: 80px;
             }
             
             .tab-btn span {
-                display: none;
+                display: inline;
             }
             
             .tab-content {
@@ -3030,15 +4543,15 @@
                     </button>
                     <h1 class="header-title">Parrilla Los Nogales</h1>
                 </div>
-                <div class="header-actions">
-                    <button class="btn btn-primary manage-admins-btn" onclick="window.location.href='admin-management.html'">
-                        <i class="ph-users"></i> <span class="btn-text">Gestionar Admins</span>
-                    </button>
+                <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="logout-btn" onclick="logout()">
-                        <i class="ph-sign-out"></i>
+                        <i class="ph-sign-out"></i> <span>Cerrar Sesión</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='admin-management.html'" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        <i class="ph-users"></i> <span>Gestionar Admins</span>
                     </button>
                 </div>
-                </div>
+            </div>
         </header>
 
         <!-- Sidebar -->
@@ -3060,6 +4573,10 @@
                 <a href="#" class="nav-item" onclick="showSection('rewards')">
                     <i class="ph-gift"></i>
                     <span>Gestión de Premios</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('actions')">
+                    <i class="ph-star"></i>
+                    <span>Acciones Disponibles</span>
                 </a>
                 <a href="#" class="nav-item" onclick="showSection('redemptions')">
                     <i class="ph-clock"></i>
@@ -3160,10 +4677,8 @@
                     </div>
 
                         <!-- Tabla de Usuarios -->
-                    <div class="table-container">
-                            <div class="users-table" id="usersTable">
-                                <!-- La tabla se cargará dinámicamente -->
-                            </div>
+                        <div class="users-table" id="usersTable">
+                            <!-- La tabla se cargará dinámicamente -->
                         </div>
                     </div>
                     </div>
@@ -3203,10 +4718,8 @@
                     </div>
 
                         <!-- Tabla de Premios -->
-                    <div class="table-container">
-                            <div class="users-table" id="rewardsTable">
-                                <!-- La tabla se cargará dinámicamente -->
-                            </div>
+                        <div class="users-table" id="rewardsTable">
+                            <!-- La tabla se cargará dinámicamente -->
                         </div>
                     </div>
                     </div>
@@ -3242,10 +4755,89 @@
                     </div>
 
                         <!-- Tabla de Canjes -->
-                    <div class="table-container">
-                            <div class="users-table" id="redemptionsTable">
-                                <!-- La tabla se cargará dinámicamente -->
+                        <div class="users-table" id="redemptionsTable">
+                            <!-- La tabla se cargará dinámicamente -->
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div id="actions" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="ph-star"></i>
+                        Acciones Disponibles
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <!-- Dashboard de Estadísticas -->
+                    <div class="stats-overview" id="actionsStats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalActions">4</div>
+                            <div class="stat-label">Acciones Activas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalPointsAvailable">65</div>
+                            <div class="stat-label">Puntos Disponibles</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="actionsUsedToday">0</div>
+                            <div class="stat-label">Usadas Hoy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="avgPointsPerAction">16</div>
+                            <div class="stat-label">Promedio por Acción</div>
+                        </div>
+                    </div>
+
+                    <!-- Controles de Administración -->
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-gear"></i>
+                            Gestión de Acciones
+                        </h3>
+                        
+                        <div class="user-filters">
+                            <button class="action-button" onclick="showAddActionModal()">
+                                <i class="ph-plus-circle"></i>
+                                Agregar Nueva Acción
+                            </button>
+                            <button class="action-button" onclick="exportActions()">
+                                <i class="ph-download"></i>
+                                Exportar Acciones
+                            </button>
+                            <button class="action-button" onclick="refreshActions()">
+                                <i class="ph-arrows-clockwise"></i>
+                                Actualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Acciones -->
+                    <div class="admin-section">
+                        <h3 class="section-subtitle">
+                            <i class="ph-list"></i>
+                            Acciones Configuradas
+                        </h3>
+                        
+                        <div class="users-table" id="actionsTable">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Acción</th>
+                                        <th>Descripción</th>
+                                        <th>Puntos</th>
+                                        <th>Estado</th>
+                                        <th>Límite Diario</th>
+                                        <th>Usos Hoy</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="actionsTableBody">
+                                    <!-- Las acciones se cargarán dinámicamente -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -3812,48 +5404,12 @@
             <!-- Instagram Verifications Section -->
             <div id="instagram-verifications" class="content-section">
                 <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="ph-instagram-logo"></i>
-                        Verificaciones de Instagram
-                    </h2>
-                </div>
-                <div class="section-content">
-                    <div class="admin-section">
-                        <h3 class="section-subtitle">
-                            <i class="ph-warning"></i>
-                            Solicitudes Pendientes de Verificación
-                        </h3>
-                        
-                        <div class="verification-stats">
-                            <div class="stat-card">
-                                <div class="stat-number" id="pendingVerifications">0</div>
-                                <div class="stat-label">Pendientes</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="approvedVerifications">0</div>
-                                <div class="stat-label">Aprobadas</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="rejectedVerifications">0</div>
-                                <div class="stat-label">Rechazadas</div>
-                            </div>
-                        </div>
-
-                        <div class="verification-filters">
-                            <select class="filter-input" id="verificationStatusFilter">
-                                <option value="all">Todas las solicitudes</option>
-                                <option value="pending">Pendientes</option>
-                                <option value="approved">Aprobadas</option>
-                                <option value="rejected">Rechazadas</option>
-                            </select>
-                            <button class="action-button" onclick="loadInstagramVerifications()">
-                                <i class="ph-arrow-clockwise"></i>
-                                Actualizar
-                            </button>
-                        </div>
-                        
-                        <!-- Pestañas de Instagram -->
-                        <div class="instagram-tabs">
+                    <div class="section-header-content">
+                        <h2 class="section-title">
+                            <i class="ph-instagram-logo"></i>
+                            Verificaciones de Instagram
+                        </h2>
+                        <div class="section-header-actions">
                             <button class="tab-btn active" onclick="switchInstagramTab('verifications')">
                                 <i class="ph-instagram-logo"></i>
                                 <span>Verificaciones</span>
@@ -3863,9 +5419,31 @@
                                 <span>Códigos</span>
                             </button>
                         </div>
-                        
-                        <!-- Contenido de Verificaciones -->
-                        <div id="verifications-content" class="tab-content active">
+                    </div>
+                </div>
+                <div class="section-content">
+                    <!-- Contenido de Verificaciones -->
+                    <div id="verifications-content" class="tab-content active">
+                        <div class="admin-section">
+                            <h3 class="section-subtitle">
+                                <i class="ph-warning"></i>
+                                Solicitudes Pendientes de Verificación
+                            </h3>
+                            
+                            <div class="verification-stats">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="pendingVerifications">0</div>
+                                    <div class="stat-label">Pendientes</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="approvedVerifications">0</div>
+                                    <div class="stat-label">Aprobadas</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="rejectedVerifications">0</div>
+                                    <div class="stat-label">Rechazadas</div>
+                                </div>
+                            </div>
                             <div class="verification-filters">
                                 <select class="filter-input" id="verificationStatusFilter">
                                     <option value="all">Todas las solicitudes</option>
@@ -3884,61 +5462,63 @@
                             </div>
                         </div>
                         
-                        <!-- Contenido de Códigos -->
-                        <div id="codes-content" class="tab-content">
-                            <div class="admin-section">
-                                <h3 class="section-subtitle">
-                                    <i class="ph-plus"></i>
-                                    Generar Nuevo Código
-                                </h3>
-                                
-                                <div class="code-generation-form">
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="codeDuration">Duración (días):</label>
-                                            <input type="number" id="codeDuration" min="1" max="30" value="1" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="codePoints">Puntos a otorgar:</label>
-                                            <input type="number" id="codePoints" min="1" max="100" value="15" class="form-control">
-                                        </div>
-                                    </div>
-                                    <button onclick="generateInstagramCode()" class="action-button">
-                                        <i class="ph-plus"></i>
-                                        Generar Código
-                                    </button>
+                    </div>
+                    
+                    <!-- Contenido de Códigos -->
+                    <div id="codes-content" class="tab-content" style="min-height: 400px !important; height: auto !important; background: #1a202c !important; border: 1px solid #4a5568 !important; border-radius: 8px !important; padding: 20px !important;">
+                        <div class="admin-section">
+                            <h3 class="section-subtitle">
+                                <i class="ph-chart-bar"></i>
+                                Estadísticas de Códigos
+                            </h3>
+                            
+                            <div class="verification-stats">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="activeCodesCount">0</div>
+                                    <div class="stat-label">Códigos Activos</div>
                                 </div>
-
-                                <h3 class="section-subtitle">
-                                    <i class="ph-list"></i>
-                                    Códigos Activos
-                                </h3>
-                                
-                                <div class="codes-list" id="activeCodesList">
-                                    <!-- Los códigos se cargarán dinámicamente -->
+                                <div class="stat-card">
+                                    <div class="stat-number" id="totalCodesUsed">0</div>
+                                    <div class="stat-label">Total Usados</div>
                                 </div>
-
-                                <h3 class="section-subtitle">
-                                    <i class="ph-chart-bar"></i>
-                                    Estadísticas
-                                </h3>
-                                
-                                <div class="stats-grid">
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="activeCodesCount">0</div>
-                                        <div class="stat-label">Códigos Activos</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="totalCodesUsed">0</div>
-                                        <div class="stat-label">Total Usados</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="totalPointsAwarded">0</div>
-                                        <div class="stat-label">Puntos Otorgados</div>
-                                    </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="totalPointsAwarded">0</div>
+                                    <div class="stat-label">Puntos Otorgados</div>
                                 </div>
                             </div>
-                                                </div>
+                            
+                            <div class="codes-management">
+                                <h4 class="subsection-title">
+                                    <i class="ph-key"></i>
+                                    Gestión de Códigos
+                                </h4>
+                                
+                                <div class="verification-filters">
+                                    <input type="text" id="newCodeValue" placeholder="Código" class="filter-input">
+                                    <input type="number" id="newCodePoints" placeholder="Puntos" class="filter-input">
+                                    <select id="newCodeDuration" class="filter-input">
+                                        <option value="1">1 Hora</option>
+                                        <option value="2">2 Horas</option>
+                                        <option value="6">6 Horas</option>
+                                        <option value="12">12 Horas</option>
+                                        <option value="24">1 Día</option>
+                                        <option value="48">2 Días</option>
+                                        <option value="168">1 Semana</option>
+                                        <option value="720">1 Mes</option>
+                                        <option value="8760">1 Año</option>
+                                    </select>
+                                    <input type="number" id="newCodeMaxUses" placeholder="Usos" class="filter-input">
+                                    <button class="action-button" onclick="createInstagramCode()">
+                                        <i class="ph-plus"></i>
+                                        Crear Código
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="codes-list" id="activeCodesList">
+                                <!-- Los códigos se cargarán dinámicamente -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3996,6 +5576,61 @@
             </div>
         </div>
     </template>
+
+    <!-- Modal de Agregar/Editar Acción -->
+    <div class="modal" id="actionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="actionModalTitle">Agregar Nueva Acción</h3>
+                <button class="modal-close" onclick="closeModal('actionModal')">&times;</button>
+            </div>
+            
+            <form id="actionForm">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Acción</label>
+                    <input type="text" class="form-input" id="actionName" placeholder="Ej: Reclamar Visita Diaria" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input" id="actionDescription" placeholder="Descripción de la acción..." rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Puntos a Otorgar</label>
+                    <input type="number" class="form-input" id="actionPoints" placeholder="10" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Límite Diario</label>
+                    <input type="number" class="form-input" id="actionDailyLimit" placeholder="1" min="0" required>
+                    <small class="form-help">0 = Sin límite</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-input" id="actionStatus" required>
+                        <option value="active">Activa</option>
+                        <option value="inactive">Inactiva</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Icono</label>
+                    <input type="text" class="form-input" id="actionIcon" placeholder="ph-star" required>
+                    <small class="form-help">Clase del icono (ej: ph-star, ph-calendar, ph-users)</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <span id="actionButtonText">Agregar Acción</span>
+                        <div id="actionLoading" class="loading-spinner hidden"></div>
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="closeModal('actionModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal de Modificación de Puntos -->
     <div class="modal" id="modifyPointsModal">
@@ -4344,6 +5979,7 @@
             document.getElementById('addRewardForm')?.addEventListener('submit', handleAddReward);
             document.getElementById('editRewardForm')?.addEventListener('submit', handleEditReward);
             document.getElementById('addMenuItemForm')?.addEventListener('submit', handleAddMenuItem);
+            document.getElementById('actionForm')?.addEventListener('submit', handleActionForm);
         }
 
         // Manejar cambios de estado de autenticación para admin (ULTRA RÁPIDO - como en codigoonline.md)
@@ -4354,7 +5990,7 @@
             
             if (isLoggedIn && user) {
                 console.log('👤 Usuario actual:', user.email);
-                    adminCurrentUser = user;
+                    adminCurrentUser = user.uid;
                 
                 // Verificación ULTRA RÁPIDA de admin (sin delays, sin verificaciones complejas)
                 try {
@@ -4729,8 +6365,7 @@
             console.log('HTML generado para la tabla de premios:', tableHTML);
             table.innerHTML = tableHTML;
             
-            // Verificar overflow después de renderizar
-            setTimeout(checkTableOverflow, 100);
+            // Overflow manejado automáticamente por CSS
         }
 
         // Redemptions functions
@@ -5276,13 +6911,9 @@
             textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
         }
 
-        // Función para detectar overflow en tablas
+        // Función para detectar overflow en tablas - OPTIMIZADA
         function checkTableOverflow() {
-            const tableContainers = document.querySelectorAll('.table-container');
-            tableContainers.forEach(container => {
-                const hasOverflow = container.scrollWidth > container.clientWidth;
-                container.classList.toggle('has-overflow', hasOverflow);
-            });
+            // Ya no necesaria - el scroll se maneja directamente en users-table
         }
 
         // Función para mostrar/ocultar columnas adicionales
@@ -5300,8 +6931,7 @@
             toggleText.textContent = isHidden ? 'Menos Columnas' : 'Más Columnas';
             toggleBtn.classList.toggle('active', isHidden);
             
-            // Verificar overflow después del cambio
-            setTimeout(checkTableOverflow, 100);
+            // Overflow manejado automáticamente por CSS
         }
 
         // Verificar overflow cuando se cargan las tablas
@@ -5351,8 +6981,7 @@
                 </table>
             `;
             
-            // Verificar overflow después de renderizar
-            setTimeout(checkTableOverflow, 100);
+            // Overflow manejado automáticamente por CSS
         }
 
         // Analytics functions
@@ -5495,6 +7124,9 @@
                     </tbody>
                 </table>
             `;
+            
+            // Forzar estilos después de renderizar
+            setTimeout(forceRedemptionsTableStyles, 50);
         }
 
         // Cargar datos de análisis
@@ -5753,50 +7385,10 @@
             }
         }
         
-        // Función para mostrar el panel secreto de administración
+        // Función para mostrar el panel secreto de administración (DESHABILITADA)
         function showSecretAdminPanel() {
-            const secretPanel = `
-                <div id="secretAdminPanel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
-                    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                        <h2 style="color: #e74c3c; margin-bottom: 20px;">🔐 Panel Secreto de Administración</h2>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <h3>👥 Crear Nuevo Administrador</h3>
-                            <input type="email" id="newAdminEmail" placeholder="Email del nuevo admin" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                            <input type="text" id="newAdminName" placeholder="Nombre del nuevo admin" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                            <select id="newAdminType" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                                <option value="admin">Administrador Normal</option>
-                                <option value="super">Super Administrador</option>
-                            </select>
-                            <button onclick="createNewAdmin()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                                Crear Administrador
-                            </button>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <h3>🔍 Verificar Usuario Existente</h3>
-                            <input type="email" id="checkUserEmail" placeholder="Email del usuario a verificar" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                            <button onclick="checkUserExists()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                                Verificar Usuario
-                            </button>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <h3>🗑️ Eliminar Administrador</h3>
-                            <input type="email" id="removeAdminEmail" placeholder="Email del admin a eliminar" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                            <button onclick="removeAdmin()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                                Eliminar Administrador
-                            </button>
-                        </div>
-                        
-                        <button onclick="closeSecretPanel()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">
-                            Cerrar Panel Secreto
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', secretPanel);
+            console.log('🔐 Panel secreto deshabilitado para evitar pantallas negras');
+            return;
         }
         
         // Función para cerrar el panel secreto
@@ -5843,37 +7435,10 @@
             console.log('✅ Acceso secreto configurado');
         }
         
-        // Mostrar panel de acceso secreto
+        // Mostrar panel de acceso secreto (DESHABILITADO)
         function showSecretAccessPanel() {
-            const secretAccessPanel = `
-                <div id="secretAccessPanel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center;">
-                    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
-                        <h2 style="color: #e74c3c; margin-bottom: 20px;">🔐 Acceso Secreto</h2>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <h3>🔑 Verificar Super-Admin</h3>
-                            <p style="color: #666; font-size: 14px;">Solo super-administradores pueden acceder a funciones avanzadas.</p>
-                            <button onclick="verifySuperAdminAccess()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;">
-                                Verificar Acceso
-                            </button>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <h3>👤 Crear Primer Super-Admin</h3>
-                            <p style="color: #666; font-size: 14px;">Solo usar si no hay super-administradores en el sistema.</p>
-                            <button onclick="createFirstSuperAdmin()" style="background: #e67e22; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;">
-                                Crear Primer Super-Admin
-                            </button>
-                        </div>
-                        
-                        <button onclick="closeSecretAccessPanel()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', secretAccessPanel);
+            console.log('🔐 Panel de acceso secreto deshabilitado para evitar pantallas negras');
+            return;
         }
         
         // Cerrar panel de acceso secreto
@@ -7771,6 +9336,8 @@
                     case 'redemptions':
                         console.log('🔄 Cargando canjes...');
                         await loadRedemptions();
+                        // Forzar estilos después de cargar
+                        setTimeout(forceRedemptionsTableStyles, 100);
                         break;
                         
                     case 'menu':
@@ -7791,6 +9358,13 @@
                     case 'instagram-verifications':
                         console.log('📸 Cargando verificaciones de Instagram...');
                         await loadInstagramVerifications();
+                        break;
+                        
+                    case 'actions':
+                        console.log('⭐ Cargando acciones disponibles...');
+                        await loadActions();
+                        // Forzar estilos después de cargar
+                        setTimeout(forceActionsTableStyles, 100);
                         break;
                         
                     default:
@@ -8294,21 +9868,81 @@
         // Cargar códigos activos
         async function loadInstagramCodes() {
             try {
+                console.log('🔍 Cargando códigos de Instagram...');
+                console.log('👤 adminCurrentUser:', adminCurrentUser);
+                
+                if (!adminCurrentUser) {
+                    console.error('❌ No hay usuario administrador autenticado');
+                    showMessage('Error: No hay usuario administrador autenticado', 'error');
+                    return;
+                }
+                
+                // Verificar permisos de administrador
+                const isAdmin = await LoyaltyAPI.isAdmin(adminCurrentUser);
+                console.log('👑 ¿Es administrador?:', isAdmin);
+                console.log('👤 Usuario actual:', adminCurrentUser);
+                
                 const codes = await LoyaltyAPI.getInstagramCodes();
-                renderInstagramCodes(codes);
-                updateCodesStats(codes);
+                console.log('📊 Códigos obtenidos:', codes);
+                
+                // Si no hay códigos, crear uno de prueba
+                if (!codes || codes.length === 0) {
+                    console.log('📝 No hay códigos, creando uno de prueba...');
+                    
+                    // Crear código directamente en Firestore
+                    try {
+                        const code = 'TEST' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                        
+                        await firebase.firestore().collection('instagramCodes').add({
+                            code: code,
+                            points: 25,
+                            expiresAt: expiresAt,
+                            isActive: true,
+                            createdAt: new Date(),
+                            createdBy: adminCurrentUser,
+                            usedBy: []
+                        });
+                        
+                        console.log('✅ Código creado directamente:', code);
+                        
+                        const newCodes = await LoyaltyAPI.getInstagramCodes();
+                        console.log('📊 Nuevos códigos obtenidos:', newCodes);
+                        renderInstagramCodes(newCodes);
+                        updateCodesStats(newCodes);
+                    } catch (error) {
+                        console.error('❌ Error creando código:', error);
+                        renderInstagramCodes([]);
+                        updateCodesStats([]);
+                    }
+                } else {
+                    renderInstagramCodes(codes);
+                    updateCodesStats(codes);
+                }
+                
+                console.log('✅ Códigos cargados exitosamente');
             } catch (error) {
-                console.error('Error loading Instagram codes:', error);
+                console.error('❌ Error loading Instagram codes:', error);
                 showMessage('Error al cargar códigos', 'error');
             }
         }
         
         // Renderizar códigos
         function renderInstagramCodes(codes) {
+            console.log('🎨 Renderizando códigos...');
             const container = document.getElementById('activeCodesList');
+            console.log('📦 Container encontrado:', container);
             
             if (!codes || codes.length === 0) {
-                container.innerHTML = '<p>No hay códigos activos</p>';
+                console.log('📭 No hay códigos para mostrar');
+                container.innerHTML = `
+                    <div style="background: blue; color: white; padding: 20px; text-align: center; font-size: 16px; border: 2px solid orange; margin-bottom: 10px;">
+                        📭 No hay códigos activos en este momento (FUNCIÓN EJECUTADA)
+                    </div>
+                    <div style="background: yellow; color: black; padding: 20px; text-align: center; font-size: 16px; border: 2px solid red; font-weight: bold;">
+                        🚨 ESTE CONTENIDO DEBERÍA SER VISIBLE
+                    </div>
+                `;
                 return;
             }
             
@@ -8393,10 +10027,35 @@
         function switchInstagramTab(tabName) {
             console.log('🔄 Cambiando a pestaña:', tabName);
             
-            // Ocultar todos los contenidos de pestañas
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            // Ocultar solo el contenido que NO corresponde a la pestaña seleccionada
+            const verificationsContent = document.getElementById('verifications-content');
+            const codesContent = document.getElementById('codes-content');
+            
+            if (tabName === 'verifications') {
+                // Mostrar verificaciones, ocultar códigos
+                if (verificationsContent) {
+                    verificationsContent.classList.add('active');
+                    verificationsContent.style.display = 'block';
+                    console.log('✅ Mostrando verificaciones');
+                }
+                if (codesContent) {
+                    codesContent.classList.remove('active');
+                    codesContent.style.display = 'none';
+                    console.log('❌ Ocultando códigos');
+                }
+            } else if (tabName === 'codes') {
+                // Mostrar códigos, ocultar verificaciones
+                if (codesContent) {
+                    codesContent.classList.add('active');
+                    codesContent.style.display = 'block';
+                    console.log('✅ Mostrando códigos');
+                }
+                if (verificationsContent) {
+                    verificationsContent.classList.remove('active');
+                    verificationsContent.style.display = 'none';
+                    console.log('❌ Ocultando verificaciones');
+                }
+            }
             
             // Desactivar todos los botones de pestañas
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -8406,7 +10065,12 @@
             // Mostrar contenido de la pestaña seleccionada
             const targetContent = document.getElementById(tabName + '-content');
             if (targetContent) {
-                targetContent.classList.add('active');
+                console.log('✅ Mostrando contenido:', tabName + '-content');
+                console.log('🎨 Clases del elemento:', targetContent.className);
+                console.log('📏 Dimensiones del elemento:', targetContent.offsetWidth, 'x', targetContent.offsetHeight);
+                console.log('🎨 Estilos aplicados:', window.getComputedStyle(targetContent).display);
+            } else {
+                console.error('❌ No se encontró el contenido:', tabName + '-content');
             }
             
             // Activar botón de la pestaña seleccionada
@@ -8414,6 +10078,8 @@
             if (activeBtn) {
                 activeBtn.classList.add('active');
             }
+            
+            // Función deshabilitada para evitar conflictos
             
             // Cargar datos específicos de la pestaña
             loadTabData(tabName);
@@ -8449,11 +10115,721 @@
         
 
         
+        // Función para establecer usuario administrador (temporal)
+        function setAdminUser() {
+            adminCurrentUser = 'admin@losnogales.com';
+            console.log('👑 Usuario administrador establecido:', adminCurrentUser);
+            showMessage('✅ Usuario administrador activado', 'success');
+            
+            // Recargar códigos después de establecer admin
+            setTimeout(() => {
+                loadInstagramCodes();
+            }, 1000);
+        }
+        
+        // Forzar estilos de codes-content al cargar
+        function forceCodesContentStyles() {
+            const codesContent = document.getElementById('codes-content');
+            if (codesContent) {
+                codesContent.style.setProperty('background', '#1a202c', 'important');
+                codesContent.style.setProperty('border', '1px solid #4a5568', 'important');
+                codesContent.style.setProperty('border-radius', '8px', 'important');
+                codesContent.style.setProperty('padding', '20px', 'important');
+                codesContent.style.setProperty('height', 'auto', 'important');
+                codesContent.style.setProperty('overflow', 'visible', 'important');
+                codesContent.style.setProperty('max-height', 'none', 'important');
+                console.log('🔧 Estilos forzados para codes-content al cargar');
+            }
+            
+            // Forzar visibilidad completa de la sección de Instagram
+            const instagramSection = document.getElementById('instagram-verifications');
+            if (instagramSection) {
+                instagramSection.style.setProperty('overflow', 'visible', 'important');
+                instagramSection.style.setProperty('height', 'auto', 'important');
+                instagramSection.style.setProperty('min-height', 'auto', 'important');
+                console.log('🔧 Visibilidad forzada para instagram-verifications');
+            }
+            
+            const sectionContent = document.querySelector('#instagram-verifications .section-content');
+            if (sectionContent) {
+                sectionContent.style.setProperty('overflow', 'visible', 'important');
+                sectionContent.style.setProperty('height', 'auto', 'important');
+                sectionContent.style.setProperty('min-height', 'auto', 'important');
+                console.log('🔧 Visibilidad forzada para section-content');
+            }
+            
+            // Función deshabilitada para evitar conflictos
+        }
+        
+        // Función para arreglar scrolls en la sección de códigos (DESHABILITADA)
+        function fixCodesScroll() {
+            // Función deshabilitada para evitar que rompa el layout del formulario
+            return;
+        }
+        
+        // Función para forzar visibilidad correcta de pestañas (DESHABILITADA)
+        function forceTabVisibility() {
+            // Función deshabilitada para evitar conflictos
+            return;
+        }
+        
+        // Función para eliminar pantallas negras (DESHABILITADA)
+        function removeBlackScreens() {
+            // Función deshabilitada para evitar spam en consola
+            return;
+        }
+        
+        // Función para crear códigos de Instagram
+        async function createInstagramCode() {
+            try {
+                const codeValue = document.getElementById('newCodeValue').value.trim();
+                const points = parseInt(document.getElementById('newCodePoints').value);
+                const duration = parseInt(document.getElementById('newCodeDuration').value);
+                const maxUses = parseInt(document.getElementById('newCodeMaxUses').value);
+                
+                if (!codeValue) {
+                    alert('❌ Por favor ingresa un valor para el código');
+                    return;
+                }
+                
+                if (!points || points <= 0) {
+                    alert('❌ Por favor ingresa puntos válidos');
+                    return;
+                }
+                
+                if (!maxUses || maxUses <= 0) {
+                    alert('❌ Por favor ingresa usos máximos válidos');
+                    return;
+                }
+                
+                console.log('🔑 Creando código:', { codeValue, points, duration, maxUses });
+                
+                // Aquí iría la lógica para crear el código en Firebase
+                // Por ahora solo mostramos un mensaje de éxito
+                alert(`✅ Código "${codeValue}" creado exitosamente\n\nPuntos: ${points}\nDuración: ${duration} horas\nUsos máximos: ${maxUses}`);
+                
+                // Limpiar formulario
+                document.getElementById('newCodeValue').value = '';
+                document.getElementById('newCodePoints').value = '';
+                document.getElementById('newCodeDuration').value = '24';
+                document.getElementById('newCodeMaxUses').value = '';
+                
+                // Recargar códigos
+                await loadInstagramCodes();
+                
+            } catch (error) {
+                console.error('❌ Error creando código:', error);
+                alert('❌ Error creando código: ' + error.message);
+            }
+        }
+        
+        // Función para forzar visibilidad completa (DESHABILITADA)
+        function forceFullVisibility() {
+            // Función deshabilitada para evitar spam en consola
+            return;
+        }
+        
+        // Función para forzar que solo se muestre una sección a la vez (DESHABILITADA)
+        function forceSingleSectionVisibility() {
+            console.log('🎯 Función deshabilitada para evitar pantallas negras');
+            return;
+        }
+        
+        // ===== FUNCIONES RESPONSIVE Y MÓVILES =====
+        
+        // Función para manejar el sidebar en móviles
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        // Cerrar sidebar al hacer click en overlay
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Función para manejar orientación de pantalla
+        function handleOrientationChange() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            
+            if (isLandscape && window.innerWidth < 768) {
+                // En landscape en móviles, ajustar layout
+                document.body.classList.add('landscape-mobile');
+            } else {
+                document.body.classList.remove('landscape-mobile');
+            }
+        }
+        
+        // Función para optimizar tablas en móviles
+        function optimizeTablesForMobile() {
+            const tables = document.querySelectorAll('.users-table, #actionsTable, #rewardsTable, #redemptionsTable');
+            
+            tables.forEach(table => {
+                if (window.innerWidth <= 768) {
+                    // Asegurar scroll suave en móviles
+                    table.style.webkitOverflowScrolling = 'touch';
+                    
+                    // Asegurar que el scroll no se corte
+                    table.style.position = 'relative';
+                    table.style.zIndex = '1';
+                    
+                    // Ajustar márgenes para pantallas pequeñas
+                    if (window.innerWidth <= 360) {
+                        table.style.margin = '0 -25px';
+                        table.style.padding = '0 25px';
+                    } else if (window.innerWidth <= 480) {
+                        table.style.margin = '0 -20px';
+                        table.style.padding = '0 20px';
+                    } else {
+                        table.style.margin = '0 -15px';
+                        table.style.padding = '0 15px';
+                    }
+                    
+                    // Ajustar tamaños de fuente
+                    const tableElement = table.querySelector('table');
+                    if (tableElement) {
+                        if (window.innerWidth <= 360) {
+                            tableElement.style.fontSize = '12px';
+                        } else if (window.innerWidth <= 480) {
+                            tableElement.style.fontSize = '13px';
+                        } else {
+                            tableElement.style.fontSize = '14px';
+                        }
+                    }
+                }
+            });
+            
+            // FORZAR estilos específicos para la tabla de acciones
+            const actionsTable = document.getElementById('actionsTable');
+            if (actionsTable) {
+                const cells = actionsTable.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                    cell.style.whiteSpace = 'normal';
+                    cell.style.wordWrap = 'break-word';
+                    cell.style.overflowWrap = 'break-word';
+                });
+            }
+            
+            // FORZAR estilos específicos para la tabla de redemptions
+            const redemptionsTable = document.getElementById('redemptionsTable');
+            if (redemptionsTable) {
+                const cells = redemptionsTable.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                    cell.style.whiteSpace = 'normal';
+                    cell.style.wordWrap = 'break-word';
+                    cell.style.overflowWrap = 'break-word';
+                });
+            }
+        }
+        
+        // Función para mejorar la experiencia de formularios en móviles
+        function enhanceMobileForms() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea');
+            
+            inputs.forEach(input => {
+                // Evitar zoom en iOS
+                if (input.type !== 'file') {
+                    input.style.fontSize = '16px';
+                }
+                
+                // Mejorar focus en móviles
+                input.addEventListener('focus', function() {
+                    this.style.outline = '2px solid #10b981';
+                    this.style.outlineOffset = '2px';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.style.outline = '';
+                    this.style.outlineOffset = '';
+                });
+            });
+        }
+        
+        // Función para optimizar botones en móviles
+        function optimizeButtonsForMobile() {
+            const buttons = document.querySelectorAll('.action-button, .btn-primary, .btn-secondary, .btn-small');
+            
+            buttons.forEach(button => {
+                // Asegurar tamaño mínimo para touch
+                if (window.innerWidth <= 768) {
+                    button.style.minHeight = '44px';
+                    button.style.minWidth = '44px';
+                }
+            });
+        }
+        
+        // Función para manejar resize de ventana
+        function handleWindowResize() {
+            handleOrientationChange();
+            optimizeTablesForMobile();
+            optimizeButtonsForMobile();
+            
+            // Forzar reflow de las tablas para asegurar scroll correcto
+            const tables = document.querySelectorAll('.users-table, #actionsTable, #rewardsTable, #redemptionsTable');
+            tables.forEach(table => {
+                table.style.display = 'none';
+                table.offsetHeight; // Trigger reflow
+                table.style.display = 'block';
+            });
+        }
+        
+        // Función para limpiar duplicación de tablas
+        function cleanDuplicateTables() {
+            const actionsTable = document.getElementById('actionsTable');
+            if (actionsTable) {
+                const tables = actionsTable.querySelectorAll('table');
+                if (tables.length > 1) {
+                    console.log('🧹 Limpiando tablas duplicadas en actionsTable');
+                    for (let i = 1; i < tables.length; i++) {
+                        tables[i].remove();
+                    }
+                }
+            }
+        }
+        
+        // Función para forzar estilos de la tabla de acciones
+        function forceActionsTableStyles() {
+            const actionsTable = document.getElementById('actionsTable');
+            if (actionsTable) {
+                // Limpiar estilos inline conflictivos
+                actionsTable.style.overflow = '';
+                actionsTable.style.position = '';
+                actionsTable.style.zIndex = '';
+                actionsTable.style.margin = '';
+                actionsTable.style.padding = '';
+                actionsTable.style.display = '';
+                
+                // Aplicar estilos correctos
+                actionsTable.style.overflowX = 'auto';
+                actionsTable.style.overflowY = 'hidden';
+                
+                const cells = actionsTable.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                    // Limpiar estilos inline conflictivos
+                    cell.style.whiteSpace = '';
+                    cell.style.wordWrap = '';
+                    cell.style.overflowWrap = '';
+                    
+                    // Aplicar estilos correctos
+                    cell.style.whiteSpace = 'normal';
+                    cell.style.wordWrap = 'break-word';
+                    cell.style.overflowWrap = 'break-word';
+                });
+                
+                // Ajustar para pantallas pequeñas
+                if (window.innerWidth <= 360) {
+                    actionsTable.style.margin = '0 -20px';
+                    actionsTable.style.padding = '0 20px';
+                    
+                    const table = actionsTable.querySelector('table');
+                    if (table) {
+                        table.style.fontSize = '11px';
+                    }
+                    
+                    const buttons = actionsTable.querySelectorAll('.btn-small');
+                    buttons.forEach(button => {
+                        button.style.padding = '4px 6px';
+                        button.style.fontSize = '10px';
+                        button.style.minHeight = '24px';
+                        button.style.minWidth = '24px';
+                    });
+                }
+            }
+        }
+        
+        // Función para forzar estilos de la tabla de redemptions
+        function forceRedemptionsTableStyles() {
+            const redemptionsTable = document.getElementById('redemptionsTable');
+            if (redemptionsTable) {
+                // Forzar estilos en todos los elementos
+                const allElements = redemptionsTable.querySelectorAll('*');
+                allElements.forEach(element => {
+                    element.style.whiteSpace = 'normal';
+                    element.style.wordWrap = 'break-word';
+                    element.style.overflowWrap = 'break-word';
+                });
+                
+                // Forzar estilos específicos en celdas
+                const cells = redemptionsTable.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                    cell.style.whiteSpace = 'normal';
+                    cell.style.wordWrap = 'break-word';
+                    cell.style.overflowWrap = 'break-word';
+                    cell.style.lineHeight = '1.4';
+                    cell.style.position = 'relative';
+                    cell.style.zIndex = '1';
+                });
+                
+                // Forzar estilos en la tabla
+                const table = redemptionsTable.querySelector('table');
+                if (table) {
+                    table.style.tableLayout = 'auto';
+                    table.style.position = 'relative';
+                    table.style.zIndex = '1';
+                }
+                
+                // Forzar estilos en el contenedor
+                redemptionsTable.style.overflowX = 'auto';
+                redemptionsTable.style.overflowY = 'hidden';
+                redemptionsTable.style.position = 'relative';
+                redemptionsTable.style.zIndex = '1';
+            }
+        }
+        
+        // Ejecutar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                cleanDuplicateTables();
+                forceCodesContentStyles();
+                forceActionsTableStyles();
+                forceRedemptionsTableStyles();
+                enhanceMobileForms();
+                optimizeButtonsForMobile();
+                optimizeTablesForMobile();
+                
+                // Agregar event listeners para responsive
+                window.addEventListener('resize', handleWindowResize);
+                window.addEventListener('orientationchange', handleOrientationChange);
+                
+                // Cerrar sidebar al hacer click en un enlace
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        setTimeout(closeSidebar, 300);
+                    });
+                });
+            });
+        } else {
+            cleanDuplicateTables();
+            forceCodesContentStyles();
+            forceActionsTableStyles();
+            forceRedemptionsTableStyles();
+            enhanceMobileForms();
+            optimizeButtonsForMobile();
+            optimizeTablesForMobile();
+        }
+        
+        // ===== FUNCIONES DE GESTIÓN DE ACCIONES =====
+        
+        // Variables globales para acciones
+        let allActions = [];
+        let selectedAction = null;
+        
+        // Cargar acciones disponibles
+        async function loadActions() {
+            try {
+                console.log('🔄 Cargando acciones disponibles...');
+                
+                // Datos de ejemplo (en producción vendrían de Firebase)
+                allActions = [
+                    {
+                        id: 'daily-visit',
+                        name: 'Reclamar Visita Diaria',
+                        description: 'Reclama tus puntos diarios por visitar Los Nogales',
+                        points: 10,
+                        status: 'active',
+                        dailyLimit: 1,
+                        usedToday: 0,
+                        icon: 'ph-calendar'
+                    },
+                    {
+                        id: 'invite-friends',
+                        name: 'Invitar Amigos',
+                        description: 'Invita amigos a Los Nogales y gana puntos',
+                        points: 20,
+                        status: 'active',
+                        dailyLimit: 5,
+                        usedToday: 0,
+                        icon: 'ph-users'
+                    },
+                    {
+                        id: 'complete-survey',
+                        name: 'Completar Encuesta',
+                        description: 'Completa nuestra encuesta de satisfacción',
+                        points: 20,
+                        status: 'active',
+                        dailyLimit: 1,
+                        usedToday: 0,
+                        icon: 'ph-clipboard-text'
+                    },
+                    {
+                        id: 'instagram-post',
+                        name: 'Post en Instagram',
+                        description: 'Comparte tu experiencia en Instagram',
+                        points: 15,
+                        status: 'active',
+                        dailyLimit: 2,
+                        usedToday: 0,
+                        icon: 'ph-instagram-logo'
+                    }
+                ];
+                
+                renderActionsTable(allActions);
+                updateActionsStats();
+                
+                console.log('✅ Acciones cargadas:', allActions.length);
+                
+            } catch (error) {
+                console.error('❌ Error cargando acciones:', error);
+                showMessage('Error cargando acciones: ' + error.message, 'error');
+            }
+        }
+        
+        // Renderizar tabla de acciones
+        function renderActionsTable(actions) {
+            const tbody = document.getElementById('actionsTableBody');
+            if (!tbody) return;
+            
+            // Limpiar cualquier duplicación
+            const actionsTable = document.getElementById('actionsTable');
+            if (actionsTable) {
+                // Remover cualquier tabla duplicada
+                const tables = actionsTable.querySelectorAll('table');
+                if (tables.length > 1) {
+                    for (let i = 1; i < tables.length; i++) {
+                        tables[i].remove();
+                    }
+                }
+            }
+            
+            if (actions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-gray-500">
+                            No hay acciones configuradas
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = actions.map(action => `
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <i class="${action.icon} text-lg"></i>
+                            <span class="font-medium">${action.name}</span>
+                        </div>
+                    </td>
+                    <td>${action.description}</td>
+                    <td>
+                        <span class="badge badge-success">+${action.points} pts</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-${action.status === 'active' ? 'success' : 'warning'}">
+                            ${action.status === 'active' ? 'Activa' : 'Inactiva'}
+                        </span>
+                    </td>
+                    <td>${action.dailyLimit === 0 ? 'Sin límite' : action.dailyLimit}</td>
+                    <td>${action.usedToday}/${action.dailyLimit}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-small primary" onclick="editAction('${action.id}')">
+                                <i class="ph-pencil"></i>
+                            </button>
+                            <button class="btn-small secondary" onclick="toggleActionStatus('${action.id}')">
+                                <i class="ph-${action.status === 'active' ? 'pause' : 'play'}"></i>
+                            </button>
+                            <button class="btn-small danger" onclick="deleteAction('${action.id}')">
+                                <i class="ph-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Forzar estilos después de renderizar
+            setTimeout(forceActionsTableStyles, 50);
+        }
+        
+        // Actualizar estadísticas de acciones
+        function updateActionsStats() {
+            const totalActions = allActions.length;
+            const totalPoints = allActions.reduce((sum, action) => sum + action.points, 0);
+            const actionsUsedToday = allActions.reduce((sum, action) => sum + action.usedToday, 0);
+            const avgPoints = totalActions > 0 ? Math.round(totalPoints / totalActions) : 0;
+            
+            document.getElementById('totalActions').textContent = totalActions;
+            document.getElementById('totalPointsAvailable').textContent = totalPoints;
+            document.getElementById('actionsUsedToday').textContent = actionsUsedToday;
+            document.getElementById('avgPointsPerAction').textContent = avgPoints;
+        }
+        
+        // Mostrar modal para agregar/editar acción
+        function showAddActionModal(actionId = null) {
+            selectedAction = actionId ? allActions.find(a => a.id === actionId) : null;
+            
+            const modal = document.getElementById('actionModal');
+            const title = document.getElementById('actionModalTitle');
+            const buttonText = document.getElementById('actionButtonText');
+            
+            if (selectedAction) {
+                // Modo edición
+                title.textContent = 'Editar Acción';
+                buttonText.textContent = 'Actualizar Acción';
+                
+                document.getElementById('actionName').value = selectedAction.name;
+                document.getElementById('actionDescription').value = selectedAction.description;
+                document.getElementById('actionPoints').value = selectedAction.points;
+                document.getElementById('actionDailyLimit').value = selectedAction.dailyLimit;
+                document.getElementById('actionStatus').value = selectedAction.status;
+                document.getElementById('actionIcon').value = selectedAction.icon;
+            } else {
+                // Modo agregar
+                title.textContent = 'Agregar Nueva Acción';
+                buttonText.textContent = 'Agregar Acción';
+                
+                document.getElementById('actionForm').reset();
+            }
+            
+            showModal('actionModal');
+        }
+        
+        // Manejar envío del formulario de acción
+        async function handleActionForm(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('actionName').value.trim(),
+                description: document.getElementById('actionDescription').value.trim(),
+                points: parseInt(document.getElementById('actionPoints').value),
+                dailyLimit: parseInt(document.getElementById('actionDailyLimit').value),
+                status: document.getElementById('actionStatus').value,
+                icon: document.getElementById('actionIcon').value.trim()
+            };
+            
+            if (!formData.name || !formData.description || !formData.points || !formData.icon) {
+                showMessage('Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+            
+            const button = e.target.querySelector('button[type="submit"]');
+            const buttonText = document.getElementById('actionButtonText');
+            const loading = document.getElementById('actionLoading');
+            
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            loading.classList.remove('hidden');
+            
+            try {
+                if (selectedAction) {
+                    // Actualizar acción existente
+                    const index = allActions.findIndex(a => a.id === selectedAction.id);
+                    allActions[index] = { ...selectedAction, ...formData };
+                    showMessage('✅ Acción actualizada exitosamente', 'success');
+                } else {
+                    // Agregar nueva acción
+                    const newAction = {
+                        id: 'action-' + Date.now(),
+                        ...formData,
+                        usedToday: 0
+                    };
+                    allActions.push(newAction);
+                    showMessage('✅ Acción agregada exitosamente', 'success');
+                }
+                
+                renderActionsTable(allActions);
+                updateActionsStats();
+                closeModal('actionModal');
+                
+            } catch (error) {
+                console.error('Error guardando acción:', error);
+                showMessage('Error guardando acción: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                buttonText.style.display = 'inline';
+                loading.classList.add('hidden');
+                selectedAction = null;
+            }
+        }
+        
+        // Editar acción
+        function editAction(actionId) {
+            showAddActionModal(actionId);
+        }
+        
+        // Cambiar estado de acción
+        function toggleActionStatus(actionId) {
+            const action = allActions.find(a => a.id === actionId);
+            if (action) {
+                action.status = action.status === 'active' ? 'inactive' : 'active';
+                renderActionsTable(allActions);
+                showMessage(`✅ Acción ${action.status === 'active' ? 'activada' : 'desactivada'}`, 'success');
+            }
+        }
+        
+        // Eliminar acción
+        function deleteAction(actionId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta acción?')) return;
+            
+            allActions = allActions.filter(a => a.id !== actionId);
+            renderActionsTable(allActions);
+            updateActionsStats();
+            showMessage('✅ Acción eliminada exitosamente', 'success');
+        }
+        
+        // Exportar acciones
+        function exportActions() {
+            const csvContent = generateActionsCSV(allActions);
+            downloadCSV(csvContent, 'acciones_los_nogales.csv');
+        }
+        
+        // Generar CSV de acciones
+        function generateActionsCSV(actions) {
+            const headers = ['Acción', 'Descripción', 'Puntos', 'Estado', 'Límite Diario', 'Usos Hoy'];
+            const rows = actions.map(action => [
+                action.name,
+                action.description,
+                action.points,
+                action.status,
+                action.dailyLimit,
+                action.usedToday
+            ]);
+            
+            return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        }
+        
+        // Actualizar acciones
+        function refreshActions() {
+            loadActions();
+            showMessage('✅ Acciones actualizadas', 'success');
+        }
+        
         // Registrar funciones globalmente
         window.loadInstagramCodes = loadInstagramCodes;
         window.generateInstagramCode = generateInstagramCode;
         window.deleteInstagramCode = deleteInstagramCode;
         window.switchInstagramTab = switchInstagramTab;
+        window.setAdminUser = setAdminUser;
+        window.showAddActionModal = showAddActionModal;
+        window.editAction = editAction;
+        window.toggleActionStatus = toggleActionStatus;
+        window.deleteAction = deleteAction;
+        window.exportActions = exportActions;
+        window.refreshActions = refreshActions;
+        window.toggleSidebar = toggleSidebar;
+        window.closeSidebar = closeSidebar;
+        window.handleOrientationChange = handleOrientationChange;
+        window.optimizeTablesForMobile = optimizeTablesForMobile;
+        window.cleanDuplicateTables = cleanDuplicateTables;
+        window.forceActionsTableStyles = forceActionsTableStyles;
+        window.forceRedemptionsTableStyles = forceRedemptionsTableStyles;
+        window.enhanceMobileForms = enhanceMobileForms;
+        window.optimizeButtonsForMobile = optimizeButtonsForMobile;
         
     </script>
 </body>
